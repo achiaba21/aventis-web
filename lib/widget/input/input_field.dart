@@ -60,34 +60,41 @@ class _InputFieldState extends State<InputField> {
             padding: const EdgeInsets.only(left: 8.0),
             child: TextSeed(libele),
           ),
-        TextFormField(
-          controller: controller,
-          onChanged: widget.onChange,
-          validator: widget.validator,
-          cursorColor: Style.primaryColor,
-          maxLines: widget.maxLines,
-          maxLength: widget.maxLength,
-          style: TextStyle(color: Style.containerColor2),
-          decoration: InputDecoration(
-            icon: widget.leftIcon,
-            suffixIcon: widget.rightIcon,
-
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Style.primaryColor),
-              borderRadius: BorderRadius.circular(Espacement.radius),
+        Theme(
+          data: ThemeData(
+            textSelectionTheme: TextSelectionThemeData(
+              selectionColor: Style.primaryColor,
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(Espacement.radius),
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: Espacement.paddingInput,
-              vertical: 0,
-            ),
-            hintText: widget.placeHolder,
           ),
-          obscureText: widget.obscureText,
-          inputFormatters: widget.inputFormatters,
-          keyboardType: widget.keyboardType,
+          child: TextFormField(
+            controller: controller,
+            onChanged: widget.onChange,
+            validator: widget.validator,
+            cursorColor: Style.primaryColor,
+            maxLines: widget.maxLines,
+            maxLength: widget.maxLength,
+            style: TextStyle(color: Style.containerColor2),
+            decoration: InputDecoration(
+              icon: widget.leftIcon,
+              suffixIcon: widget.rightIcon,
+
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Style.primaryColor),
+                borderRadius: BorderRadius.circular(Espacement.radius),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(Espacement.radius),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: Espacement.paddingInput,
+                vertical: 0,
+              ),
+              hintText: widget.placeHolder,
+            ),
+            obscureText: widget.obscureText,
+            inputFormatters: widget.inputFormatters,
+            keyboardType: widget.keyboardType,
+          ),
         ),
       ],
     );

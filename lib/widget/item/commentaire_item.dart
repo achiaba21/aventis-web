@@ -23,7 +23,7 @@ class CommentaireItem extends StatelessWidget {
       child: Column(
         children: [
           UserTilComment(commentaire),
-          TextSeed(commentaire.contenu, maxLines: 4),
+          TextSeed(commentaire.contenu, maxLines: 20),
         ],
       ),
     );

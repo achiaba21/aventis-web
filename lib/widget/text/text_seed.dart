@@ -23,6 +23,7 @@ class TextSeed extends StatelessWidget {
     return Text(
       data ?? "",
       maxLines: maxLines,
+
       textAlign: textAlign,
       style: TextStyle(
         fontWeight: fontWeight,

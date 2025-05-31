@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:web_flutter/screen/client/locataire/booking/add_comment.dart';
+import 'package:web_flutter/screen/client/locataire/booking/book_screen.dart';
 import 'package:web_flutter/screen/client/locataire/booking/booking.dart';
 import 'package:web_flutter/screen/client/locataire/booking/history.dart';
 import 'package:web_flutter/screen/client/locataire/favorite/favorite.dart';
@@ -96,10 +100,28 @@ final router = GoRouter(
         GoRoute(
           path: Booking.routeName,
           builder: (context, state) => Booking(),
+
           routes: [
             GoRoute(
               path: History.routeName,
               builder: (context, state) => History(),
+            ),
+            GoRoute(
+              path: BookScreen.routeName,
+              parentNavigatorKey: _rootNavigatorKey,
+              redirect: redirectBookNote,
+              builder: (context, state) {
+                final app = Provider.of<AppData>(context, listen: false);
+                return BookScreen(app.selectedReservation!);
+              },
+              routes: [
+                GoRoute(
+                  path: AddComment.routeName,
+                  redirect: redirectBookNote,
+                  parentNavigatorKey: _rootNavigatorKey,
+                  builder: (context, state) => AddComment(),
+                ),
+              ],
             ),
           ],
         ),
@@ -112,3 +134,12 @@ final router = GoRouter(
     ),
   ],
 );
+
+FutureOr<String?> redirectBookNote(BuildContext context, GoRouterState state) {
+  final app = Provider.of<AppData>(context, listen: false);
+  if (app.selectedReservation == null) {
+    deboger(["book redirect", state.fullPath]);
+    return Booking.routeName;
+  }
+  return null;
+}

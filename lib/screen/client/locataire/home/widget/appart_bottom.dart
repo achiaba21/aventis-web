@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:web_flutter/model/reservation/reservation.dart';
 import 'package:web_flutter/service/providers/app_data.dart';
 import 'package:web_flutter/service/providers/style.dart';
 import 'package:web_flutter/util/formate.dart';
@@ -9,15 +10,22 @@ import 'package:web_flutter/widget/container/block2.dart';
 import 'package:web_flutter/widget/text/text_seed.dart';
 
 class AppartBottom extends StatelessWidget {
-  const AppartBottom({super.key, this.onPress});
+  const AppartBottom({
+    super.key,
+    this.reservation,
+    this.validationText,
+    this.onPress,
+  });
   final void Function()? onPress;
+  final Reservation? reservation;
+  final String? validationText;
 
   @override
   Widget build(BuildContext context) {
     final appData = Provider.of<AppData>(context);
     final req = appData.req;
-    final plage = req?.plage;
-    final prix = req?.appartement?.prix ?? 0;
+    final plage = reservation?.plage ?? req?.plage;
+    final prix = reservation?.prix ?? req?.appartement?.prix ?? 0;
     final color = Style.containerColor3;
     deboger(plage);
     return Block2(
@@ -33,7 +41,7 @@ class AppartBottom extends StatelessWidget {
             ],
           ),
           Spacer(),
-          PlainButton(value: "Réserver", onPress: onPress),
+          PlainButton(value: validationText ?? "Réserver", onPress: onPress),
         ],
       ),
     );
