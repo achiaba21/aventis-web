@@ -3,8 +3,10 @@ import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
 import 'package:web_flutter/config/app_propertie.dart';
 import 'package:web_flutter/model/residence/appart.dart';
+import 'package:web_flutter/screen/client/locataire/booking/booking.dart';
 import 'package:web_flutter/screen/client/locataire/booking/widget/start_rank.dart';
 import 'package:web_flutter/service/providers/app_data.dart';
+import 'package:web_flutter/util/navigation.dart';
 import 'package:web_flutter/widget/button/plain_button_expand.dart';
 import 'package:web_flutter/widget/clien_item/client_item_info.dart';
 import 'package:web_flutter/widget/input/Input_zone.dart';
@@ -32,10 +34,13 @@ class AddComment extends StatelessWidget {
               TextSeed("Note"),
               StartRank(onNote: (note) {}),
               Divider(),
-              if (appData.client == null) ClientItemInfo(appData.client!),
+              if (appData.client != null) ClientItemInfo(appData.client!),
               InputZone(placeHolder: "Votre commentaire"),
               Gap(Espacement.gapItem),
-              PlainButtonExpand(value: "Envoyer"),
+              PlainButtonExpand(
+                value: "Envoyer",
+                onPress: () => push(context, Booking.routeName),
+              ),
             ],
           ),
         ),

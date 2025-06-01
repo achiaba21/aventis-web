@@ -38,9 +38,11 @@ class _StartRankState extends State<StartRank> {
                 color: index <= indexHover ? Colors.amber : null,
                 onPressed: () {
                   if (widget.onNote != null) {
-                    selected = index;
-                    indexHover = selected;
-                    widget.onNote!(index);
+                    setState(() {
+                      selected = index;
+                      indexHover = selected;
+                      widget.onNote!(index);
+                    });
                   }
                 },
               ),

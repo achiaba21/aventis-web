@@ -33,10 +33,8 @@ class InputZone extends StatelessWidget {
         style: TextStyle(color: Style.containerColor2),
         //scrollPhysics: AlwaysScrollableScrollPhysics(),
         cursorColor: Style.primaryColor,
-
         decoration: InputDecoration(
           hintText: placeHolder,
-
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(Espacement.radius),
             borderSide: BorderSide(color: Style.primaryColor),
