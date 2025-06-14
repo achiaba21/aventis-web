@@ -7,6 +7,15 @@ class Inbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: TextSeed("Inbox"));
+    return Scaffold(
+      appBar: AppBar(
+        bottom: TabBar(tabs: [
+          Tab(text: "Message",),
+          Tab(text: "Notification",),
+
+        ]),
+      ),
+      body: TabBarView(children: []),
+    );
   }
 }

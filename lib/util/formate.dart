@@ -8,6 +8,23 @@ String formateTime(DateTime? time) {
   return "${time.day}-${time.month}-${time.year}";
 }
 
+String formateDate(DateTime? time,{int level=0}) {
+  if (time == null) {
+    return "";
+  }
+  switch (level) {
+    case -1:
+      return "${time.hour}:${time.minute}";
+    case 0:
+      return "${time.day}-${time.month}";
+    case 1:
+      return "${time.day}-${time.month}-${time.year}";
+    default:
+      return "${time.day}-${time.month}-${time.year} ${time.hour}:${time.minute}";
+  }
+  return "${time.day}-${time.month}-${time.year}";
+}
+
 String enumeration(int num) {
   if (num == 1) {
     return "1er";
@@ -89,4 +106,17 @@ String helpAmountFormate(dynamic number, {bool sup = true, bool decim = true}) {
     }
   }
   return newChaine.trim();
+}
+
+DateTime? toDate(String? date){
+if(date == null){
+  return null;
+}
+try {
+  return DateTime.parse(date);
+} catch (e) {
+  return null;
+}
+
+  
 }
