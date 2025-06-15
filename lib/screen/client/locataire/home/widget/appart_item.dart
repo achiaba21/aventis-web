@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:web_flutter/config/app_propertie.dart';
 import 'package:web_flutter/model/request/reservation_req.dart';
 import 'package:web_flutter/model/residence/appart.dart';
+import 'package:web_flutter/router/router_manage.dart';
 import 'package:web_flutter/screen/client/locataire/home/appart_detail_screen.dart';
 import 'package:web_flutter/service/providers/app_data.dart';
 import 'package:web_flutter/service/providers/style.dart';
@@ -22,13 +23,27 @@ class AppartItem extends StatefulWidget {
 }
 
 class _AppartItemState extends State<AppartItem> {
+
+
+  
   bool isLike = false;
+  late AppData app ;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    app = Provider.of<AppData>(context, listen: false);
+    
+
+
+  }
 
   @override
   Widget build(BuildContext context) {
     final appart = widget.appart;
     final img = appart.imgUrl;
     final note = appart.note;
+    isLike = app.favorites.contains(appart.id);
 
     return InkWell(
       onTap: () {
@@ -36,9 +51,10 @@ class _AppartItemState extends State<AppartItem> {
         req.appartement = appart;
         final now = DateTime.now();
         req.plage = DateTimeRange(start: now, end: now.add(Duration(days: 2)));
-        AppData app = Provider.of<AppData>(context, listen: false);
+        
         app.setReservationReq(req);
-        relativePush(context, "${AppartDetailScreen.routeName}/${appart.id}");
+        RouterManage.goToAppartDetail(context,appart.id!);
+       
       },
       child: Container(
         child: Column(
@@ -78,8 +94,7 @@ class _AppartItemState extends State<AppartItem> {
                     color: isLike ? Colors.red : Style.innactiveColor,
                     onPressed:
                         () => setState(() {
-                          deboger("object");
-                          isLike = !isLike;
+                          app.toggleFavorites(appart);
                         }),
                   ),
                 ],

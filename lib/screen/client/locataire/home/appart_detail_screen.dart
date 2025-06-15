@@ -27,7 +27,7 @@ class AppartDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AppData app = Provider.of<AppData>(context, listen: false);
+    AppData app = Provider.of<AppData>(context);
 
     DateTimeRange? selectedRange;
     final appart = findByid(apparts, ((element) => element.id == appartId));
@@ -38,6 +38,7 @@ class AppartDetailScreen extends StatelessWidget {
         ),
       );
     }
+    final like = app.favorites.contains(appart.id);
     final comments = appart.commentaires?.firstOrNull;
     final req = app.req;
 
@@ -70,7 +71,12 @@ class AppartDetailScreen extends StatelessWidget {
                               bgColor: Style.containerColor2,
                             ),
                             Spacer(),
-                            CircleIcon(image: Icons.favorite, size: 18),
+                            IconBoutton(
+                              icon: Icons.favorite,
+                              size: 18,
+                              color: like ? Colors.red : null,
+                              onPressed: () => app.toggleFavorites(appart),
+                            ),
                           ],
                         ),
                       ),

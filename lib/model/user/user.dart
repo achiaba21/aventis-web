@@ -8,6 +8,8 @@ class User {
   int? age;
   String? type;
 
+  String get nature=>"user";
+
   String get fullName {
     return "${nom ?? ""} ${prenom ?? ""}";
   }

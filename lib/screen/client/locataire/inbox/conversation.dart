@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:web_flutter/model/message/seance.dart';
+import 'package:web_flutter/widget/client/client_status.dart';
 import 'package:web_flutter/widget/message/message_item.dart';
 import 'package:web_flutter/widget/message/send_message.dart';
 
@@ -11,7 +12,9 @@ class Conversation extends StatelessWidget {
     final messages = seance?.message ?? [];
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: ClientStatus(seance?.contact),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(

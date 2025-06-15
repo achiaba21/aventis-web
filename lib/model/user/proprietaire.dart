@@ -21,6 +21,10 @@ class Proprietaire extends Client {
   }
 
   @override
+  // TODO: implement nature
+  String get nature => "Proprio";
+
+  @override
   Map<String, dynamic> toJson() {
     final data = super.toJson();
     data['proprietaire'] = proprietaire;

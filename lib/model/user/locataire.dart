@@ -21,6 +21,10 @@ class Locataire extends Client {
   }
 
   @override
+  // TODO: implement nature
+  String get nature => "client";
+
+  @override
   Map<String, dynamic> toJson() {
     final data = super.toJson();
     data['locataire'] = locataire;
