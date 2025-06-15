@@ -3,6 +3,7 @@ import 'package:web_flutter/config/app_propertie.dart';
 import 'package:web_flutter/model/user/proprietaire.dart';
 import 'package:web_flutter/util/function.dart';
 import 'package:web_flutter/widget/img/image_app.dart';
+import 'package:web_flutter/widget/img/image_net.dart';
 import 'package:web_flutter/widget/text/text_seed.dart';
 
 class ProprioTile extends StatelessWidget {
@@ -17,7 +18,7 @@ class ProprioTile extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       spacing: Espacement.gapItem,
       children: [
-        ImageApp(proprio?.imgUrl, size: 24),
+        ImageNet(proprio?.imgUrl, size: 24),
         Column(
           spacing: Espacement.gapItem / 2,
           children: [

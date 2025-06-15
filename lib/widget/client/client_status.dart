@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:web_flutter/config/app_propertie.dart';
 import 'package:web_flutter/model/user/client.dart';
 import 'package:web_flutter/widget/img/image_app.dart';
+import 'package:web_flutter/widget/img/image_net.dart';
 import 'package:web_flutter/widget/text/icon_text_2.dart';
 import 'package:web_flutter/widget/text/text_seed.dart';
 
@@ -19,7 +20,7 @@ class _ClientStatusState extends State<ClientStatus> {
     final client = widget.client;
     return Row(
       children: [
-        ImageApp(client?.imgUrl),
+        ImageNet(client?.imgUrl),
         Expanded(
           child: Column(
             children: [

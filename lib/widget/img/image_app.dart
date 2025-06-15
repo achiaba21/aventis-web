@@ -18,8 +18,9 @@ class ImageApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final errorWidget = CircleIcon(image: Icons.person, size: size ?? 16);
     return name == null
-        ? CircleIcon(image: Icons.person, size: size ?? 16)
+        ? errorWidget
         : Container(
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
@@ -27,10 +28,13 @@ class ImageApp extends StatelessWidget {
           ),
           child: Image.asset(
             name!,
-            width: size ?? width ?? double.infinity,
+            width: size ?? width ,
             height: size ?? height,
             alignment: Alignment.topCenter,
             fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return errorWidget;
+            },
           ),
         );
   }

@@ -12,6 +12,7 @@ import 'package:web_flutter/util/formate.dart';
 import 'package:web_flutter/util/navigation.dart';
 import 'package:web_flutter/widget/button/plain_button_icon.dart';
 import 'package:web_flutter/widget/img/image_app.dart';
+import 'package:web_flutter/widget/img/image_net.dart';
 import 'package:web_flutter/widget/item/appart/appart_localisation.dart';
 import 'package:web_flutter/widget/item/note.dart';
 import 'package:web_flutter/widget/text/text_badge.dart';
@@ -63,7 +64,7 @@ class _BookingItemState extends State<BookingItem> {
           spacing: Espacement.gapItem,
           children: [
             Expanded(
-              child: ImageApp(
+              child: ImageNet(
                 appartement?.imgUrl,
                 height: size,
                 radius: Espacement.radius,
