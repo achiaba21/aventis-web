@@ -4,8 +4,7 @@ import 'package:web_flutter/model/residence/commodite/commodite.dart';
 class MachineALaver extends Commodite {
   bool? machineALaver;
 
-  MachineALaver({String? nom, String? description, this.machineALaver})
-    : super(nom: nom, description: description);
+  MachineALaver({super.nom, super.description, this.machineALaver});
 
   MachineALaver.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     machineALaver = json['machineALaver'];

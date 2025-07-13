@@ -5,11 +5,11 @@ class ChauffeEau extends Commodite {
   bool? chauffeEau;
 
   ChauffeEau({
-    int? id,
-    String? nom,
-    String? description,
+    super.id,
+    super.nom,
+    super.description,
     this.chauffeEau = true,
-  }) : super(id: id, nom: nom, description: description);
+  });
 
   ChauffeEau.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     chauffeEau = json['chauffeEau'];

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:web_flutter/model/user/proprietaire.dart';
-import 'package:web_flutter/widget/img/image_app.dart';
 import 'package:web_flutter/widget/img/image_net.dart';
 import 'package:web_flutter/widget/text/text_seed.dart';
 

@@ -5,12 +5,12 @@ class CommentaireReservation extends Commentaire {
   Reservation? reservation;
 
   CommentaireReservation({
-    int? id,
-    int? note,
-    String? contenu,
+    super.id,
+    super.note,
+    super.contenu,
 
     this.reservation,
-  }) : super(id: id, note: note, contenu: contenu);
+  });
 
   CommentaireReservation.fromJson(Map<String, dynamic> json)
     : super.fromJson(json) {

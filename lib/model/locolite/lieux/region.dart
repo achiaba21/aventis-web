@@ -5,8 +5,8 @@ class Region extends Lieux {
   bool? region = true;
   Pays? pays;
 
-  Region({int? id, String? nom, String? type, this.pays, this.region})
-    : super(id: id, nom: nom, type: type ?? "Region");
+  Region({super.id, super.nom, String? type, this.pays, this.region})
+    : super(type: type ?? "Region");
 
   Region.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     pays = json['pays'] != null ? Pays.fromJson(json['pays']) : null;

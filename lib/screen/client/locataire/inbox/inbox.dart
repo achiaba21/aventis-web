@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:web_flutter/screen/client/locataire/inbox/widget/message_list.dart';
 import 'package:web_flutter/screen/client/locataire/inbox/widget/notification_list.dart';
 import 'package:web_flutter/service/providers/style.dart';
-import 'package:web_flutter/widget/text/text_seed.dart';
 
 class Inbox extends StatelessWidget {
   static final String routeName = "/inbox";

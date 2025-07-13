@@ -1,4 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:web_flutter/config/app_propertie.dart';
+import 'package:web_flutter/model/user/client.dart';
+import 'package:web_flutter/screen/client/locataire/profile/account_information.dart';
+import 'package:web_flutter/screen/client/locataire/profile/feed.dart';
+import 'package:web_flutter/util/function.dart';
+import 'package:web_flutter/util/navigation.dart';
+import 'package:web_flutter/widget/client/profil_user.dart';
+import 'package:web_flutter/widget/list/list_tile_custom.dart';
 import 'package:web_flutter/widget/text/text_seed.dart';
 
 class Profile extends StatelessWidget {
@@ -6,8 +17,57 @@ class Profile extends StatelessWidget {
 
   const Profile({super.key});
 
+  String complet() {
+    String asset = "";
+    try {
+      final isMobile = Platform.isAndroid || Platform.isIOS;
+      if (isMobile) {
+        asset = "assets/";
+      }
+    } catch (e) {
+      deboger(e);
+    }
+    return asset;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Center(child: TextSeed("Profice"));
+    final racine = complet();
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        spacing: Espacement.gapItem,
+        children: [
+          TextSeed("Profile"),
+          ProfilUser(Client()),
+          Divider(),
+          //Eran money
+          Gap(Espacement.gapSection),
+          TextSeed("Parametre de compte"),
+          Gap(Espacement.gapItem),
+          ListTileCustom(
+            texte: "Information",
+            svgPathLeft: "${racine}icon/profil/account.svg",
+            onTap: () => relativePush(context, AccountInformation.routeName),
+          ),
+          ListTileCustom(
+            texte: "Securité",
+            svgPathLeft: "${racine}icon/profil/security.svg",
+          ),
+          Gap(Espacement.gapSection),
+          TextSeed("Support"),
+          Gap(Espacement.gapItem),
+          ListTileCustom(
+            texte: "FAQS",
+            svgPathLeft: "${racine}icon/profil/question.svg",
+          ),
+          ListTileCustom(
+            texte: "Envoyé des avis",
+            svgPathLeft: "${racine}icon/profil/feed.svg",
+            onTap: () => relativePush(context, Feed.routeName),
+          ),
+        ],
+      ),
+    );
   }
 }

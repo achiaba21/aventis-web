@@ -3,8 +3,8 @@ import 'package:web_flutter/model/locolite/lieux/lieux.dart';
 class Pays extends Lieux {
   bool? pays = true;
 
-  Pays({int? id, String? nom, String? type, this.pays})
-    : super(id: id, nom: nom, type: type ?? "Pays");
+  Pays({super.id, super.nom, String? type, this.pays})
+    : super(type: type ?? "Pays");
 
   Pays.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     pays = json['pays'];

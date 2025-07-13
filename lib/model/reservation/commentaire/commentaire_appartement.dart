@@ -5,12 +5,12 @@ class CommentaireAppartement extends Commentaire {
   Appartement? appartement;
 
   CommentaireAppartement({
-    int? id,
-    int? note,
-    String? contenu,
+    super.id,
+    super.note,
+    super.contenu,
 
     this.appartement,
-  }) : super(id: id, note: note, contenu: contenu);
+  });
 
   CommentaireAppartement.fromJson(Map<String, dynamic> json)
     : super.fromJson(json) {

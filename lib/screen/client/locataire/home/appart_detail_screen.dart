@@ -17,7 +17,6 @@ import 'package:web_flutter/util/navigation.dart';
 import 'package:web_flutter/widget/button/icon_boutton.dart';
 import 'package:web_flutter/widget/item/appart/appart_proprio_info.dart';
 import 'package:web_flutter/widget/item/appart/appart_titre_info.dart';
-import 'package:web_flutter/widget/item/circle_icon.dart';
 import 'package:web_flutter/widget/text/text_seed.dart';
 
 class AppartDetailScreen extends StatelessWidget {

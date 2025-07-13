@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:web_flutter/model/message/seance.dart';
 import 'package:web_flutter/service/providers/app_data.dart';
 import 'package:web_flutter/widget/message/message_tile.dart';
 import 'package:web_flutter/widget/text/text_seed.dart';

@@ -35,3 +35,5 @@ final monthS = [
   "Nov",
   "Déc",
 ];
+
+final String serveur = "192.168.1.100";

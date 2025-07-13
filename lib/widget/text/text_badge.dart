@@ -17,7 +17,10 @@ class TextBadge extends StatelessWidget {
         vertical: Espacement.gapItem,
       ),
       decoration: BoxDecoration(
-        color: bgColor ?? Style.primaryColor.withAlpha(75),
+        color:
+            bgColor ??
+            textColor?.withAlpha(75) ??
+            Style.primaryColor.withAlpha(75),
         borderRadius: BorderRadius.circular(Espacement.radius),
       ),
       child: TextSeed(text, color: textColor ?? Style.primaryColor),

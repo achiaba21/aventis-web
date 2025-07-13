@@ -41,3 +41,25 @@ class RouterManage {
     "${Explore.routeName}/${AppartDetailScreen.routeName}/${Reservation.routeName}/${Disponibilite.routeName}",
   );
 }
+
+Page<dynamic> buildCustomPage(Widget child, GoRouterState state) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      // Exemple : slide from right (entrer) et slide to right (sortie)
+      const begin = Offset(1.0, 0.0);
+      const end = Offset.zero;
+      const curve = Curves.ease;
+
+      final tween = Tween(
+        begin: begin,
+        end: end,
+      ).chain(CurveTween(curve: curve));
+      return SlideTransition(position: animation.drive(tween), child: child);
+    },
+  );
+}
+
+Page<void> noTransition(Widget child, GoRouterState state) =>
+    NoTransitionPage(key: state.pageKey, child: child);

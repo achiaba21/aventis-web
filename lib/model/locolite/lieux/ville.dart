@@ -5,8 +5,8 @@ class Ville extends Lieux {
   Region? region;
   bool? ville = true;
 
-  Ville({int? id, String? nom, String? type, this.region, this.ville})
-    : super(id: id, nom: nom, type: type ?? "Ville");
+  Ville({super.id, super.nom, String? type, this.region, this.ville})
+    : super(type: type ?? "Ville");
 
   Ville.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     region = json['region'] != null ? Region.fromJson(json['region']) : null;

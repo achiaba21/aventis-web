@@ -15,8 +15,12 @@ import 'package:web_flutter/screen/client/locataire/home/home.dart';
 import 'package:web_flutter/screen/client/locataire/home/reservation.dart';
 import 'package:web_flutter/screen/client/locataire/home/success_payement.dart';
 import 'package:web_flutter/screen/client/locataire/inbox/inbox.dart';
+import 'package:web_flutter/screen/client/locataire/profile/account_information.dart';
+import 'package:web_flutter/screen/client/locataire/profile/edit_profil.dart';
+import 'package:web_flutter/screen/client/locataire/profile/feed.dart';
 import 'package:web_flutter/screen/client/locataire/profile/profile.dart';
 import 'package:web_flutter/screen/login/login_screen.dart';
+import 'package:web_flutter/screen/map/maps.dart';
 import 'package:web_flutter/screen/signup/signup.dart';
 import 'package:web_flutter/service/providers/app_data.dart';
 import 'package:web_flutter/util/function.dart';
@@ -34,13 +38,14 @@ final router = GoRouter(
       builder: (context, state) => LoginScreen(),
     ),
     GoRoute(path: Signup.routeName, builder: (context, state) => Signup()),
+    GoRoute(path: Maps.routeName, builder: (context, state) => Maps()),
     ShellRoute(
       navigatorKey: _homeNavigatorKey,
       builder: (context, state, child) => Home(child: child),
       routes: [
         GoRoute(
           path: Explore.routeName,
-          builder: (context, state) => Explore(),
+          pageBuilder: (context, state) => NoTransitionPage(child: Explore()),
           routes: [
             GoRoute(
               path: "${AppartDetailScreen.routeName}/:appartId",
@@ -95,11 +100,11 @@ final router = GoRouter(
         ),
         GoRoute(
           path: Favorite.routeName,
-          builder: (context, state) => Favorite(),
+          pageBuilder: (context, state) => NoTransitionPage(child: Favorite()),
         ),
         GoRoute(
           path: Booking.routeName,
-          builder: (context, state) => Booking(),
+          pageBuilder: (context, state) => NoTransitionPage(child: Booking()),
 
           routes: [
             GoRoute(
@@ -125,10 +130,34 @@ final router = GoRouter(
             ),
           ],
         ),
-        GoRoute(path: Inbox.routeName, builder: (context, state) => Inbox()),
+        GoRoute(
+          path: Inbox.routeName,
+          pageBuilder: (context, state) => NoTransitionPage(child: Inbox()),
+        ),
         GoRoute(
           path: Profile.routeName,
-          builder: (context, state) => Profile(),
+          pageBuilder: (context, state) => NoTransitionPage(child: Profile()),
+          routes: [
+            GoRoute(
+              path: Feed.routeName,
+              pageBuilder: (context, state) => NoTransitionPage(child: Feed()),
+              parentNavigatorKey: _homeNavigatorKey,
+            ),
+            GoRoute(
+              path: AccountInformation.routeName,
+              pageBuilder:
+                  (context, state) =>
+                      NoTransitionPage(child: AccountInformation()),
+              parentNavigatorKey: _homeNavigatorKey,
+              routes: [
+                GoRoute(
+                  path: EditProfil.routeName,
+                  pageBuilder:
+                      (context, state) => NoTransitionPage(child: EditProfil()),
+                ),
+              ],
+            ),
+          ],
         ),
       ],
     ),

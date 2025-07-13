@@ -35,13 +35,15 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Style.containerColor3,
-      body: Column(
-        children: [
-          Expanded(child: widget.child),
-          BottomNav(items: menu, currentIndex: _currentIndex(), onTap: onTap),
-        ],
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Style.containerColor3,
+        body: Column(
+          children: [
+            Expanded(child: widget.child),
+            BottomNav(items: menu, currentIndex: _currentIndex(), onTap: onTap),
+          ],
+        ),
       ),
     );
   }

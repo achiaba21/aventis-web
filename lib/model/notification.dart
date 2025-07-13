@@ -15,9 +15,9 @@ class Notification2  {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
-    data['contenu'] = this.contenu;
-    if (this.users != null) {
-      data['users'] = this.users!.toJson();
+    data['contenu'] = contenu;
+    if (users != null) {
+      data['users'] = users!.toJson();
     }
     return data;
   }

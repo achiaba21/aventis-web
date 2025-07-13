@@ -43,6 +43,6 @@ class NotificationTile extends StatelessWidget {
           )
         ],
       ),
-    );;
+    );
   }
 }

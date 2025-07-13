@@ -5,8 +5,8 @@ class Commune extends Lieux {
   bool? commune = true;
   Ville? ville;
 
-  Commune({int? id, String? nom, String? type, this.ville, this.commune})
-    : super(id: id, nom: nom, type: type ?? "Commune");
+  Commune({super.id, super.nom, String? type, this.ville, this.commune})
+    : super(type: type ?? "Commune");
 
   Commune.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     ville = json['ville'] != null ? Ville.fromJson(json['ville']) : null;

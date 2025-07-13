@@ -7,12 +7,15 @@ class User {
   String? password;
   int? age;
   String? type;
+  DateTime? createdAt;
 
-  String get nature=>"user";
+  String get nature => "user";
 
   String get fullName {
     return "${nom ?? ""} ${prenom ?? ""}";
   }
+
+  String get credential => email ?? telephone ?? "";
 
   User({
     this.id,
@@ -34,6 +37,7 @@ class User {
     password = json['password'];
     age = json['age'];
     type = json['type'];
+    createdAt = json['createdAt'];
   }
 
   Map<String, dynamic> toJson() {

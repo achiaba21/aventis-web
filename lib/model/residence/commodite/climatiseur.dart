@@ -4,8 +4,7 @@ import 'package:web_flutter/model/residence/commodite/commodite.dart';
 class Climatiseur extends Commodite {
   bool? climatiseur;
 
-  Climatiseur({String? nom, String? description, this.climatiseur = true})
-    : super(nom: nom, description: description);
+  Climatiseur({super.nom, super.description, this.climatiseur = true});
 
   Climatiseur.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
     climatiseur = json['climatiseur'] ?? true;
