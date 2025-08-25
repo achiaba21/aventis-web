@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:web_flutter/bloc/user_bloc/user_bloc.dart';
 import 'package:web_flutter/router/router.dart';
+import 'package:web_flutter/service/model/Auth/authentication_service.dart';
 import 'package:web_flutter/service/providers/app_data.dart';
 import 'package:web_flutter/service/providers/style.dart';
 
@@ -24,10 +27,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [ChangeNotifierProvider<AppData>(create: (_) => AppData())],
-      child: MaterialApp.router(
-        theme: theme,
-        routerConfig: router,
-        debugShowCheckedModeBanner: false,
+      child: MultiBlocProvider(
+        providers: [BlocProvider<UserBloc>(create: (context) => UserBloc())],
+        child: MaterialApp.router(
+          theme: theme,
+          routerConfig: router,
+          debugShowCheckedModeBanner: false,
+        ),
       ),
     );
   }

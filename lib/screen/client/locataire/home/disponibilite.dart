@@ -34,7 +34,7 @@ class _DisponibiliteState extends State<Disponibilite> {
         padding: EdgeInsets.all(Espacement.paddingBloc),
         child: Column(
           children: [
-            TextSeed("Demande de disponibilité du proprietaire"),
+            TextSeed('Demande de disponibilité du proprietaire'),
             TextSeed("Peut prendre un certains temps"),
             Center(child: CircularProgress()),
           ],
