@@ -5,9 +5,10 @@ class User {
   String? email;
   String? telephone;
   String? password;
-  int? age;
+  DateTime? age;
   String? type;
   DateTime? createdAt;
+  String? imgUrl;
 
   String get nature => "user";
 
@@ -26,6 +27,7 @@ class User {
     this.password,
     this.age,
     this.type,
+    this.imgUrl,
   });
 
   User.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class User {
     age = json['age'];
     type = json['type'];
     createdAt = json['createdAt'];
+    imgUrl = json['imgUrl'];
   }
 
   Map<String, dynamic> toJson() {
@@ -48,8 +51,14 @@ class User {
     data['email'] = email;
     data['telephone'] = telephone;
     data['password'] = password;
-    data['age'] = age;
+    data['age'] = age?.toIso8601String();
     data['type'] = type;
+    data['imgUrl'] = imgUrl;
     return data;
+  }
+
+  @override
+  String toString() {
+    return toJson().toString();
   }
 }

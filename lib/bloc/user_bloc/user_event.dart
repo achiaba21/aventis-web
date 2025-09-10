@@ -1,3 +1,4 @@
+import 'package:web_flutter/dto/user_req.dart';
 import 'package:web_flutter/model/user/user.dart';
 
 abstract class UserEvent {}
@@ -5,6 +6,11 @@ abstract class UserEvent {}
 class LoginUser extends UserEvent {
   User user;
   LoginUser(this.user);
+}
+
+class SignupUser extends UserEvent {
+  UserReq user;
+  SignupUser(this.user);
 }
 
 class LogoutUser extends UserEvent {

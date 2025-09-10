@@ -12,6 +12,7 @@ class InputPass extends StatefulWidget {
     this.libelle,
     this.placeHolder,
     this.rightIcon,
+    this.onchange,
   });
 
   final String? libelle;
@@ -21,6 +22,7 @@ class InputPass extends StatefulWidget {
   final Widget? leftIcon;
   final Widget? rightIcon;
   final String? placeHolder;
+  final String? Function(String? value)? onchange;
 
   @override
   State<InputPass> createState() => _InputPassState();
@@ -43,6 +45,7 @@ class _InputPassState extends State<InputPass> {
       initialValue: widget.initialValue,
       keyboardType: widget.keyboardType,
       obscureText: hide,
+      onChange: widget.onchange,
       placeHolder: "pass",
       rightIcon: IconBoutton(
         onPressed: toggle,

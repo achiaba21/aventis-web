@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:web_flutter/config/app_propertie.dart';
+import 'package:web_flutter/util/custom_exception.dart';
+import 'package:web_flutter/util/function.dart';
 
 class DioRequest {
   static DioRequest? _instance;
@@ -13,7 +15,7 @@ class DioRequest {
 
   DioRequest._internal() {
     final options = BaseOptions(
-      baseUrl: domain,
+      baseUrl: "$domain/",
       connectTimeout: Duration(seconds: 5),
       receiveTimeout: Duration(seconds: 3),
       headers: {"Content-Type": "application/json"},
@@ -119,10 +121,18 @@ class DioRequest {
   }
 
   void _onRequest(RequestOptions option, RequestInterceptorHandler handler) {
+    final uri = option.uri;
+    final end = uri.toString();
+    final body = option.data;
+    deboger("Url : $end \ncorp: $body");
     return handler.next(option);
   }
 
   void _onResponse(Response<dynamic> resp, ResponseInterceptorHandler handler) {
+    final end = resp.realUri.path;
+    final body = resp.data;
+    final code = resp.statusCode;
+    deboger("Url : $end\ncorp: $body\nstatu : $code");
     return handler.next(resp);
   }
 
