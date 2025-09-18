@@ -1,3 +1,5 @@
+import 'package:web_flutter/model/user/user.dart';
+
 abstract class ConversationEvent {
   const ConversationEvent();
 }
@@ -49,13 +51,13 @@ class CreateConversationFromBooking extends ConversationEvent {
 }
 
 class MessageReceived extends ConversationEvent {
-  final dynamic messageData;
+  final Map<String, dynamic> messageData;
 
   const MessageReceived({required this.messageData});
 }
 
 class ConversationUpdated extends ConversationEvent {
-  final dynamic conversationData;
+  final Map<String, dynamic> conversationData;
 
   const ConversationUpdated({required this.conversationData});
 }
@@ -65,7 +67,7 @@ class ClearConversations extends ConversationEvent {
 }
 
 class SetCurrentUser extends ConversationEvent {
-  final dynamic user;
+  final User user;
 
   const SetCurrentUser({required this.user});
 }

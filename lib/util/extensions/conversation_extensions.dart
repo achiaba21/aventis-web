@@ -4,6 +4,7 @@ import 'package:web_flutter/model/message/seance.dart';
 import 'package:web_flutter/model/message/message.dart';
 import 'package:web_flutter/model/user/proprietaire.dart';
 import 'package:web_flutter/model/user/locataire.dart';
+import 'package:web_flutter/model/user/client.dart';
 
 /// Extensions pour mapper entre les modèles BLoC et Provider
 extension ConversationToSeance on Conversation {
@@ -29,8 +30,19 @@ extension ConversationToSeance on Conversation {
 extension ChatMessageToMessage on ChatMessage {
   /// Convertit un ChatMessage (BLoC) vers Message (Provider)
   Message toMessage(Seance? seance) {
+    // Convertir User vers Client si nécessaire
+    Client? clientExpedite;
+    if (expediteur != null) {
+      if (expediteur is Client) {
+        clientExpedite = expediteur as Client;
+      } else {
+        // Créer un Client basé sur les données User
+        clientExpedite = Client.fromJson(expediteur!.toJson());
+      }
+    }
+
     return Message(
-      client: expediteur as dynamic, // Cast nécessaire
+      client: clientExpedite,
       seance: seance,
       contenu: contenu,
     )..createdAt = createdAt;

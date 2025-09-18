@@ -39,9 +39,15 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
         try {
           if (data is Map<String, dynamic>) {
             if (data['type'] == 'NEW_MESSAGE' || data['event'] == 'NEW_MESSAGE') {
-              add(MessageReceived(messageData: data['payload'] ?? data));
+              final payload = data['payload'] ?? data;
+              if (payload is Map<String, dynamic>) {
+                add(MessageReceived(messageData: payload));
+              }
             } else if (data['type'] == 'CONVERSATION_UPDATE') {
-              add(ConversationUpdated(conversationData: data['payload'] ?? data));
+              final payload = data['payload'] ?? data;
+              if (payload is Map<String, dynamic>) {
+                add(ConversationUpdated(conversationData: payload));
+              }
             }
           }
         } catch (e) {
@@ -301,9 +307,9 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     SetCurrentUser event,
     Emitter<ConversationState> emit,
   ) {
-    _currentUser = event.user as User?;
+    _currentUser = event.user;
     _conversationService.setCurrentUser(_currentUser);
-    deboger('=d Utilisateur courant d�fini: \${_currentUser?.fullName}');
+    deboger('=d Utilisateur courant défini: ${_currentUser?.fullName}');
   }
 
   void _updateConversationLastMessage(int conversationId, ChatMessage message) {

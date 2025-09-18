@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web_flutter/bloc/conversation_bloc/conversation_bloc.dart';
 import 'package:web_flutter/bloc/conversation_bloc/conversation_event.dart';
 import 'package:web_flutter/bloc/conversation_bloc/conversation_state.dart';
+import 'package:web_flutter/model/conversation/conversation.dart';
+import 'package:web_flutter/util/extensions/conversation_extensions.dart';
 import 'package:web_flutter/widget/message/message_tile.dart';
 import 'package:web_flutter/widget/text/text_seed.dart';
 
@@ -56,7 +58,7 @@ class _MessageListState extends State<MessageList> {
         }
 
         // Obtenir les conversations du state BLoC
-        final conversations = (state is ConversationLoaded) ? state.conversations : <dynamic>[];
+        final conversations = (state is ConversationLoaded) ? state.conversations : <Conversation>[];
 
         // Afficher liste vide
         if (conversations.isEmpty) {
@@ -74,7 +76,7 @@ class _MessageListState extends State<MessageList> {
             itemCount: conversations.length,
             itemBuilder: (context, index) => Column(
               children: [
-                MessageTile(conversations[index]),
+                MessageTile(conversations[index].toSeance()),
                 const Divider(),
               ],
             ),

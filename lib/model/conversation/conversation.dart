@@ -1,7 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:web_flutter/model/conversation/chat_message.dart';
 import 'package:web_flutter/model/user/user.dart';
-import 'package:web_flutter/model/booking/booking.dart';
 
 part 'conversation.g.dart';
 

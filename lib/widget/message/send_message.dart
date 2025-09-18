@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web_flutter/bloc/conversation_bloc/conversation_bloc.dart';
 import 'package:web_flutter/bloc/conversation_bloc/conversation_event.dart' as events;
 import 'package:web_flutter/bloc/conversation_bloc/conversation_state.dart';
-import 'package:web_flutter/widget/input/input_field.dart';
-import 'package:web_flutter/widget/item/circle_icon.dart';
 
 class SendMessage extends StatefulWidget {
   const SendMessage({
