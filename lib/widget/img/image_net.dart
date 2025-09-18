@@ -14,13 +14,14 @@ class ImageNet extends StatelessWidget {
   Widget build(BuildContext context) {
     final w = size??width;
     final h= size ??height;
+
     return Container(
       clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(radius),
           ),
       child: Image.network(
-        src??"http://",
+        src??"http://", 
         width: w,
         height:h ,
         fit: BoxFit.cover,

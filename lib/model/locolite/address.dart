@@ -1,9 +1,11 @@
+import 'package:web_flutter/model/locolite/lieux/commune.dart';
+
 class Address {
   int? id;
   double? lat;
   double? longi;
   String? nom;
-  String? commune;
+  Commune? commune;
   String? description;
 
   Address({
@@ -20,7 +22,7 @@ class Address {
     lat = json['lat'];
     longi = json['longi'];
     nom = json['nom'];
-    commune = json['commune'];
+    commune = json['commune'] != null ? Commune.fromJson(json['commune']) : null;
     description = json['description'];
   }
 
@@ -30,7 +32,9 @@ class Address {
     data['lat'] = lat;
     data['longi'] = longi;
     data['nom'] = nom;
-    data['commune'] = commune;
+    if (commune != null) {
+      data['commune'] = commune!.toJson();
+    }
     data['description'] = description;
     return data;
   }

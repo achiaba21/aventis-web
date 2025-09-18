@@ -10,7 +10,7 @@ final apparts = [
     description:
         "Unwind at this stunning French Provencal beachside cottage. The house was lovingly built with stone floors, high-beamed ceilings, and antique details for a luxurious yet charming feel. Enjoy the sea and mountain views from the pool and lush garden. The house is located in the enclave of Llandudno Beach, a locals-only spot with unspoilt, fine white sand and curling surfing waves. Although shops and restaurants are only a five-minute drive away, the area feels peaceful and secluded.",
     imgUrl: "assets/image/dummy/fistapp.png",
-    numro: "A29",
+    numero: "A29",
     prix: 250000,
     titre: "Deluxe Private room with pool",
     likes: Random().nextInt(100),
@@ -20,7 +20,7 @@ final apparts = [
     description:
         "Unwind at this stunning French Provencal beachside cottage. The house was lovingly built with stone floors, high-beamed ceilings, and antique details for a luxurious yet charming feel. Enjoy the sea and mountain views from the pool and lush garden. The house is located in the enclave of Llandudno Beach, a locals-only spot with unspoilt, fine white sand and curling surfing waves. Although shops and restaurants are only a five-minute drive away, the area feels peaceful and secluded.",
     imgUrl: "assets/image/dummy/img2.png",
-    numro: "C45",
+    numero: "C45",
     prix: 150000,
     titre: "Deluxe Private room with pool",
     likes: Random().nextInt(100),

@@ -6,8 +6,9 @@ class Residence {
   String? nom;
   Address? address;
   Proprietaire? proprietaire;
+  String? reference;
 
-  Residence({this.id, this.nom, this.address, this.proprietaire});
+  Residence({this.id, this.nom, this.address, this.proprietaire, this.reference});
 
   Residence.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -16,8 +17,9 @@ class Residence {
         json['address'] != null ? Address.fromJson(json['address']) : null;
     proprietaire =
         json['proprietaire'] != null
-            ? Proprietaire.fromJson(json['address'])
+            ? Proprietaire.fromJson(json['proprietaire'])
             : null;
+    reference = json['reference'];
   }
 
   Map<String, dynamic> toJson() {
@@ -27,7 +29,10 @@ class Residence {
     if (address != null) {
       data['address'] = address!.toJson();
     }
-    data['proprietaire'] = proprietaire;
+    if (proprietaire != null) {
+      data['proprietaire'] = proprietaire!.toJson();
+    }
+    data['reference'] = reference;
     return data;
   }
 }

@@ -12,6 +12,7 @@ import 'package:web_flutter/screen/client/locataire/home/appart_detail_screen.da
 import 'package:web_flutter/screen/client/locataire/home/disponibilite.dart';
 import 'package:web_flutter/screen/client/locataire/home/explore.dart';
 import 'package:web_flutter/screen/client/locataire/home/home.dart';
+import 'package:web_flutter/screen/client/locataire/home/owner_appartements_screen.dart';
 import 'package:web_flutter/screen/client/locataire/home/reservation.dart';
 import 'package:web_flutter/screen/client/locataire/home/success_payement.dart';
 import 'package:web_flutter/screen/client/locataire/inbox/inbox.dart';
@@ -21,6 +22,7 @@ import 'package:web_flutter/screen/client/locataire/profile/feed.dart';
 import 'package:web_flutter/screen/client/locataire/profile/profile.dart';
 import 'package:web_flutter/screen/login/login_screen.dart';
 import 'package:web_flutter/screen/map/maps.dart';
+import 'package:web_flutter/screen/client/locataire/map/map_explore_screen.dart';
 import 'package:web_flutter/screen/signup/signup.dart';
 import 'package:web_flutter/service/providers/app_data.dart';
 import 'package:web_flutter/util/function.dart';
@@ -39,6 +41,7 @@ final router = GoRouter(
     ),
     GoRoute(path: Signup.routeName, builder: (context, state) => Signup()),
     GoRoute(path: Maps.routeName, builder: (context, state) => Maps()),
+    GoRoute(path: MapExploreScreen.routeName, builder: (context, state) => MapExploreScreen()),
     ShellRoute(
       navigatorKey: _homeNavigatorKey,
       builder: (context, state, child) => Home(child: child),
@@ -95,6 +98,16 @@ final router = GoRouter(
               path: SuccessPayement.routeName,
               parentNavigatorKey: _rootNavigatorKey,
               builder: (context, state) => SuccessPayement(),
+            ),
+            GoRoute(
+              path: OwnerAppartementsScreen.routeName,
+              parentNavigatorKey: _rootNavigatorKey,
+              builder: (context, state) {
+                final extra = state.extra as Map<String, dynamic>?;
+                final proprietaireId = extra?['proprietaireId'] as int? ?? 0;
+                final proprietaireNom = extra?['proprietaireNom'] as String? ?? 'Propriétaire';
+                return OwnerAppartementsScreen(proprietaireId, proprietaireNom);
+              },
             ),
           ],
         ),

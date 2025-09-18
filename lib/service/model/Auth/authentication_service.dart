@@ -9,6 +9,7 @@ import 'package:web_flutter/util/response/http_function.dart';
 class AuthenticationService {
   static final urlLogin = "auth/login";
   static final urlSignup = "auth/signup";
+
   Future<User> login(User req) async {
     final dio = DioRequest.instance;
     final resp = await dio.post(urlLogin, data: req);
