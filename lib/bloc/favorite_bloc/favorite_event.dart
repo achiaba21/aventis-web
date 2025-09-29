@@ -21,9 +21,6 @@ class ToggleFavorite extends FavoriteEvent {
   ToggleFavorite(this.apartId);
 }
 
-/// Charge les appartements favoris complets
-class LoadFavoriteAppartements extends FavoriteEvent {}
-
 /// Synchronise les favoris locaux avec le serveur
 class SyncFavorites extends FavoriteEvent {
   final List<int> localFavorites;

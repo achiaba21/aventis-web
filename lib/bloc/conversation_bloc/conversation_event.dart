@@ -55,7 +55,7 @@ class MessageReceived extends ConversationEvent {
 
   const MessageReceived({required this.messageData});
 }
-
+  
 class ConversationUpdated extends ConversationEvent {
   final Map<String, dynamic> conversationData;
 

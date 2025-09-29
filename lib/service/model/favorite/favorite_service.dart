@@ -1,13 +1,31 @@
 import 'package:web_flutter/model/favorite/user_favorite.dart';
 import 'package:web_flutter/model/residence/appart.dart';
+import 'package:web_flutter/model/response/favorite_appartements_response.dart';
 import 'package:web_flutter/service/dio/dio_request.dart';
 
 class FavoriteService {
   /// Récupère les IDs des appartements favoris de l'utilisateur
   Future<List<int>> getUserFavoriteIds() async {
     final dio = DioRequest.instance;
-    final response = await dio.get("auth/user/favorites");
+    final response = await dio.get("user/favorites");
 
+    // Gérer la nouvelle structure de réponse {body: [...], message: "..."}
+    if (response.data is Map<String, dynamic>) {
+      final responseMap = response.data as Map<String, dynamic>;
+      final body = responseMap['body'];
+
+      if (body is List) {
+        return List<int>.from(body.map((item) {
+          if (item is int) return item;
+          if (item is Map<String, dynamic>) {
+            return item['apartId'] ?? item['apartment_id'] ?? item['appartement_id'];
+          }
+          return null;
+        }).where((id) => id != null));
+      }
+    }
+
+    // Fallback pour l'ancienne structure (au cas où)
     if (response.data is List) {
       return List<int>.from(response.data.map((item) {
         if (item is int) return item;
@@ -24,7 +42,7 @@ class FavoriteService {
   /// Récupère les favoris complets avec détails
   Future<List<UserFavorite>> getUserFavorites() async {
     final dio = DioRequest.instance;
-    final response = await dio.get("auth/user/favorites");
+    final response = await dio.get("user/favorites");
 
     if (response.data is List) {
       return List<UserFavorite>.from(
@@ -38,19 +56,21 @@ class FavoriteService {
   /// Récupère les appartements favoris complets
   Future<List<Appartement>> getFavoriteAppartements() async {
     final dio = DioRequest.instance;
-    return await dio.getMapped<Appartement>("auth/appartement/favorites");
+    final response = await dio.get("user/favorites/apartments");
+    final favoriteResponse = FavoriteAppartementsResponse.fromJson(response.data);
+    return favoriteResponse.body;
   }
 
   /// Ajoute un appartement aux favoris
   Future<void> addToFavorites(int apartId) async {
     final dio = DioRequest.instance;
-    await dio.post("auth/user/favorites/$apartId");
+    await dio.post("user/favorites/$apartId");
   }
 
   /// Retire un appartement des favoris
   Future<void> removeFromFavorites(int apartId) async {
     final dio = DioRequest.instance;
-    await dio.delete("auth/user/favorites/$apartId");
+    await dio.delete("user/favorites/$apartId");
   }
 
   /// Toggle un favori (ajoute ou retire selon l'état actuel)

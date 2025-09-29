@@ -1,10 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_flutter/bloc/favorite_bloc/favorite_event.dart';
 import 'package:web_flutter/bloc/favorite_bloc/favorite_state.dart';
 import 'package:web_flutter/service/model/favorite/favorite_service.dart';
-import 'package:web_flutter/util/custom_exception.dart';
+import 'package:web_flutter/util/error_handler.dart';
 import 'package:web_flutter/util/function.dart';
 
 class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
@@ -30,27 +29,12 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
         // Sauvegarder en cache
         await _saveCachedFavorites(serverFavorites);
         emit(FavoriteLoaded(serverFavorites));
-      } on CustomException catch (e) {
-        deboger(["favorite error:", e]);
-        final cachedFavorites = await _loadCachedFavorites();
-        emit(FavoriteError(
-          e.message,
-          favoriteIds: cachedFavorites,
-          originalEvent: event,
-        ));
-      } on DioException catch (e) {
-        deboger(["dio error:", e]);
-        final cachedFavorites = await _loadCachedFavorites();
-        emit(FavoriteError(
-          e.response?.data?.toString() ?? "Erreur de connexion",
-          favoriteIds: cachedFavorites,
-          originalEvent: event,
-        ));
       } catch (e) {
-        deboger(["unexpected error:", e]);
+        ErrorHandler.logError("LOAD_FAVORITES", e);
         final cachedFavorites = await _loadCachedFavorites();
+        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
         emit(FavoriteError(
-          "Une erreur est survenue",
+          errorMessage,
           favoriteIds: cachedFavorites,
           originalEvent: event,
         ));
@@ -59,7 +43,10 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
 
     on<ToggleFavorite>((event, emit) async {
       final currentState = state;
-      if (currentState is! FavoriteLoaded && currentState is! FavoriteError) {
+
+      // Si les favoris ne sont pas encore chargés, les charger d'abord
+      if (currentState is FavoriteInitial) {
+        add(LoadFavorites());
         return;
       }
 
@@ -95,17 +82,12 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
           emit(FavoriteLoaded(newFavorites));
         }
       } catch (e) {
-        deboger(["toggle favorite error:", e]);
+        ErrorHandler.logError("TOGGLE_FAVORITE", e);
 
         // Rollback en cas d'erreur
         await _saveCachedFavorites(currentFavorites);
 
-        String errorMessage = "Impossible de modifier les favoris";
-        if (e is DioException) {
-          errorMessage = e.response?.data?.toString() ?? "Erreur de connexion";
-        } else if (e is CustomException) {
-          errorMessage = e.message;
-        }
+        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
 
         emit(FavoriteError(
           errorMessage,
@@ -134,9 +116,11 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
           emit(FavoriteLoaded(newFavorites));
         }
       } catch (e) {
+        ErrorHandler.logError("FAVORITE_ACTION", e);
         await _saveCachedFavorites(currentFavorites);
+        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
         emit(FavoriteError(
-          _getErrorMessage(e),
+          errorMessage,
           favoriteIds: currentFavorites,
           originalEvent: event,
         ));
@@ -162,25 +146,17 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
           emit(FavoriteLoaded(newFavorites));
         }
       } catch (e) {
+        ErrorHandler.logError("FAVORITE_ACTION", e);
         await _saveCachedFavorites(currentFavorites);
+        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
         emit(FavoriteError(
-          _getErrorMessage(e),
+          errorMessage,
           favoriteIds: currentFavorites,
           originalEvent: event,
         ));
       }
     });
 
-    on<LoadFavoriteAppartements>((event, emit) async {
-      emit(FavoriteLoading());
-      try {
-        final appartements = await favoriteService.getFavoriteAppartements();
-        final favoriteIds = appartements.map((app) => app.id!).toList();
-        emit(FavoriteAppartementsLoaded(appartements, favoriteIds));
-      } catch (e) {
-        emit(FavoriteError(_getErrorMessage(e), originalEvent: event));
-      }
-    });
 
     on<SyncFavorites>((event, emit) async {
       emit(FavoriteSyncing(event.localFavorites));
@@ -197,8 +173,10 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
           emit(FavoriteLoaded(syncedFavorites));
         }
       } catch (e) {
+        ErrorHandler.logError("SYNC_FAVORITES", e);
+        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
         emit(FavoriteError(
-          _getErrorMessage(e),
+          errorMessage,
           favoriteIds: event.localFavorites,
           originalEvent: event,
         ));
@@ -237,16 +215,6 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
       await prefs.setStringList(_favoritesKey, favorites.map((id) => id.toString()).toList());
     } catch (e) {
       deboger(["failed to save favorites cache:", e]);
-    }
-  }
-
-  String _getErrorMessage(dynamic error) {
-    if (error is DioException) {
-      return error.response?.data?.toString() ?? "Erreur de connexion";
-    } else if (error is CustomException) {
-      return error.message;
-    } else {
-      return "Une erreur est survenue";
     }
   }
 

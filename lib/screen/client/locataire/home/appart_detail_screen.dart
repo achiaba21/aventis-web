@@ -129,6 +129,11 @@ class AppartDetailScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Style.containerColor3,
+      bottomNavigationBar:  AppartBottom(
+              appartement: appart,
+              
+              onPress: () => relativePush(context, Reservation.routeName),
+            ),
       body: SafeArea(
         child: Stack(
           alignment: Alignment.bottomCenter,
@@ -238,11 +243,7 @@ class AppartDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            AppartBottom(
-              appartement: appart,
-              
-              onPress: () => relativePush(context, Reservation.routeName),
-            ),
+           
           ],
         ),
       ),

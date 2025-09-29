@@ -18,7 +18,8 @@ class AuthenticationService {
       throw CustomException(resp.statusMessage ?? "");
     }
     final data = Token.fromJson(resp.data!);
-    LocalStore.setToken(data.token!);
+    await LocalStore.setToken(data.token!);
+    DioRequest.instance.setToken(data.token!);
     return data.user!;
   }
 
@@ -29,9 +30,12 @@ class AuthenticationService {
       throw CustomException(resp.statusMessage ?? "");
     }
     final data = Token.fromJson(resp.data!);
-    LocalStore.setToken(data.token!);
+    await LocalStore.setToken(data.token!);
+    DioRequest.instance.setToken(data.token!);
     return data.user!;
   }
 
-  Future<void> logout(User req) async {}
+  Future<void> logout(User req) async {
+    DioRequest.instance.clearToken();
+  }
 }

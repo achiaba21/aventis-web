@@ -17,3 +17,5 @@ class LogoutUser extends UserEvent {
   User user;
   LogoutUser(this.user);
 }
+
+class CheckStoredUser extends UserEvent {}

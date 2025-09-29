@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web_flutter/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:web_flutter/bloc/appartement_bloc/appartement_event.dart';
-import 'package:web_flutter/bloc/booking_bloc/booking_bloc.dart';
+import 'package:web_flutter/bloc/reservation_bloc/reservation_bloc.dart';
 import 'package:web_flutter/bloc/conversation_bloc/conversation_bloc.dart';
 import 'package:web_flutter/bloc/conversation_bloc/conversation_event.dart';
 import 'package:web_flutter/bloc/favorite_bloc/favorite_bloc.dart';
@@ -147,8 +147,8 @@ class RealtimeActionHandler {
 
   void _handleRefreshBookings(RealtimeAction action) {
     try {
-      // final bookingBloc = _currentContext!.read<BookingBloc>();
-      // bookingBloc.add(LoadBookings()); // À adapter selon vos events BookingBloc
+      // final reservationBloc = _currentContext!.read<ReservationBloc>();
+      // reservationBloc.add(LoadUserReservations()); // À adapter selon vos events ReservationBloc
 
       deboger('📅 Actualisation des réservations déclenchée');
 
@@ -336,8 +336,8 @@ class RealtimeActionHandler {
       final apartmentName = action.payload['apartmentName'] as String?;
 
       // Actualiser les réservations
-      final bookingBloc = _currentContext!.read<BookingBloc>();
-      // bookingBloc.add(LoadBookings()); // À adapter selon votre BookingBloc
+      final reservationBloc = _currentContext!.read<ReservationBloc>();
+      // reservationBloc.add(LoadUserReservations()); // À adapter selon votre ReservationBloc
 
       // Créer automatiquement une conversation
       if (bookingId != null) {

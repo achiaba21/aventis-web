@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:web_flutter/bloc/user_bloc/user_bloc.dart';
 import 'package:web_flutter/bloc/user_bloc/user_state.dart';
+import 'package:web_flutter/bloc/user_bloc/user_event.dart';
 import 'package:web_flutter/config/app_propertie.dart';
-import 'package:web_flutter/model/user/client.dart';
 import 'package:web_flutter/screen/client/locataire/profile/account_information.dart';
 import 'package:web_flutter/screen/client/locataire/profile/feed.dart';
 import 'package:web_flutter/util/function.dart';
@@ -66,6 +66,31 @@ class Profile extends StatelessWidget {
                   texte: "Envoyé des avis",
                   svgPathLeft: "${racine}icon/profil/feed.svg",
                   onTap: () => relativePush(context, Feed.routeName),
+                ),
+                Gap(Espacement.gapSection),
+                Container(
+                  width: double.infinity,
+                  margin: EdgeInsets.symmetric(horizontal: 16),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context.read<UserBloc>().add(LogoutUser(client));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      "Se déconnecter",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -3,6 +3,7 @@ import 'package:web_flutter/model/document/photo_appart.dart';
 import 'package:web_flutter/model/remise/condition.dart';
 import 'package:web_flutter/model/remise/remise.dart';
 import 'package:web_flutter/model/residence/appart.dart';
+import 'package:web_flutter/model/response/favorite_appartements_response.dart';
 import 'package:web_flutter/model/user/user.dart';
 import 'package:web_flutter/service/dio/dio_request.dart';
 
@@ -43,6 +44,11 @@ void initializeJsonConstructors() {
   DioRequest.registerJsonConstructors<PhotoAppart>(
     (json) => PhotoAppart.fromJson(json),
     PhotoAppart.fromJsonAll,
+  );
+
+  // Enregistrer le constructeur pour FavoriteAppartementsResponse
+  DioRequest.registerJsonConstructors<FavoriteAppartementsResponse>(
+    (json) => FavoriteAppartementsResponse.fromJson(json),
   );
 
   // Ajouter d'autres modèles ici au fur et à mesure

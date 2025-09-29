@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web_flutter/bloc/user_bloc/user_bloc.dart';
 import 'package:web_flutter/bloc/user_bloc/user_state.dart';
+import 'package:web_flutter/bloc/favorite_bloc/favorite_bloc.dart';
+import 'package:web_flutter/bloc/favorite_bloc/favorite_event.dart';
 import 'package:web_flutter/service/websocket/websocket_manager.dart';
 import 'package:web_flutter/service/realtime/realtime_action_handler.dart';
 import 'package:web_flutter/util/function.dart';
@@ -118,28 +120,41 @@ class _SimpleWebSocketInitializerState extends State<SimpleWebSocketInitializer>
   }
 
   void _showConnectionStatus(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              color == Colors.green ? Icons.wifi : Icons.wifi_off,
-              color: Colors.white,
-              size: 20,
+    try {
+      // Vérifier si ScaffoldMessenger est disponible dans le contexte
+      final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
+
+      if (scaffoldMessenger != null) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  color == Colors.green ? Icons.wifi : Icons.wifi_off,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(message),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(message),
-          ],
-        ),
-        backgroundColor: color,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
+            backgroundColor: color,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      } else {
+        // Fallback: log uniquement si ScaffoldMessenger n'est pas disponible
+        deboger('📱 Status WebSocket: $message');
+      }
+    } catch (e) {
+      // En cas d'erreur, log uniquement
+      deboger('📱 Status WebSocket: $message (erreur affichage: $e)');
+    }
   }
 
   @override
@@ -152,6 +167,9 @@ class _SimpleWebSocketInitializerState extends State<SimpleWebSocketInitializer>
           if (userPhone != null && userPhone.isNotEmpty) {
             _initializeWebSocketForUser(userPhone);
           }
+
+          // Charger les favoris de l'utilisateur
+          context.read<FavoriteBloc>().add(LoadFavorites());
         } else if (userState is UserInitial) {
           // Utilisateur déconnecté, fermer WebSocket
           _disconnectWebSocket();

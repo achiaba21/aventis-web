@@ -6,6 +6,7 @@ import 'package:web_flutter/service/providers/app_data.dart';
 import 'package:web_flutter/service/providers/style.dart';
 import 'package:web_flutter/util/formate.dart';
 import 'package:web_flutter/util/function.dart';
+import 'package:web_flutter/util/price_calculator.dart';
 import 'package:web_flutter/widget/button/plain_button.dart';
 import 'package:web_flutter/widget/container/block2.dart';
 import 'package:web_flutter/widget/text/text_seed.dart';
@@ -31,18 +32,14 @@ class AppartBottom extends StatelessWidget {
         final plage = reservation?.plage ?? req?.plage;
 
     // Calculer le prix avec réduction si applicable
-    double prixCalcule = (reservation?.prix ?? appartement?.prix ?? req?.appartement?.prix ?? 0).toDouble();
-
-    // Appliquer les réductions si un séjour est sélectionné et qu'il y a des remises
-    if (plage != null && appartement?.remises != null) {
-      final nombreJours = plage.duration.inDays;
-      final conditionApplicable = appartement!.remises!.matchCondition(nombreJours);
-
-      if (conditionApplicable?.montant != null) {
-        // Le montant est déjà le nouveau prix réduit
-        prixCalcule = conditionApplicable!.montant!;
-      }
-    }
+    final prixBase = (reservation?.prix ?? appartement?.prix ?? req?.appartement?.prix ?? 0).toDouble();
+    final nombreJours = plage?.duration.inDays ?? 0;
+    deboger(nombreJours);
+    final prixCalcule = PriceCalculator.getDiscountedNightPrice(
+      prixBase,
+      appartement?.remises,
+      nombreJours
+    );
 
     final prix = prixCalcule.toInt();
     final color = Style.containerColor3;

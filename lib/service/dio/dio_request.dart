@@ -1,15 +1,27 @@
 import 'package:dio/dio.dart';
 import 'package:web_flutter/config/app_propertie.dart';
 import 'package:web_flutter/util/custom_exception.dart';
+import 'package:web_flutter/util/error_handler.dart';
 import 'package:web_flutter/util/function.dart';
 import 'package:web_flutter/util/response/response_mapper.dart';
 
 class DioRequest {
   static DioRequest? _instance;
+  String? _currentToken;
 
   static DioRequest get instance {
     _instance = _instance ?? DioRequest._internal();
     return _instance!;
+  }
+
+  void setToken(String? token) {
+    _currentToken = token;
+    deboger("Token mis à jour: ${token != null ? 'présent' : 'absent'}");
+  }
+
+  void clearToken() {
+    _currentToken = null;
+    deboger("Token supprimé");
   }
 
   late Dio _dio;
@@ -125,20 +137,48 @@ class DioRequest {
     final uri = option.uri;
     final end = uri.toString();
     final body = option.data;
-    deboger("Url : $end \ncorp: $body");
-    return handler.next(option);
+
+    // Injecter le token pour les routes protégées (sans auth/)
+    if (!uri.path.startsWith('/auth/')) {
+      if (_currentToken != null && _currentToken!.isNotEmpty) {
+        option.headers['Authorization'] = 'Bearer $_currentToken';
+        deboger("Token ajouté pour $end");
+      } else {
+        deboger("Pas de token disponible pour $end");
+      }
+    }
+
+    deboger("Url : $end \nheaders: ${option.headers} \ncorp: $body");
+    handler.next(option);
   }
 
   void _onResponse(Response<dynamic> resp, ResponseInterceptorHandler handler) {
     final end = resp.realUri.path;
     final body = resp.data;
     final code = resp.statusCode;
-    deboger("Url : $end\ncorp: $body\nstatu : $code");
+    deboger("Url : $end\nheaders: ${resp.headers} \ncorp: $body\nstatu : $code");
     return handler.next(resp);
   }
 
   void _onError(DioException error, ErrorInterceptorHandler handler) {
-    return handler.next(error);
+
+    deboger(["error", error.requestOptions.headers,error.message]);
+    // Logger l'erreur avec plus de détails
+    ErrorHandler.logError("DIO REQUEST", error);
+
+    // Extraire le message d'erreur propre
+    final cleanMessage = ErrorHandler.extractErrorMessage(error);
+  
+    // Créer une nouvelle DioException avec le message propre
+    final modifiedError = DioException(
+      requestOptions: error.requestOptions,
+      response: error.response,
+      type: error.type,
+      error: cleanMessage,
+      message: cleanMessage,
+    );
+
+    return handler.next(modifiedError);
   }
 
   // === MÉTHODES GÉNÉRIQUES AVEC MAPPING AUTOMATIQUE ===

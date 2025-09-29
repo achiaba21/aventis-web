@@ -1,4 +1,5 @@
 import 'package:web_flutter/model/remise/condition.dart';
+import 'package:web_flutter/util/function.dart';
 
 class Remise {
   int? id;
@@ -16,10 +17,12 @@ class Remise {
 
     Condition? lastCond;
     for (Condition condition in conditions!) {
+      
       if (condition.days != null && condition.days! <= days) {
         lastCond = condition;
       }
     }
+    
     return lastCond;
   }
 

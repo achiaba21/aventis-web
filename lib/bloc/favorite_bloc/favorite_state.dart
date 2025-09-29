@@ -1,5 +1,3 @@
-import 'package:web_flutter/model/residence/appart.dart';
-
 abstract class FavoriteState {}
 
 class FavoriteInitial extends FavoriteState {}
@@ -22,14 +20,6 @@ class FavoriteLoaded extends FavoriteState {
       lastUpdated: DateTime.now(),
     );
   }
-}
-
-/// État avec les appartements favoris complets
-class FavoriteAppartementsLoaded extends FavoriteState {
-  final List<Appartement> appartements;
-  final List<int> favoriteIds;
-
-  FavoriteAppartementsLoaded(this.appartements, this.favoriteIds);
 }
 
 /// État d'optimisation - action immédiate en cours de sync

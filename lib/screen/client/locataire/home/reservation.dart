@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
-import 'package:web_flutter/bloc/booking_bloc/booking_bloc.dart';
-import 'package:web_flutter/bloc/booking_bloc/booking_event.dart';
-import 'package:web_flutter/bloc/booking_bloc/booking_state.dart';
+import 'package:web_flutter/bloc/reservation_bloc/reservation_bloc.dart';
+import 'package:web_flutter/bloc/reservation_bloc/reservation_event.dart';
+import 'package:web_flutter/bloc/reservation_bloc/reservation_state.dart';
 import 'package:web_flutter/config/app_propertie.dart';
 import 'package:web_flutter/screen/client/locataire/home/disponibilite.dart';
 import 'package:web_flutter/screen/client/locataire/home/widget/appart_bottom.dart';
@@ -24,12 +24,12 @@ class Reservation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<BookingBloc, BookingState>(
+    return BlocListener<ReservationBloc, ReservationState>(
       listener: (context, state) {
-        if (state is BookingCreated) {
+        if (state is ReservationCreated) {
           // Succès : Aller à la page de confirmation
           relativePush(context, Disponibilite.routeName);
-        } else if (state is BookingError) {
+        } else if (state is ReservationError) {
           // Erreur : Afficher un message d'erreur
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -80,12 +80,12 @@ class Reservation extends StatelessWidget {
                     ),
                   ],
                 ),
-                BlocBuilder<BookingBloc, BookingState>(
+                BlocBuilder<ReservationBloc, ReservationState>(
                   builder: (context, state) {
                     return AppartBottom(
                       appartement: appart,
-                      validationText: state is BookingLoading ? "Réservation..." : "Réserver",
-                      onPress: state is BookingLoading ? null : () => _createBooking(context, req),
+                      validationText: state is ReservationLoading ? "Réservation..." : "Réserver",
+                      onPress: state is ReservationLoading ? null : () => _createReservation(context, req),
                     );
                   },
                 ),
@@ -97,7 +97,7 @@ class Reservation extends StatelessWidget {
     );
   }
 
-  void _createBooking(BuildContext context, ReservationReq req) {
+  void _createReservation(BuildContext context, ReservationReq req) {
     // Vérifier que le moyen de paiement est sélectionné
     if (req.moyenPaiement == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,7 +109,7 @@ class Reservation extends StatelessWidget {
       return;
     }
 
-    // Déclencher la création du booking
-    context.read<BookingBloc>().add(CreateBooking(req));
+    // Déclencher la création de la réservation
+    context.read<ReservationBloc>().add(CreateReservation(req));
   }
 }

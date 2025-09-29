@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:web_flutter/config/app_propertie.dart';
 import 'package:web_flutter/model/notification/notification.dart';
 import 'package:web_flutter/model/websocket/websocket_state.dart';
@@ -15,8 +15,7 @@ class WebSocketService {
 
   WebSocketService._internal();
 
-  WebSocket? _webSocket;
-  Timer? _heartbeatTimer;
+  StompClient? _stompClient;
   Timer? _reconnectTimer;
 
   // Streams pour communiquer avec les blocs
@@ -33,7 +32,6 @@ class WebSocketService {
   static const int _maxReconnectAttempts = 5;
   static const Duration _initialReconnectDelay = Duration(seconds: 2);
   static const Duration _maxReconnectDelay = Duration(seconds: 30);
-  static const Duration _heartbeatInterval = Duration(seconds: 30);
 
   // Getters publics
   Stream<WebSocketState> get stateStream => _stateController.stream;
@@ -69,26 +67,28 @@ class WebSocketService {
       final wsUrl = _buildWebSocketUrl();
       deboger('Connexion WebSocket vers: $wsUrl');
 
-      // Connexion WebSocket brute (simulation STOMP)
-      _webSocket = await WebSocket.connect(wsUrl);
+      // Configuration du client STOMP WebSocket natif
+      _stompClient = StompClient(
+        config: StompConfig(
+          url: wsUrl,
+          onConnect: _onStompConnected,
+          onWebSocketError: (dynamic error) => _handleConnectionError(error.toString()),
+          onStompError: (StompFrame frame) => _handleConnectionError('STOMP Error: ${frame.body}'),
+          onDisconnect: _onStompDisconnected,
+          beforeConnect: () async {
+            deboger('🔄 Préparation de la connexion WebSocket/STOMP...');
+          },
+          onWebSocketDone: () => _handleDisconnection(),
+          stompConnectHeaders: {
+            'telephone': _userPhone ?? '',
+            if (_authToken != null) 'authorization': 'Bearer $_authToken',
+          },
+          connectionTimeout: const Duration(seconds: 10),
+        ),
+      );
 
-      // Configuration des listeners
-      _setupWebSocketListeners();
-
-      // Envoi du message de connexion STOMP
-      _sendStompConnect();
-
-      // Démarrage du heartbeat
-      _startHeartbeat();
-
-      _updateState(_currentState.copyWith(
-        status: WebSocketConnectionStatus.connected,
-        lastConnectedAt: DateTime.now(),
-        reconnectAttempts: 0,
-        isAuthenticated: true,
-      ));
-
-      deboger('✅ WebSocket connecté avec succès');
+      // Activation du client
+      _stompClient!.activate();
 
     } catch (e) {
       deboger('❌ Erreur connexion WebSocket: $e');
@@ -97,161 +97,86 @@ class WebSocketService {
   }
 
   String _buildWebSocketUrl() {
-    // Conversion HTTP vers WebSocket
+    // WebSocket natif avec l'endpoint standard Spring
     final baseUrl = domain.replaceFirst('http://', 'ws://').replaceFirst('https://', 'wss://');
     return '$baseUrl/ws/websocket';
   }
 
-  void _setupWebSocketListeners() {
-    _webSocket?.listen(
-      (data) => _handleMessage(data),
-      onError: (error) => _handleConnectionError(error.toString()),
-      onDone: () => _handleDisconnection(),
-    );
-  }
+  void _onStompConnected(StompFrame frame) {
+    deboger('✅ WebSocket/STOMP connecté avec succès');
 
-  void _sendStompConnect() {
-    final connectFrame = _buildStompFrame('CONNECT', headers: {
-      'accept-version': '1.2',
-      'heart-beat': '0,0',
-      'telephone': _userPhone ?? '',
-      if (_authToken != null) 'authorization': 'Bearer $_authToken',
-    });
+    _updateState(_currentState.copyWith(
+      status: WebSocketConnectionStatus.connected,
+      lastConnectedAt: DateTime.now(),
+      reconnectAttempts: 0,
+      isAuthenticated: true,
+    ));
 
-    _webSocket?.add(connectFrame);
-
-    // Abonnement aux notifications personnalisées
+    // Abonnements après connexion
     _subscribeToPersonalNotifications();
-
-    // Abonnement aux actions globales
     _subscribeToGlobalActions();
   }
 
+  void _onStompDisconnected(StompFrame frame) {
+    deboger('🔌 WebSocket/STOMP déconnecté: ${frame.body}');
+    _handleDisconnection();
+  }
+
   void _subscribeToPersonalNotifications() {
-    if (_userPhone == null) return;
+    if (_userPhone == null || _stompClient == null) return;
 
-    final subscribeFrame = _buildStompFrame('SUBSCRIBE', headers: {
-      'id': 'sub-notifications',
-      'destination': '/user/$_userPhone/queue/notifications',
-    });
+    final destination = '/user/$_userPhone/queue/notifications';
 
-    _webSocket?.add(subscribeFrame);
-    deboger('📱 Abonné aux notifications: /user/$_userPhone/queue/notifications');
+    _stompClient!.subscribe(
+      destination: destination,
+      callback: (StompFrame frame) {
+        _handleNotificationMessage(frame);
+      },
+    );
+
+    deboger('📱 Abonné aux notifications: $destination');
   }
 
   void _subscribeToGlobalActions() {
-    final subscribeFrame = _buildStompFrame('SUBSCRIBE', headers: {
-      'id': 'sub-actions',
-      'destination': '/topic/actions',
-    });
+    if (_stompClient == null) return;
 
-    _webSocket?.add(subscribeFrame);
-    deboger('🌍 Abonné aux actions globales: /topic/actions');
+    const destination = '/topic/actions';
+
+    _stompClient!.subscribe(
+      destination: destination,
+      callback: (StompFrame frame) {
+        _handleActionMessage(frame);
+      },
+    );
+
+    deboger('🌍 Abonné aux actions globales: $destination');
   }
 
-  String _buildStompFrame(String command, {Map<String, String>? headers, String? body}) {
-    final buffer = StringBuffer();
-    buffer.write(command);
-    buffer.write('\n');
-
-    if (headers != null) {
-      for (final entry in headers.entries) {
-        buffer.write('${entry.key}:${entry.value}\n');
-      }
-    }
-
-    buffer.write('\n');
-    if (body != null) {
-      buffer.write(body);
-    }
-    buffer.write('\x00'); // NULL terminator pour STOMP
-
-    return buffer.toString();
-  }
-
-  void _handleMessage(dynamic data) {
+  void _handleNotificationMessage(StompFrame frame) {
     try {
-      final message = data.toString();
-      deboger('📨 Message WebSocket reçu: ${message.length > 200 ? "${message.substring(0, 200)}..." : message}');
+      if (frame.body == null || frame.body!.isEmpty) return;
 
-      // Parse du message STOMP
-      final stompMessage = _parseStompMessage(message);
+      final jsonData = jsonDecode(frame.body!);
+      final notification = NotificationModel.fromJson(jsonData);
+      _notificationController.add(notification);
 
-      if (stompMessage['command'] == 'CONNECTED') {
-        deboger('✅ STOMP connecté avec succès');
-        return;
-      }
-
-      if (stompMessage['command'] == 'MESSAGE') {
-        _handleStompMessage(stompMessage);
-      }
-
+      deboger('🔔 Notification reçue: ${notification.displayTitle}');
     } catch (e) {
-      deboger('❌ Erreur parsing message WebSocket: $e');
+      deboger('❌ Erreur parsing notification: $e');
     }
   }
 
-  Map<String, dynamic> _parseStompMessage(String message) {
-    final lines = message.split('\n');
-    final command = lines.isNotEmpty ? lines[0] : '';
-
-    final headers = <String, String>{};
-    String? body;
-
-    int i = 1;
-    // Parse headers
-    while (i < lines.length && lines[i].isNotEmpty) {
-      final headerLine = lines[i];
-      final colonIndex = headerLine.indexOf(':');
-      if (colonIndex > 0) {
-        final key = headerLine.substring(0, colonIndex);
-        final value = headerLine.substring(colonIndex + 1);
-        headers[key] = value;
-      }
-      i++;
-    }
-
-    // Skip empty line
-    i++;
-
-    // Parse body
-    if (i < lines.length) {
-      body = lines.sublist(i).join('\n').replaceAll('\x00', '');
-    }
-
-    return {
-      'command': command,
-      'headers': headers,
-      'body': body,
-    };
-  }
-
-  void _handleStompMessage(Map<String, dynamic> stompMessage) {
-    final destination = stompMessage['headers']['destination'] as String?;
-    final body = stompMessage['body'] as String?;
-
-    if (destination == null || body == null || body.isEmpty) {
-      return;
-    }
-
+  void _handleActionMessage(StompFrame frame) {
     try {
-      final jsonData = jsonDecode(body);
+      if (frame.body == null || frame.body!.isEmpty) return;
 
-      if (destination.contains('/queue/notifications')) {
-        // Notification personnalisée
-        final notification = NotificationModel.fromJson(jsonData);
-        _notificationController.add(notification);
-        deboger('🔔 Notification reçue: ${notification.displayTitle}');
+      final jsonData = jsonDecode(frame.body!);
+      final action = RealtimeAction.fromJson(jsonData);
+      _actionController.add(action);
 
-      } else if (destination.contains('/topic/actions')) {
-        // Action temps réel
-        final action = RealtimeAction.fromJson(jsonData);
-        _actionController.add(action);
-        deboger('⚡ Action temps réel reçue: ${action.type}');
-      }
-
+      deboger('⚡ Action temps réel reçue: ${action.type}');
     } catch (e) {
-      deboger('❌ Erreur parsing JSON: $e');
+      deboger('❌ Erreur parsing action: $e');
     }
   }
 
@@ -276,7 +201,6 @@ class WebSocketService {
       isAuthenticated: false,
     ));
 
-    _cleanup();
     _scheduleReconnect();
   }
 
@@ -308,25 +232,6 @@ class WebSocketService {
     return delay < _maxReconnectDelay ? delay : _maxReconnectDelay;
   }
 
-  void _startHeartbeat() {
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (timer) {
-      if (_currentState.isConnected) {
-        _sendHeartbeat();
-      }
-    });
-  }
-
-  void _sendHeartbeat() {
-    try {
-      final heartbeatFrame = _buildStompFrame('PING');
-      _webSocket?.add(heartbeatFrame);
-      deboger('💓 Heartbeat envoyé');
-    } catch (e) {
-      deboger('❌ Erreur envoi heartbeat: $e');
-    }
-  }
-
   void _updateState(WebSocketState newState) {
     _currentState = newState;
     _stateController.add(newState);
@@ -334,18 +239,14 @@ class WebSocketService {
 
   // Méthodes publiques
   Future<void> disconnect() async {
-    deboger('🔌 Déconnexion WebSocket demandée');
+    deboger('🔌 Déconnexion WebSocket/STOMP demandée');
 
     _reconnectTimer?.cancel();
-    _heartbeatTimer?.cancel();
 
-    if (_webSocket != null) {
-      final disconnectFrame = _buildStompFrame('DISCONNECT');
-      _webSocket?.add(disconnectFrame);
-      await _webSocket?.close();
+    if (_stompClient != null) {
+      _stompClient!.deactivate();
+      _stompClient = null;
     }
-
-    _cleanup();
 
     _updateState(_currentState.copyWith(
       status: WebSocketConnectionStatus.disconnected,
@@ -363,31 +264,24 @@ class WebSocketService {
   }
 
   void sendMessage(String destination, Map<String, dynamic> body) {
-    if (!_currentState.isConnected) {
+    if (!_currentState.isConnected || _stompClient == null) {
       deboger('❌ Impossible d\'envoyer le message: WebSocket non connecté');
       return;
     }
 
     try {
-      final sendFrame = _buildStompFrame('SEND',
+      _stompClient!.send(
+        destination: destination,
+        body: jsonEncode(body),
         headers: {
-          'destination': destination,
           'content-type': 'application/json',
         },
-        body: jsonEncode(body),
       );
 
-      _webSocket?.add(sendFrame);
       deboger('📤 Message envoyé vers $destination');
     } catch (e) {
       deboger('❌ Erreur envoi message: $e');
     }
-  }
-
-  void _cleanup() {
-    _webSocket = null;
-    _heartbeatTimer?.cancel();
-    _heartbeatTimer = null;
   }
 
   void dispose() {

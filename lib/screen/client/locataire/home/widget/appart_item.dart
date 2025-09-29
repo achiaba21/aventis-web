@@ -97,39 +97,47 @@ class _AppartItemState extends State<AppartItem> {
                     ],
                   ),
                   Spacer(),
-                  BlocBuilder<FavoriteBloc, FavoriteState>(
-                    builder: (context, state) {
-                      bool isLike = false;
-                      bool isLoading = false;
-
-                      if (state is FavoriteLoaded) {
-                        isLike = state.isFavorite(appart.id!);
-                      } else if (state is FavoriteOptimisticUpdate) {
-                        isLike = state.isFavorite(appart.id!);
-                        isLoading = state.pendingApartId == appart.id;
-                      } else if (state is FavoriteActionSuccess) {
-                        isLike = state.isFavorite(appart.id!);
-                      } else if (state is FavoriteError) {
-                        isLike = state.isFavorite(appart.id!);
+                  BlocListener<FavoriteBloc, FavoriteState>(
+                    listener: (context, state) {
+                      // Charger les favoris automatiquement si pas encore chargés
+                      if (state is FavoriteInitial) {
+                        context.read<FavoriteBloc>().add(LoadFavorites());
                       }
-
-                      return Row(
-                        children: [
-                          TextSeed(
-                            "(${(widget.appart.likes ?? 0) + (isLike ? 1 : 0)})",
-                          ),
-                          IconBoutton(
-                            icon: Icons.favorite,
-                            color: isLike ? Colors.red : Style.innactiveColor,
-                            onPressed: isLoading
-                                ? null
-                                : () {
-                                    context.read<FavoriteBloc>().add(ToggleFavorite(appart.id!));
-                                  },
-                          ),
-                        ],
-                      );
                     },
+                    child: BlocBuilder<FavoriteBloc, FavoriteState>(
+                      builder: (context, state) {
+                        bool isLike = false;
+                        bool isLoading = false;
+
+                        if (state is FavoriteLoaded) {
+                          isLike = state.isFavorite(appart.id!);
+                        } else if (state is FavoriteOptimisticUpdate) {
+                          isLike = state.isFavorite(appart.id!);
+                          isLoading = state.pendingApartId == appart.id;
+                        } else if (state is FavoriteActionSuccess) {
+                          isLike = state.isFavorite(appart.id!);
+                        } else if (state is FavoriteError) {
+                          isLike = state.isFavorite(appart.id!);
+                        }
+
+                        return Row(
+                          children: [
+                            TextSeed(
+                              "(${(widget.appart.likes ?? 0) + (isLike ? 1 : 0)})",
+                            ),
+                            IconBoutton(
+                              icon: Icons.favorite,
+                              color: isLike ? Colors.red : Style.innactiveColor,
+                              onPressed: isLoading
+                                  ? null
+                                  : () {
+                                      context.read<FavoriteBloc>().add(ToggleFavorite(appart.id!));
+                                    },
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
