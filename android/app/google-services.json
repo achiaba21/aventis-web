@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "10566009678",
+    "project_id": "asfar-app",
+    "storage_bucket": "asfar-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:10566009678:android:937a2da5aac9ff18f9141f",
+        "android_client_info": {
+          "package_name": "com.seven.asfar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPqLtqhlxMQZp_7Y60GR_FeICgeQf5hTg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asfar - Refonte enregistrement appartement</title>
+    <style>
+        :root {
+            --bg-dark: #1D1D1D;
+            --bg-card: #2A2A2A;
+            --bg-elevated: #333333;
+            --primary: #FFA02A;
+            --primary-dark: #E08A1F;
+            --text: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --success: #22C55E;
+            --warning: #FF9800;
+            --danger: #EB4040;
+            --info: #2196F3;
+            --border: #374151;
+            --code-bg: #1A1A1A;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.65;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 3rem;
+        }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; padding: 1rem; }
+            nav.toc { position: static !important; }
+        }
+
+        nav.toc {
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        nav.toc h3 {
+            color: var(--primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        nav.toc ol {
+            list-style: none;
+            counter-reset: section;
+        }
+
+        nav.toc li {
+            counter-increment: section;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        nav.toc li::before {
+            content: counter(section) ". ";
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        nav.toc a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        nav.toc a:hover { color: var(--text); }
+
+        main {
+            min-width: 0;
+        }
+
+        header.page-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        header.page-header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header.page-header .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: var(--success); color: #000; }
+        .badge-primary { background: var(--primary); color: #000; }
+        .badge-info { background: var(--info); color: #fff; }
+        .badge-warning { background: var(--warning); color: #000; }
+
+        section {
+            margin-bottom: 3rem;
+        }
+
+        section h2 {
+            font-size: 1.6rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        section h3 {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text);
+        }
+
+        section p, section li {
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+
+        section ul, section ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .callout {
+            border-left: 4px solid var(--primary);
+            background: var(--bg-card);
+            padding: 1rem 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.25rem 0;
+        }
+
+        .callout.warning { border-left-color: var(--warning); }
+        .callout.danger  { border-left-color: var(--danger); }
+        .callout.info    { border-left-color: var(--info); }
+        .callout.success { border-left-color: var(--success); }
+
+        .callout strong { color: var(--primary); }
+
+        code, pre {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            color: var(--primary);
+        }
+
+        pre {
+            background: var(--code-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: var(--text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-elevated);
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .metric {
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .metric .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: block;
+        }
+
+        .metric .label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .file-list {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.85rem;
+        }
+
+        .file-list .file { color: var(--text-muted); padding: 0.2rem 0; }
+        .file-list .file.created { color: var(--success); }
+        .file-list .file.modified { color: var(--info); }
+        .file-list .file.deleted { color: var(--danger); text-decoration: line-through; }
+
+        .step-flow {
+            counter-reset: step;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .step {
+            counter-increment: step;
+            background: var(--bg-card);
+            padding: 1.25rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .step::before {
+            content: counter(step);
+            position: absolute;
+            top: -10px;
+            left: 1rem;
+            background: var(--primary);
+            color: #000;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .step h4 {
+            color: var(--primary);
+            font-size: 1rem;
+            margin: 0.25rem 0 0.5rem;
+        }
+
+        .step p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .changelog-entry {
+            border-left: 3px solid var(--primary);
+            padding-left: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .changelog-entry .version {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.05rem;
+        }
+
+        .changelog-entry .date {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+        }
+
+        a.back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        a.back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="toc" aria-label="Sommaire">
+            <h3>Sommaire</h3>
+            <ol>
+                <li><a href="#contexte">Contexte</a></li>
+                <li><a href="#objectifs">Objectifs</a></li>
+                <li><a href="#parcours">Parcours utilisateur</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#fichiers">Fichiers</a></li>
+                <li><a href="#migration">Migration & backend</a></li>
+                <li><a href="#limitations">Limitations V1</a></li>
+                <li><a href="#metriques">Métriques</a></li>
+                <li><a href="#historique">Historique</a></li>
+            </ol>
+        </nav>
+
+        <main>
+            <a href="index.html" class="back-link">← Retour à l'index</a>
+
+            <header class="page-header">
+                <h1>Refonte enregistrement appartement</h1>
+                <p class="subtitle">
+                    Suppression de la notion de Résidence + wizard d'ajout style Airbnb,
+                    auto-save silencieux, géolocalisation auto-détectée, et migration
+                    transparente des données existantes.
+                </p>
+                <div class="badges">
+                    <span class="badge badge-success">Livrée</span>
+                    <span class="badge badge-primary">v1.0</span>
+                    <span class="badge badge-info">Audit 92.5/100</span>
+                </div>
+            </header>
+
+            <!-- ========== CONTEXTE ========== -->
+            <section id="contexte">
+                <h2>1. Contexte</h2>
+                <p>
+                    L'application Asfar permettait au propriétaire d'enregistrer ses biens
+                    locatifs en deux temps : d'abord créer une <strong>Résidence</strong>
+                    (nom + adresse), puis y rattacher un ou plusieurs
+                    <strong>Appartements</strong>.
+                </p>
+                <p>
+                    Cette structure dupliquait des écrans, complexifiait la maintenance,
+                    et imposait au proprio (souvent avec 1 à 5 biens à des adresses
+                    distinctes) de comprendre une notion intermédiaire sans valeur perçue.
+                </p>
+                <div class="callout">
+                    <strong>Demande utilisateur :</strong> abandonner totalement la notion
+                    de Résidence, intégrer l'adresse directement dans l'Appartement, et
+                    refondre l'UI d'ajout pour qu'elle soit <em>« simple, sans prise de
+                    tête, fluide et agréable »</em>.
+                </div>
+            </section>
+
+            <!-- ========== OBJECTIFS ========== -->
+            <section id="objectifs">
+                <h2>2. Objectifs</h2>
+                <ul>
+                    <li>Supprimer <strong>complètement</strong> la classe
+                        <code>Residence</code> du code applicatif (modèle, BLoC, repos,
+                        services, écrans, widgets).</li>
+                    <li>Faire de <code>Address</code> un attribut direct de
+                        <code>Appartement</code>.</li>
+                    <li>Refondre l'UI de création/édition en wizard 5 étapes guidées,
+                        avec auto-save silencieux du brouillon.</li>
+                    <li>Préserver la compatibilité avec le backend Spring Boot non
+                        encore migré, via une couche d'adaptation isolée.</li>
+                    <li>Migrer automatiquement les données existantes (cache local Hive)
+                        au premier lancement de la nouvelle version.</li>
+                </ul>
+            </section>
+
+            <!-- ========== PARCOURS ========== -->
+            <section id="parcours">
+                <h2>3. Parcours utilisateur (wizard 5 étapes)</h2>
+                <p>Style validé : <strong>Option C "Hybrid Smart"</strong> — densité adaptative selon le type de contenu de chaque étape.</p>
+
+                <div class="step-flow">
+                    <div class="step">
+                        <h4>Adresse</h4>
+                        <p>Carte plein écran + bottom sheet avec adresse texte. GPS auto-détecté.</p>
+                    </div>
+                    <div class="step">
+                        <h4>Décrire</h4>
+                        <p>Titre (obligatoire) + sélecteur visuel du type de location.</p>
+                    </div>
+                    <div class="step">
+                        <h4>Capacité</h4>
+                        <p>Pills 1/2/3/4+ pour chambres, steppers pour lits/douches.</p>
+                    </div>
+                    <div class="step">
+                        <h4>Photos & équipements</h4>
+                        <p>Min 3 photos pour publier + chips équipements.</p>
+                    </div>
+                    <div class="step">
+                        <h4>Récap</h4>
+                        <p>Aperçu Airbnb-like + prix + bouton « Publier ✨ ».</p>
+                    </div>
+                </div>
+
+                <h3>Comportements clés</h3>
+                <ul>
+                    <li><strong>Auto-save silencieux</strong> à chaque étape franchie + debounce 500ms sur les saisies.</li>
+                    <li><strong>Reprise de brouillon</strong> : modal au lancement si un draft existe.</li>
+                    <li><strong>Validation par étape</strong> : titre, adresse, capacité, prix, ≥3 photos.</li>
+                    <li><strong>Mode édition</strong> : même wizard, pré-rempli, ouverture optionnelle sur une étape via deep-link.</li>
+                </ul>
+            </section>
+
+            <!-- ========== ARCHITECTURE ========== -->
+            <section id="architecture">
+                <h2>4. Architecture</h2>
+
+                <h3>Schéma global</h3>
+                <pre><code>┌──────────────────────────────────────────────────────────────┐
+│       UI applicative (zéro référence à Residence)            │
+│                                                              │
+│   AppartementWizardScreen ── PageView 5 steps                │
+│           │                                                  │
+│           ├─→ AppartementWizardBloc (état wizard, auto-save) │
+│           │      ├─ AppartementDraftStorage (Hive)           │
+│           │      ├─ GeoLocationService (geolocator + reverse)│
+│           │      └─ AppartementPublicationValidator          │
+│           │                                                  │
+│           └─→ AppartementBloc (CRUD, double émission)        │
+│                  └─ AppartementRepository                    │
+└─────────────────────────┬────────────────────────────────────┘
+                          ▼
+┌──────────────────────────────────────────────────────────────┐
+│   ZONE LEGACY ISOLÉE — 2 fichiers seulement                  │
+│   • AppartementBackendMapper (Map&lt;String,dynamic&gt;)           │
+│   • LegacyResidenceMigration  (one-shot Hive)                │
+└─────────────────────────┬────────────────────────────────────┘
+                          ▼
+        Backend Spring (attend encore residence + address)</code></pre>
+
+                <h3>Composants nouveaux</h3>
+                <table>
+                    <thead>
+                        <tr><th>Composant</th><th>Rôle</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>AppartementWizardBloc</code></td><td>État du wizard multi-étapes, auto-save, validation par étape. Émet <code>published=true</code> pour déléguer la persistance API à <code>AppartementBloc</code> (couplage faible).</td></tr>
+                        <tr><td><code>AppartementBackendMapper</code></td><td>Pont legacy : à l'envoi, embarque une "shape résidence" autour de l'address ; à la réception, fusionne <code>residence.address → appart.address</code>. Manipule des <code>Map</code> bruts uniquement.</td></tr>
+                        <tr><td><code>LegacyResidenceMigration</code></td><td>Migration one-shot idempotente au démarrage. Lit le cache résidences en JSON brut, transfère l'address dans les apparts, vide la box résidences, pose un flag.</td></tr>
+                        <tr><td><code>AppartementDraftStorage</code></td><td>Persistance Hive du brouillon courant (slot unique <code>current</code>). Save/load/clear/hasDraft.</td></tr>
+                        <tr><td><code>GeoLocationService</code></td><td>Wrapper <code>geolocator</code> + reverse geocoding (réutilise le <code>GeocodingService</code> existant). Permission gracieusement gérée, timeout configurable.</td></tr>
+                        <tr><td><code>AppartementPublicationValidator</code></td><td>Règles métier : titre, adresse GPS, type, capacité, prix, ≥3 photos. Méthodes <code>isStep1Complete</code>...<code>isStep5Complete</code> pour validation incrémentale.</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Modèle <code>Appartement</code> (modifié)</h3>
+                <pre><code>class Appartement {
+  // … champs existants conservés …
+  Address? address;   // ← NEW : adresse directe
+
+  // ❌ Supprimés (refonte BACKEND-FLAT-APPART) :
+  //   - int? residenceId
+  //   - Residence? residence
+}</code></pre>
+                <p>
+                    <code>Appartement.fromJson()</code> applique une fusion défensive :
+                    si <code>json['address']</code> est absent mais que
+                    <code>json['residence']['address']</code> est présent (cas backend
+                    legacy), l'adresse est extraite. Comportement transitoire jusqu'à
+                    migration backend.
+                </p>
+            </section>
+
+            <!-- ========== FICHIERS ========== -->
+            <section id="fichiers">
+                <h2>5. Fichiers</h2>
+
+                <h3>Créés (20)</h3>
+                <div class="file-list">
+                    <div class="file created">+ lib/service/model/appartement/appartement_backend_mapper.dart</div>
+                    <div class="file created">+ lib/service/migration/legacy_residence_migration.dart</div>
+                    <div class="file created">+ lib/service/storage/appartement_draft_storage.dart</div>
+                    <div class="file created">+ lib/service/geo/geo_location_service.dart</div>
+                    <div class="file created">+ lib/util/appartement_publication_validator.dart</div>
+                    <div class="file created">+ lib/bloc/appartement_wizard_bloc/{bloc,event,state}.dart</div>
+                    <div class="file created">+ lib/screen/client/proprio/appartements/wizard/appartement_wizard_screen.dart</div>
+                    <div class="file created">+ lib/screen/client/proprio/appartements/wizard/steps/step_1_address.dart</div>
+                    <div class="file created">+ lib/screen/client/proprio/appartements/wizard/steps/step_2_basics.dart</div>
+                    <div class="file created">+ lib/screen/client/proprio/appartements/wizard/steps/step_3_capacity.dart</div>
+                    <div class="file created">+ lib/screen/client/proprio/appartements/wizard/steps/step_4_media_amenities.dart</div>
+                    <div class="file created">+ lib/screen/client/proprio/appartements/wizard/steps/step_5_pricing_review.dart</div>
+                    <div class="file created">+ lib/widget/wizard/wizard_circle_progress.dart</div>
+                    <div class="file created">+ lib/widget/wizard/wizard_step_scaffold.dart</div>
+                    <div class="file created">+ lib/widget/wizard/wizard_navigation_bar.dart</div>
+                    <div class="file created">+ lib/widget/wizard/wizard_auto_save_indicator.dart</div>
+                    <div class="file created">+ lib/widget/wizard/capacity_pill_selector.dart</div>
+                    <div class="file created">+ lib/widget/card/appartement_preview_card.dart</div>
+                </div>
+
+                <h3>Modifiés (~17)</h3>
+                <div class="file-list">
+                    <div class="file modified">~ lib/main.dart (drop ResidenceBloc, add migration au démarrage)</div>
+                    <div class="file modified">~ lib/model/residence/appart.dart (+address, -residence/residenceId)</div>
+                    <div class="file modified">~ lib/bloc/appartement_bloc/{bloc,event}.dart</div>
+                    <div class="file modified">~ lib/bloc/charge_bloc/charge_bloc.dart (setResidences → setAppartements)</div>
+                    <div class="file modified">~ lib/repository/charge_repository.dart</div>
+                    <div class="file modified">~ lib/service/repository/appartement_repository.dart (orchestration mapper)</div>
+                    <div class="file modified">~ lib/service/model/appartement/appartement_service.dart (Map payloads)</div>
+                    <div class="file modified">~ lib/service/preload/preload_coordinator_builder.dart</div>
+                    <div class="file modified">~ lib/util/comptabilite_calculator.dart (drop repartitionCaParResidence)</div>
+                    <div class="file modified">~ lib/screen/client/proprio/{home,navigation}.dart</div>
+                    <div class="file modified">~ lib/screen/client/proprio/appartements/proprio_appart_detail_screen.dart</div>
+                    <div class="file modified">~ lib/screen/client/proprio/comptabilite/{comptabilite_screen,charge_form_screen,widget/comptabilite_loaded_view}.dart</div>
+                    <div class="file modified">~ lib/screen/client/proprio/reservations/reservation_manuelle_form_screen.dart</div>
+                    <div class="file modified">~ lib/screen/client/locataire/{home/widget/appart_item,map/map_explore_screen}.dart</div>
+                    <div class="file modified">~ lib/screen/client/demarcheur/home/demarcheur_home.dart</div>
+                    <div class="file modified">~ lib/widget/{map/appart_map_section, item/appart/appart_proprio_info, item/appart/appart_titre_info, item/appart/appart_tile_item}.dart</div>
+                    <div class="file modified">~ lib/model/map/map_residence.dart (factory fromAppartement)</div>
+                </div>
+
+                <h3>Supprimés (18)</h3>
+                <div class="file-list">
+                    <div class="file deleted">- lib/model/residence/residence.dart</div>
+                    <div class="file deleted">- lib/bloc/residence_bloc/* (3)</div>
+                    <div class="file deleted">- lib/service/repository/residence_repository.dart</div>
+                    <div class="file deleted">- lib/service/residence/residence_service.dart</div>
+                    <div class="file deleted">- lib/service/preload/executors/residence_preload_executor.dart</div>
+                    <div class="file deleted">- lib/repository/proprio_repository.dart</div>
+                    <div class="file deleted">- lib/screen/client/proprio/residences/* (3)</div>
+                    <div class="file deleted">- lib/screen/client/proprio/appartements/add_appartement.dart</div>
+                    <div class="file deleted">- lib/widget/residence/* (4)</div>
+                    <div class="file deleted">- lib/widget/card/residence_card.dart</div>
+                    <div class="file deleted">- lib/widget/form/appartement/location_section.dart</div>
+                    <div class="file deleted">- lib/screen/client/proprio/comptabilite/widget/residence_selector.dart</div>
+                </div>
+            </section>
+
+            <!-- ========== MIGRATION ========== -->
+            <section id="migration">
+                <h2>6. Migration & compatibilité backend</h2>
+
+                <h3>Migration locale Hive (au démarrage)</h3>
+                <p>
+                    <code>LegacyResidenceMigration.instance.runIfNeeded()</code> est
+                    appelé dans <code>main()</code> juste après
+                    <code>StorageService.instance.init()</code>. Algorithme :
+                </p>
+                <ol>
+                    <li>Vérifier le flag <code>migration_v2_appart_address_done</code>
+                        dans la box <code>app_settings</code>. Si présent → noop.</li>
+                    <li>Lire les résidences en JSON brut (Map) depuis Hive.</li>
+                    <li>Pour chaque appartement, fusionner
+                        <code>residence.address → appart.address</code> (si non déjà
+                        renseigné).</li>
+                    <li>Sauvegarder les apparts migrés, vider la box résidences.</li>
+                    <li>Poser le flag.</li>
+                </ol>
+
+                <div class="callout success">
+                    <strong>Idempotente :</strong> rejouer la migration plusieurs fois ne
+                    casse rien — le flag empêche toute exécution ultérieure. Les
+                    appartements orphelins (sans résidence parente) sont conservés avec
+                    <code>address = null</code>, à compléter manuellement par le proprio.
+                </div>
+
+                <h3>Compatibilité backend Spring Boot</h3>
+                <p>
+                    Le backend n'est pas encore migré au modèle plat. Le mapper
+                    <code>AppartementBackendMapper</code> isole cette dette :
+                </p>
+                <pre><code>// À l'envoi (création) :
+final payload = appart.toJson();
+payload.remove('address');
+payload['residence'] = _buildLegacyResidenceShape(appart);
+// Le backend reçoit { residence: { address: {...} } } comme avant.
+
+// À la réception :
+final addressMap = _extractAddressFromLegacy(json);
+json.remove('residence');
+json.remove('residenceId');
+final appart = Appartement.fromJson(json);
+appart.address ??= Address.fromJson(addressMap);</code></pre>
+
+                <div class="callout warning">
+                    <strong>TODO BACKEND-FLAT-APPART :</strong> quand le backend Spring
+                    acceptera <code>appartement.address</code> directement, supprimer
+                    <code>AppartementBackendMapper</code> et la fusion défensive dans
+                    <code>Appartement.fromJson</code>. Le reste du code applicatif
+                    n'aura aucune adaptation à faire.
+                </div>
+            </section>
+
+            <!-- ========== LIMITATIONS ========== -->
+            <section id="limitations">
+                <h2>7. Limitations V1</h2>
+                <table>
+                    <thead>
+                        <tr><th>Item</th><th>Statut</th><th>V2</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Suppression de photos en édition</td>
+                            <td>Non branchée (<code>photosToDelete</code> toujours <code>null</code>)</td>
+                            <td>Ajouter <code>originalSnapshot</code> au state du WizardBloc (~8 lignes)</td>
+                        </tr>
+                        <tr>
+                            <td>Filtre par "résidence" en comptabilité</td>
+                            <td>Neutralisé (le concept n'existe plus côté client)</td>
+                            <td>Filtre par adresse via nouveau <code>AddressFilterSelector</code></td>
+                        </tr>
+                        <tr>
+                            <td>Tests unitaires</td>
+                            <td>Non livrés en V1</td>
+                            <td>Validator + Mapper + Migration + WizardBloc (4 fichiers)</td>
+                        </tr>
+                        <tr>
+                            <td>Affichage proprio depuis appart</td>
+                            <td><code>AppartementProprioInfo</code> charge systématiquement via service</td>
+                            <td>Acceptable, légèrement plus d'appels API mais cache existant</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- ========== METRIQUES ========== -->
+            <section id="metriques">
+                <h2>8. Métriques de qualité</h2>
+
+                <div class="metric-grid">
+                    <div class="metric"><span class="value">92.5</span><div class="label">Score audit /100</div></div>
+                    <div class="metric"><span class="value">0</span><div class="label">Erreurs LSP</div></div>
+                    <div class="metric"><span class="value">20</span><div class="label">Fichiers créés</div></div>
+                    <div class="metric"><span class="value">17</span><div class="label">Fichiers modifiés</div></div>
+                    <div class="metric"><span class="value">18</span><div class="label">Fichiers supprimés</div></div>
+                    <div class="metric"><span class="value">329</span><div class="label">Lignes max (1 fichier)</div></div>
+                </div>
+
+                <h3>Détail audit</h3>
+                <table>
+                    <thead>
+                        <tr><th>Dimension</th><th>Score</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Complexité</td><td>95/100</td><td>✅</td></tr>
+                        <tr><td>Lisibilité</td><td>95/100</td><td>✅</td></tr>
+                        <tr><td>DRY</td><td>90/100</td><td>✅</td></tr>
+                        <tr><td>Documentation</td><td>95/100</td><td>✅</td></tr>
+                        <tr><td>SOLID</td><td>95/100</td><td>✅</td></tr>
+                        <tr><td>Dette technique</td><td>85/100</td><td>✅</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Garde-fous post-refonte</h3>
+                <ul>
+                    <li>✅ <code>grep "import.*model/residence/residence.dart"</code> → 0 résultat</li>
+                    <li>✅ <code>grep "ResidenceBloc|ResidenceRepository|ResidenceService"</code> → 0 résultat</li>
+                    <li>✅ <code>grep "appart\.residence\b"</code> → 0 résultat</li>
+                    <li>⚠️ <code>grep "\.residenceId\b"</code> → résiduels acceptables (champs <code>int?</code> autonomes dans Charge, MapBloc, etc.)</li>
+                </ul>
+            </section>
+
+            <!-- ========== HISTORIQUE ========== -->
+            <section id="historique">
+                <h2>9. Historique</h2>
+
+                <div class="changelog-entry">
+                    <span class="version">v1.0</span>
+                    <span class="date">— 2026-05-05</span>
+                    <p>
+                        Livraison initiale en 4 lots :
+                    </p>
+                    <ul>
+                        <li><strong>L1+L2+L3</strong> — Fondations : modèle, mapper, migration, services support, validator</li>
+                        <li><strong>L4</strong> — BLoCs : <code>AppartementWizardBloc</code> + adaptation <code>AppartementBloc</code> et repository pour passer par le mapper</li>
+                        <li><strong>L6</strong> — UI : 5 step screens + 5 widgets squelette + carte preview + écran orchestrateur</li>
+                        <li><strong>L4 final</strong> — Adaptation des callers (locataire, démarcheur, comptabilité), suppression des fichiers résidence, fix <code>main.dart</code></li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

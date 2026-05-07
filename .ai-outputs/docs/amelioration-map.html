@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature: Amelioration Map - Asfar</title>
+    <style>
+        :root {
+            --primary: #FFA02A;
+            --bg-dark: #1a1a1a;
+            --bg-card: #2d2d2d;
+            --text: #ffffff;
+            --text-muted: #a0a0a0;
+            --success: #4CAF50;
+            --border: #404040;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header {
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        h1 { color: var(--primary); font-size: 2rem; }
+        h2 { color: var(--primary); margin: 2rem 0 1rem; font-size: 1.5rem; }
+        h3 { color: var(--text); margin: 1.5rem 0 0.5rem; font-size: 1.2rem; }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .badge-success { background: var(--success); color: white; }
+        .badge-primary { background: var(--primary); color: black; }
+        .card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border: 1px solid var(--border);
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--primary); }
+        code {
+            background: #1e1e1e;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+        pre {
+            background: #1e1e1e;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        pre code { padding: 0; background: none; }
+        .file-list { list-style: none; }
+        .file-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-list .status { color: var(--success); }
+        .feature-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+        }
+        .feature-icon { font-size: 1.5rem; }
+        .score-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .score-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 4px;
+        }
+        .mermaid-placeholder {
+            background: #1e1e1e;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Feature: Amelioration Map</h1>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">
+                Modernisation de l'affichage des cartes avec design epure et nouvelles fonctionnalites
+            </p>
+            <div style="margin-top: 1rem;">
+                <span class="badge badge-success">Valide</span>
+                <span class="badge badge-primary">Score: 92/100</span>
+            </div>
+        </header>
+
+        <section>
+            <h2>Resume</h2>
+            <div class="card">
+                <p>Cette feature ameliore l'experience cartographique de l'application Asfar avec :</p>
+                <ul style="margin-top: 1rem; padding-left: 1.5rem;">
+                    <li>Design moderne style Airbnb avec markers affichant les prix</li>
+                    <li>Tuiles Stadia Maps en mode sombre pour un rendu epure</li>
+                    <li>Bouton de geolocalisation avec animation</li>
+                    <li>Recherche par zone circulaire</li>
+                    <li>Configuration centralisee des parametres map</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>Composants Crees</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>MapConfig</h3>
+                    <p style="color: var(--text-muted);">Configuration centralisee</p>
+                    <code>lib/config/map_config.dart</code>
+                    <ul style="margin-top: 0.5rem; padding-left: 1rem; font-size: 0.9rem;">
+                        <li>URLs des tuiles Stadia</li>
+                        <li>Couleurs des markers</li>
+                        <li>Dimensions et animations</li>
+                        <li>Parametres de zoom</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>CustomMapMarker</h3>
+                    <p style="color: var(--text-muted);">Marker moderne avec prix</p>
+                    <code>lib/widget/map/custom_map_marker.dart</code>
+                    <ul style="margin-top: 0.5rem; padding-left: 1rem; font-size: 0.9rem;">
+                        <li>Mode normal compact (25K)</li>
+                        <li>Mode selectionne etendu</li>
+                        <li>Mode cluster avec pulse</li>
+                        <li>Animations de tap</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>MapStyleLayer</h3>
+                    <p style="color: var(--text-muted);">Tuiles stylisees</p>
+                    <code>lib/widget/map/map_style_layer.dart</code>
+                    <ul style="margin-top: 0.5rem; padding-left: 1rem; font-size: 0.9rem;">
+                        <li>Stadia Maps integration</li>
+                        <li>Support dark/light mode</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>LocationButton</h3>
+                    <p style="color: var(--text-muted);">FAB geolocalisation</p>
+                    <code>lib/widget/map/location_button.dart</code>
+                    <ul style="margin-top: 0.5rem; padding-left: 1rem; font-size: 0.9rem;">
+                        <li>Etat inactif/searching/centered</li>
+                        <li>Animation pulse</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>ZoneSelector</h3>
+                    <p style="color: var(--text-muted);">Bottom sheet zones</p>
+                    <code>lib/widget/map/zone_selector.dart</code>
+                    <ul style="margin-top: 0.5rem; padding-left: 1rem; font-size: 0.9rem;">
+                        <li>Selection cercle/libre</li>
+                        <li>Slider rayon (0.5-5 km)</li>
+                        <li>Boutons recherche/effacer</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Fichiers Modifies</h2>
+            <div class="card">
+                <ul class="file-list">
+                    <li>
+                        <code>lib/screen/client/locataire/map/map_explore_screen.dart</code>
+                        <span class="status">Modifie</span>
+                    </li>
+                    <li>
+                        <code>lib/widget/residence/residence_map_section.dart</code>
+                        <span class="status">Modifie</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>Architecture</h2>
+            <div class="card">
+                <pre><code>lib/
++-- config/
+|   +-- map_config.dart          # Configuration centralisee
++-- widget/
+|   +-- map/
+|   |   +-- custom_map_marker.dart   # Marker Airbnb
+|   |   +-- map_style_layer.dart     # Tuiles Stadia
+|   |   +-- location_button.dart     # FAB geoloc
+|   |   +-- zone_selector.dart       # Bottom sheet
+|   +-- residence/
+|       +-- residence_map_section.dart  # Carte detail (modifie)
++-- screen/
+    +-- client/locataire/map/
+        +-- map_explore_screen.dart     # Ecran exploration (modifie)</code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Rapport d'Audit</h2>
+            <div class="card">
+                <table>
+                    <tr>
+                        <th>Dimension</th>
+                        <th>Score</th>
+                        <th>Statut</th>
+                    </tr>
+                    <tr>
+                        <td>Complexite</td>
+                        <td>80/100</td>
+                        <td>OK</td>
+                    </tr>
+                    <tr>
+                        <td>Lisibilite</td>
+                        <td>100/100</td>
+                        <td>Excellent</td>
+                    </tr>
+                    <tr>
+                        <td>DRY</td>
+                        <td>95/100</td>
+                        <td>Excellent</td>
+                    </tr>
+                    <tr>
+                        <td>Documentation</td>
+                        <td>90/100</td>
+                        <td>Excellent</td>
+                    </tr>
+                    <tr>
+                        <td>SOLID</td>
+                        <td>95/100</td>
+                        <td>Excellent</td>
+                    </tr>
+                    <tr>
+                        <td>Dette technique</td>
+                        <td>90/100</td>
+                        <td>Excellent</td>
+                    </tr>
+                    <tr style="font-weight: bold; background: rgba(255, 160, 42, 0.1);">
+                        <td>GLOBAL</td>
+                        <td>92/100</td>
+                        <td>VALIDE</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <section>
+            <h2>Utilisation</h2>
+            <div class="card">
+                <h3>CustomMapMarker</h3>
+                <pre><code>CustomMapMarker(
+  price: 25000,        // Prix en FCFA
+  isSelected: false,   // Etat selection
+  isCluster: false,    // Mode cluster
+  clusterCount: 5,     // Nombre dans cluster
+  onTap: () => {},     // Callback
+)</code></pre>
+
+                <h3 style="margin-top: 1.5rem;">MapStyleLayer</h3>
+                <pre><code>FlutterMap(
+  children: [
+    const MapStyleLayer(isDarkMode: true),
+    MarkerLayer(markers: [...]),
+  ],
+)</code></pre>
+
+                <h3 style="margin-top: 1.5rem;">LocationButton</h3>
+                <pre><code>LocationButton(
+  state: LocationButtonState.searching,
+  onPressed: () => _centerOnUserLocation(),
+)</code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Dependances</h2>
+            <div class="card">
+                <ul style="padding-left: 1.5rem;">
+                    <li><code>flutter_map</code> - Affichage carte</li>
+                    <li><code>latlong2</code> - Coordonnees GPS</li>
+                    <li><code>geolocator</code> - Geolocalisation</li>
+                    <li>Stadia Maps (tuiles externes)</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer style="margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.9rem;">
+            <p>Documentation generee le 25/12/2024 - Asfar App</p>
+            <p>Voir aussi: <a href="index.html" style="color: var(--primary);">Index des features</a></p>
+        </footer>
+    </div>
+</body>
+</html>

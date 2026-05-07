@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature: Localisation Proprio</title>
+    <style>
+        :root {
+            --primary: #FFA02A;
+            --primary-dark: #E8911F;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-700);
+            background: var(--gray-50);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .badge-success { background: var(--success); color: white; }
+        .badge-warning { background: var(--warning); color: white; }
+        .badge-primary { background: var(--primary); color: white; }
+
+        section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        section h2 {
+            color: var(--gray-900);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        section h3 {
+            color: var(--gray-900);
+            font-size: 1rem;
+            margin: 1rem 0 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            background: var(--gray-100);
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        code {
+            background: var(--gray-100);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', 'Monaco', monospace;
+            font-size: 0.875rem;
+        }
+
+        pre {
+            background: var(--gray-900);
+            color: #e5e7eb;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .file-tree {
+            font-family: 'Fira Code', 'Monaco', monospace;
+            font-size: 0.875rem;
+            background: var(--gray-100);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .file-tree .new { color: var(--success); }
+        .file-tree .modified { color: var(--warning); }
+
+        .diagram {
+            background: var(--gray-100);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', 'Monaco', monospace;
+            font-size: 0.8rem;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        .state-card {
+            background: var(--gray-100);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .state-card h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray-700);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Localisation Proprio</h1>
+            <p>Differentiation proprio/locataire et edition de localisation</p>
+            <div style="margin-top: 1rem;">
+                <span class="badge badge-success">Implemente</span>
+                <span class="badge badge-primary">v1.0</span>
+                <span class="badge badge-warning">2025-12-27</span>
+            </div>
+        </header>
+
+        <section>
+            <h2>Resume</h2>
+            <p>Cette feature differencie l'affichage de la section carte selon le role (proprietaire vs locataire) et permet au proprietaire d'ajouter/modifier la localisation de sa residence via 3 methodes.</p>
+
+            <h3>Objectifs</h3>
+            <ul>
+                <li>Le proprio ne voit plus "Reserver" sur ses propres residences</li>
+                <li>Le proprio peut ajouter une localisation via 3 methodes</li>
+                <li>Le proprio peut modifier une localisation existante</li>
+                <li>Le locataire voit "Localisation approximative" si pas de coords exactes</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Etats de ResidenceMapSection</h2>
+
+            <div class="state-card">
+                <h4>Etat 1 : Proprio AVEC coordonnees</h4>
+                <p>Carte avec marker + FAB "Modifier" en bas a droite</p>
+                <pre><code>ResidenceMapSection(
+  residence: residence,
+  isOwner: true,
+  onEditLocation: _handleEditLocation,
+)</code></pre>
+            </div>
+
+            <div class="state-card">
+                <h4>Etat 2 : Proprio SANS coordonnees</h4>
+                <p>Placeholder "Localisation non renseignee" avec bouton "Ajouter"</p>
+            </div>
+
+            <div class="state-card">
+                <h4>Etat 3 : Locataire (carte approximative)</h4>
+                <p>Carte centree sur commune + message "Localisation approximative"</p>
+                <p><em>Plus de bouton "Reserver maintenant"</em></p>
+            </div>
+
+            <div class="state-card">
+                <h4>Etat 4 : Aucune localisation</h4>
+                <p>Placeholder standard avec action reservation</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>LocationEditBottomSheet</h2>
+            <p>Bottom sheet modal avec 3 onglets pour la saisie de localisation :</p>
+
+            <h3>Onglet Recherche</h3>
+            <ul>
+                <li>Champ de recherche avec autocompletion</li>
+                <li>Utilise <code>GeocodingService.autocomplete()</code></li>
+                <li>Bouton "Utiliser ma position actuelle"</li>
+                <li>Liste des suggestions cliquables</li>
+            </ul>
+
+            <h3>Onglet Carte</h3>
+            <ul>
+                <li>Carte interactive (tap pour selectionner)</li>
+                <li>Marker affiche a la position selectionnee</li>
+                <li>Bouton geolocalisation</li>
+            </ul>
+
+            <h3>Onglet Manuel</h3>
+            <ul>
+                <li>Champs Latitude et Longitude</li>
+                <li>Validation des plages (-90/90, -180/180)</li>
+                <li>Bouton position actuelle</li>
+            </ul>
+
+            <h3>Usage</h3>
+            <pre><code>final result = await LocationEditBottomSheet.show(
+  context,
+  initialAddress: residence.address,
+);
+
+if (result != null) {
+  // result.latitude, result.longitude, result.displayName
+}</code></pre>
+        </section>
+
+        <section>
+            <h2>Fichiers</h2>
+            <div class="file-tree">
+lib/
++-- widget/
+|   +-- residence/
+|   |   +-- <span class="modified">residence_map_section.dart</span>   # MODIFIE
+|   |
+|   +-- location/
+|       +-- <span class="new">location_edit_bottom_sheet.dart</span>   # NOUVEAU
+|
++-- service/
+|   +-- model/address/
+|       +-- <span class="modified">address_service.dart</span>   # MODIFIE
+|
++-- screen/
+    +-- client/proprio/residences/
+        +-- <span class="modified">residence_detail_screen.dart</span>   # MODIFIE</div>
+        </section>
+
+        <section>
+            <h2>API Reference</h2>
+
+            <h3>ResidenceMapSection (modifie)</h3>
+            <pre><code>class ResidenceMapSection extends StatelessWidget {
+  const ResidenceMapSection({
+    required this.residence,
+    this.isOwner = false,        // NOUVEAU
+    this.onEditLocation,         // NOUVEAU
+    this.onMaskedTap,
+  });
+}</code></pre>
+
+            <h3>LocationEditBottomSheet (nouveau)</h3>
+            <pre><code>class LocationEditBottomSheet extends StatefulWidget {
+  static Future&lt;LocationEditData?&gt; show(
+    BuildContext context, {
+    Address? initialAddress,
+  });
+}
+
+class LocationEditData {
+  final double latitude;
+  final double longitude;
+  final String? displayName;
+  LatLng get latLng;
+}</code></pre>
+
+            <h3>AddressService.updateExactCoordinates (nouveau)</h3>
+            <pre><code>Future&lt;bool&gt; updateExactCoordinates(
+  int addressId,
+  double lat,
+  double longi,
+);
+
+// Appelle: PATCH /addresses/{id}
+// Body: { "lat": 5.34, "longi": -4.02 }</code></pre>
+        </section>
+
+        <section>
+            <h2>Flux d'Interaction</h2>
+            <div class="diagram">
+Proprio consulte sa residence
+         |
+         v
+ResidenceMapSection (isOwner=true)
+         |
+    +----+----+
+    |         |
+  Coords    Pas coords
+    |         |
+    v         v
+Carte +     Placeholder
+FAB Mod     "Ajouter"
+    |         |
+    +----+----+
+         |
+         v (clic)
+LocationEditBottomSheet.show()
+         |
+         v
+3 onglets : Recherche / Carte / Manuel
+         |
+         v (valider)
+AddressService.updateExactCoordinates()
+         |
+         v
+Refresh UI</div>
+        </section>
+
+        <section>
+            <h2>Regles Metier</h2>
+            <table>
+                <tr>
+                    <th>Regle</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>RM1</td>
+                    <td>Le proprio voit TOUJOURS les coordonnees exactes de sa residence</td>
+                </tr>
+                <tr>
+                    <td>RM2</td>
+                    <td>Le proprio peut ajouter/modifier la localisation a tout moment</td>
+                </tr>
+                <tr>
+                    <td>RM3</td>
+                    <td>Le locataire sans reservation payee voit la carte centree sur la commune</td>
+                </tr>
+                <tr>
+                    <td>RM4</td>
+                    <td>Le locataire avec reservation payee voit les coordonnees exactes</td>
+                </tr>
+                <tr>
+                    <td>RM5</td>
+                    <td>La saisie de localisation propose 3 methodes</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>Dependances</h2>
+            <table>
+                <tr>
+                    <th>Composant</th>
+                    <th>Dependance</th>
+                </tr>
+                <tr>
+                    <td>Autocompletion</td>
+                    <td><code>GeocodingService</code> (Nominatim API)</td>
+                </tr>
+                <tr>
+                    <td>Carte interactive</td>
+                    <td><code>flutter_map</code>, <code>MapStyleLayer</code></td>
+                </tr>
+                <tr>
+                    <td>Geolocalisation</td>
+                    <td><code>LocationUtil</code></td>
+                </tr>
+                <tr>
+                    <td>Sauvegarde</td>
+                    <td><code>AddressService</code> (PATCH /addresses)</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>Liens</h2>
+            <ul>
+                <li>Specification metier : <code>.ai-outputs/specs/localisation-proprio/business-spec.md</code></li>
+                <li>Architecture : <code>.ai-outputs/specs/localisation-proprio/architecture.md</code></li>
+                <li>Proposition UI : <code>.ai-outputs/specs/localisation-proprio/ui-proposal.md</code></li>
+                <li>Feature liee : <a href="geocodage-address.html">Geocodage Address</a></li>
+            </ul>
+        </section>
+
+        <footer>
+            <p>Documentation generee le 2025-12-27 | Feature: Localisation Proprio v1.0</p>
+        </footer>
+    </div>
+</body>
+</html>

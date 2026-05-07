@@ -1,0 +1,1 @@
+enum FilterMode { texte, carte }

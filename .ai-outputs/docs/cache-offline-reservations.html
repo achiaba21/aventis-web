@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache Offline Reservations - Documentation</title>
+    <style>
+        :root {
+            --bg-dark: #1D1D1D;
+            --bg-card: #2A2A2A;
+            --primary: #FFA02A;
+            --text: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --success: #22C55E;
+            --error: #EF4444;
+            --border: #374151;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), #E8940A);
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge-success { background: var(--success); }
+        .badge-primary { background: var(--primary); }
+
+        section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        section h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        section h3 {
+            color: var(--text);
+            margin: 1.5rem 0 1rem;
+        }
+
+        ul, ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        li strong {
+            color: var(--text);
+        }
+
+        code {
+            background: var(--bg-dark);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: var(--bg-dark);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            padding: 0;
+            background: none;
+        }
+
+        .file-tree {
+            background: var(--bg-dark);
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: monospace;
+            line-height: 1.8;
+        }
+
+        .file-tree .folder { color: var(--primary); }
+        .file-tree .file { color: var(--text-muted); }
+        .file-tree .new { color: var(--success); }
+        .file-tree .modified { color: #FBBF24; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-dark);
+            color: var(--primary);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .card h4 {
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .nav-link {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .flow-diagram {
+            background: var(--bg-dark);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            font-family: monospace;
+            line-height: 2;
+        }
+
+        .flow-diagram .arrow { color: var(--primary); }
+        .flow-diagram .component { color: var(--success); }
+        .flow-diagram .storage { color: #60A5FA; }
+
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Retour a l'index</a>
+
+        <header>
+            <div>
+                <span class="badge badge-success">Livree</span>
+                <span class="badge badge-primary">v1.0</span>
+            </div>
+            <h1>Cache Offline Reservations</h1>
+            <p>Systeme de cache local Hive pour les reservations avec pattern cache-first</p>
+        </header>
+
+        <section>
+            <h2>Resume</h2>
+            <p>Cette feature permet aux proprietaires de consulter leurs reservations <strong>meme sans connexion au serveur</strong> grace au stockage local Hive.</p>
+            <ul>
+                <li><strong>Cache-first</strong> - Affiche les donnees du cache immediatement, puis rafraichit en arriere-plan</li>
+                <li><strong>Mode offline</strong> - Fonctionne sans serveur si des donnees ont deja ete mises en cache</li>
+                <li><strong>Fallback gracieux</strong> - Retourne une liste vide au lieu d'une erreur si offline et cache vide</li>
+                <li><strong>Synchronisation transparente</strong> - Met a jour l'UI automatiquement quand les donnees API arrivent</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Probleme Resolu</h2>
+            <h3>Avant</h3>
+            <p>Sans serveur, l'interface proprietaire affichait <code>"Erreur de recuperation des reservations"</code> car le BLoC appelait directement l'API sans fallback.</p>
+
+            <h3>Apres</h3>
+            <p>Le nouveau ReservationRepository utilise le pattern cache-first :</p>
+            <ul>
+                <li>Serveur ON + cache vide &rarr; Charge depuis API, sauvegarde en cache</li>
+                <li>Serveur OFF + cache vide &rarr; Liste vide (pas d'erreur)</li>
+                <li>Serveur ON + cache rempli &rarr; Affiche cache, rafraichit en arriere-plan</li>
+                <li>Serveur OFF + cache rempli &rarr; Affiche cache</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Architecture</h2>
+
+            <h3>Pattern Cache-First</h3>
+            <div class="flow-diagram">
+                <span class="component">UI</span> <span class="arrow">&rarr;</span>
+                <span class="component">ReservationBloc</span> <span class="arrow">&rarr;</span>
+                <span class="component">ReservationRepository</span><br>
+                <span class="arrow">&darr;</span><br>
+                <span class="storage">StorageService (Hive)</span> <span class="arrow">&larr;&rarr;</span>
+                <span class="component">ReservationService (API)</span>
+            </div>
+
+            <h3>Composants</h3>
+            <div class="grid">
+                <div class="card">
+                    <h4>ReservationRepository</h4>
+                    <p>Singleton qui orchestre le cache-first. Retourne immediatement les donnees du cache et lance un rafraichissement en arriere-plan.</p>
+                </div>
+                <div class="card">
+                    <h4>ReservationResult</h4>
+                    <p>Wrapper contenant la liste des reservations et un boolean <code>isFromCache</code> indiquant la source des donnees.</p>
+                </div>
+                <div class="card">
+                    <h4>StorageService</h4>
+                    <p>Service de stockage Hive centralise. Nouvelle box <code>reservationsBox</code> ajoutee pour les reservations.</p>
+                </div>
+                <div class="card">
+                    <h4>UpdateReservationsFromApi</h4>
+                    <p>Nouvel event BLoC emis quand les donnees API arrivent en arriere-plan pour mettre a jour l'UI.</p>
+                </div>
+            </div>
+
+            <h3>Diagramme de Sequence</h3>
+            <pre><code>1. UI declenche LoadProprietaireReservations
+2. ReservationBloc appelle Repository.getProprietaireReservations()
+3. Repository verifie le cache Hive
+4. Si cache non vide:
+   a. Retourne ReservationResult(cached, isFromCache: true)
+   b. Lance _refreshInBackground() avec callback onApiData
+5. BLoC emet ReservationLoaded avec donnees cache
+6. En arriere-plan: API appele, cache mis a jour
+7. Callback onApiData declenche add(UpdateReservationsFromApi)
+8. BLoC emet nouveau ReservationLoaded avec donnees fraiches</code></pre>
+        </section>
+
+        <section>
+            <h2>Fichiers</h2>
+
+            <h3>Fichier cree</h3>
+            <div class="file-tree">
+                <span class="folder">lib/service/repository/</span><br>
+                &nbsp;&nbsp;<span class="file new">reservation_repository.dart</span> - Repository avec pattern cache-first (205 lignes)<br>
+            </div>
+
+            <h3>Fichiers modifies</h3>
+            <div class="file-tree">
+                <span class="folder">lib/service/storage/</span><br>
+                &nbsp;&nbsp;<span class="file modified">storage_service.dart</span> - Ajout reservationsBox + 4 methodes CRUD<br>
+                <br>
+                <span class="folder">lib/bloc/reservation_bloc/</span><br>
+                &nbsp;&nbsp;<span class="file modified">reservation_bloc.dart</span> - Utilisation du repository + handler UpdateReservationsFromApi<br>
+                &nbsp;&nbsp;<span class="file modified">reservation_event.dart</span> - Ajout UpdateReservationsFromApi event<br>
+            </div>
+        </section>
+
+        <section>
+            <h2>API du Repository</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Methode</th>
+                        <th>Parametres</th>
+                        <th>Retour</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>getProprietaireReservations</code></td>
+                        <td><code>forceRefresh</code>, <code>onApiData</code></td>
+                        <td><code>Future&lt;ReservationResult&gt;</code></td>
+                        <td>Reservations du proprietaire (cache-first)</td>
+                    </tr>
+                    <tr>
+                        <td><code>getUserReservations</code></td>
+                        <td><code>forceRefresh</code>, <code>onApiData</code></td>
+                        <td><code>Future&lt;ReservationResult&gt;</code></td>
+                        <td>Reservations de l'utilisateur (cache-first)</td>
+                    </tr>
+                    <tr>
+                        <td><code>getCachedReservations</code></td>
+                        <td>-</td>
+                        <td><code>List&lt;Reservation&gt;</code></td>
+                        <td>Lecture directe du cache</td>
+                    </tr>
+                    <tr>
+                        <td><code>fetchAndCacheProprietaireReservations</code></td>
+                        <td>-</td>
+                        <td><code>Future&lt;List&lt;Reservation&gt;&gt;</code></td>
+                        <td>Force appel API + sauvegarde cache</td>
+                    </tr>
+                    <tr>
+                        <td><code>clearCache</code></td>
+                        <td>-</td>
+                        <td><code>Future&lt;void&gt;</code></td>
+                        <td>Vide le cache des reservations</td>
+                    </tr>
+                    <tr>
+                        <td><code>isCacheStale</code></td>
+                        <td><code>maxAgeHours</code></td>
+                        <td><code>bool</code></td>
+                        <td>Verifie si le cache est perime</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Utilisation</h2>
+
+            <h3>Chargement standard (cache-first)</h3>
+            <pre><code>// Dans le BLoC - deja implemente
+on&lt;LoadProprietaireReservations&gt;((event, emit) async {
+  emit(ReservationLoading());
+
+  final result = await _repository.getProprietaireReservations(
+    forceRefresh: false,
+    onApiData: (apiReservations) {
+      // Mise a jour quand API repond
+      add(UpdateReservationsFromApi(apiReservations));
+    },
+  );
+
+  emit(ReservationLoaded(result.reservations));
+});</code></pre>
+
+            <h3>Force refresh</h3>
+            <pre><code>// Pour forcer le rafraichissement depuis l'API
+final result = await _repository.getProprietaireReservations(
+  forceRefresh: true,
+);
+// En cas d'erreur API, retourne quand meme le cache</code></pre>
+
+            <h3>Verification du cache</h3>
+            <pre><code>// Verifier si les donnees viennent du cache
+if (result.isFromCache) {
+  // Afficher un indicateur "donnees locales"
+}
+
+// Verifier si le cache est perime (> 1 heure)
+if (_repository.isCacheStale(maxAgeHours: 1)) {
+  // Forcer un refresh
+}</code></pre>
+        </section>
+
+        <section>
+            <h2>StorageService - Nouvelles Methodes</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Methode</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>getReservations()</code></td>
+                        <td>Recupere toutes les reservations du cache (List&lt;Map&gt;)</td>
+                    </tr>
+                    <tr>
+                        <td><code>saveReservations(List&lt;Map&gt;)</code></td>
+                        <td>Sauvegarde les reservations + timestamp de sync</td>
+                    </tr>
+                    <tr>
+                        <td><code>getReservationsLastSync()</code></td>
+                        <td>Date de derniere synchronisation</td>
+                    </tr>
+                    <tr>
+                        <td><code>clearReservations()</code></td>
+                        <td>Vide le cache des reservations</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="color: var(--text-muted); margin-top: 1rem;">
+                <em>Note: clearReservations() est automatiquement appele par clear() et clearProprioData()</em>
+            </p>
+        </section>
+
+        <section>
+            <h2>Audit Qualite</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dimension</th>
+                        <th>Score</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Complexite</td>
+                        <td>100/100</td>
+                        <td>&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td>Lisibilite</td>
+                        <td>100/100</td>
+                        <td>&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td>DRY</td>
+                        <td>85/100</td>
+                        <td>&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td>Documentation</td>
+                        <td>100/100</td>
+                        <td>&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td>SOLID</td>
+                        <td>100/100</td>
+                        <td>&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td>Dette technique</td>
+                        <td>100/100</td>
+                        <td>&#10003;</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GLOBAL</strong></td>
+                        <td><strong>97/100</strong></td>
+                        <td><strong>&#10003; VALIDE</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="color: var(--text-muted); margin-top: 1rem;">
+                <em>Note: Score DRY 85/100 du a la duplication acceptable entre getProprietaireReservations et getUserReservations (pattern courant dans les repositories Flutter)</em>
+            </p>
+        </section>
+
+        <section>
+            <h2>Historique</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Version</th>
+                        <th>Date</th>
+                        <th>Changements</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1.0</td>
+                        <td>11 janvier 2026</td>
+                        <td>Creation initiale - Implementation du cache offline pour les reservations</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer>
+            <p>Documentation generee le 11 janvier 2026 | Asfar Mobile App</p>
+        </footer>
+    </div>
+</body>
+</html>

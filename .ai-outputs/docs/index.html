@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asfar - Documentation Features</title>
+    <style>
+        :root {
+            --bg-dark: #1D1D1D;
+            --bg-card: #2A2A2A;
+            --primary: #FFA02A;
+            --text: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --success: #22C55E;
+            --border: #374151;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary), #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+
+        .features-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, border-color 0.2s;
+            display: block;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .feature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            color: var(--text);
+        }
+
+        .feature-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: var(--success); }
+        .badge-primary { background: var(--primary); }
+
+        .feature-description {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .feature-meta {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .feature-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 3rem;
+            padding-top: 3rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem;
+            font-size: 0.875rem;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Asfar</h1>
+            <p>Documentation des features implementees</p>
+        </header>
+
+        <main>
+            <div class="features-grid">
+                <a href="refonte-enregistrement-appartement.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">Refonte enregistrement appartement</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Suppression complete de la notion de Residence + wizard d'ajout
+                        style Airbnb (5 etapes guidees), auto-save silencieux, GPS
+                        auto-detecte, et migration transparente des donnees existantes.
+                        Le backend Spring reste compatible via une couche d'adaptation
+                        isolee (TODO BACKEND-FLAT-APPART).
+                    </p>
+                    <div class="feature-meta">
+                        <span>20 fichiers crees</span>
+                        <span>17 fichiers modifies</span>
+                        <span>18 fichiers supprimes</span>
+                        <span>Score: 92.5/100</span>
+                    </div>
+                </a>
+
+                <a href="amelioration-detail-reservation.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">Amelioration Detail Appartement</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Refonte interface detail appartement : palette monochrome (orange + gris),
+                        mise en valeur des reductions avec economie en vert, carte de localisation
+                        approximative, et calendrier de blocage de dates pour proprietaires.
+                    </p>
+                    <div class="feature-meta">
+                        <span>7 fichiers crees</span>
+                        <span>5 fichiers modifies</span>
+                        <span>Score: 92/100</span>
+                    </div>
+                </a>
+
+                <a href="logique-chargement-carte.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">Logique Chargement Carte</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Affichage des residences sur la carte depuis le cache ResidenceBloc. Filtrage
+                        des residences sans coordonnees GPS, selection manuelle de position via long press,
+                        et geolocalisation utilisateur.
+                    </p>
+                    <div class="feature-meta">
+                        <span>0 fichiers crees</span>
+                        <span>3 fichiers modifies</span>
+                        <span>Score: 94/100</span>
+                    </div>
+                </a>
+
+                <a href="compte-proprietaire.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">Compte Proprietaire</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Systeme complet de gestion de compte pour les proprietaires : consultation des soldes
+                        (disponible, en attente, verrouille), historique des transactions avec filtrage,
+                        et formulaire de demande de retrait.
+                    </p>
+                    <div class="feature-meta">
+                        <span>14 fichiers crees</span>
+                        <span>2 fichiers modifies</span>
+                        <span>Score: 95/100</span>
+                    </div>
+                </a>
+
+                <a href="donnees-sensibles-filtrage.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">Donnees Sensibles Filtrees</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Gestion des donnees sensibles masquees par le serveur (GPS, infos proprietaire/locataire).
+                        Affichage de placeholders Call-to-Action et cartes de localisation approximative
+                        quand les coordonnees exactes sont cachees.
+                    </p>
+                    <div class="feature-meta">
+                        <span>2 fichiers crees</span>
+                        <span>6 fichiers modifies</span>
+                        <span>Score: 97/100</span>
+                    </div>
+                </a>
+
+                <a href="amelioration-map.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">Amelioration Map</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Modernisation de l'affichage des cartes : design epure style Airbnb avec markers
+                        affichant les prix, tuiles Stadia Maps en mode sombre, geolocalisation avec
+                        animation, et recherche par zone circulaire.
+                    </p>
+                    <div class="feature-meta">
+                        <span>5 fichiers crees</span>
+                        <span>2 fichiers modifies</span>
+                        <span>Score: 92/100</span>
+                    </div>
+                </a>
+
+                <a href="cache-offline-reservations.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">Cache Offline Reservations</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Systeme de cache local Hive pour les reservations avec pattern cache-first.
+                        Permet aux proprietaires de consulter leurs reservations meme sans connexion
+                        au serveur grace au stockage local persistant.
+                    </p>
+                    <div class="feature-meta">
+                        <span>1 fichier cree</span>
+                        <span>3 fichiers modifies</span>
+                        <span>Score: 97/100</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Features livrees</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">50</div>
+                    <div class="stat-label">Fichiers impactes</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">94</div>
+                    <div class="stat-label">Score qualite moyen</div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Documentation Asfar | Derniere mise a jour : 18 janvier 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

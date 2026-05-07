@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amelioration Detail Appartement - Documentation</title>
+    <style>
+        :root {
+            --bg-dark: #1D1D1D;
+            --bg-card: #2A2A2A;
+            --primary: #FFA02A;
+            --text: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --success: #22C55E;
+            --error: #EF4444;
+            --border: #374151;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .back-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), #E8940A);
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge-success { background: var(--success); }
+        .badge-primary { background: var(--primary); }
+        .badge-new { background: #3B82F6; }
+
+        section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        section h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        section h3 {
+            color: var(--text);
+            margin: 1.5rem 0 1rem;
+        }
+
+        ul, ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        li strong {
+            color: var(--text);
+        }
+
+        code {
+            background: #374151;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+
+        pre {
+            background: #0D0D0D;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        td {
+            color: var(--text-muted);
+        }
+
+        .file-list {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #1D1D1D;
+            border-radius: 6px;
+        }
+
+        .file-icon {
+            color: var(--primary);
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .meta-item {
+            background: #1D1D1D;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .meta-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .meta-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .component-card {
+            background: #1D1D1D;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--primary);
+        }
+
+        .component-name {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .component-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Retour a l'index</a>
+
+        <header>
+            <div style="margin-bottom: 1rem;">
+                <span class="badge badge-success">Livree</span>
+                <span class="badge badge-primary">v1.0</span>
+            </div>
+            <h1>Amelioration Detail Appartement</h1>
+            <p>Interface detail appartement et reservation optimisee pour la lisibilite</p>
+        </header>
+
+        <section>
+            <h2>Description</h2>
+            <p>
+                Refonte complete de l'interface de detail des appartements et du processus de reservation.
+                Cette feature ameliore la lisibilite en adoptant une palette monochrome (orange + gris),
+                met en valeur le systeme de reductions pour sejours prolonges, et ajoute de nouvelles
+                fonctionnalites pour les proprietaires (calendrier de blocage de dates).
+            </p>
+
+            <h3>Objectifs</h3>
+            <ul>
+                <li><strong>Lisibilite amelioree</strong> - Reduction des couleurs excessives, palette coherente</li>
+                <li><strong>Mise en valeur des reductions</strong> - Tableau des paliers visible, economie affichee en vert</li>
+                <li><strong>Localisation approximative</strong> - Carte de zone pour les locataires avant paiement</li>
+                <li><strong>Calendrier proprietaire</strong> - Blocage manuel de dates pour les proprietaires</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Composants Crees</h2>
+
+            <div class="component-card">
+                <div class="component-name">BaseLocationMap <span class="badge badge-new">Nouveau</span></div>
+                <div class="component-desc">
+                    Widget generique pour afficher une carte de localisation. Gere 3 cas : localisation exacte
+                    (avec marker), localisation approximative (zone floue), et placeholder (aucune localisation).
+                    Utilise par ResidenceMapSection et AppartMapSection.
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-name">AppartMapSection <span class="badge badge-new">Nouveau</span></div>
+                <div class="component-desc">
+                    Wrapper de BaseLocationMap specifique aux appartements. Extrait les coordonnees depuis
+                    la residence parente et gere l'affichage selon le role (locataire/proprietaire).
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-name">DetailSectionCard <span class="badge badge-new">Nouveau</span></div>
+                <div class="component-desc">
+                    Card reutilisable pour encapsuler chaque section de la page detail. Fond surfaceColor (#2D2D2D),
+                    bordures arrondies 12px, titre optionnel avec icone.
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-name">AvailabilityCalendar <span class="badge badge-new">Nouveau</span></div>
+                <div class="component-desc">
+                    Calendrier interactif pour les proprietaires permettant de visualiser et bloquer des dates.
+                    Legende couleurs : disponible (transparent), reserve (orange), bloque (gris).
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-name">AvailabilityBloc <span class="badge badge-new">Nouveau</span></div>
+                <div class="component-desc">
+                    BLoC pour gerer l'etat des disponibilites. Events : LoadAvailability, BlockDates, UnblockDates,
+                    SelectDate, DeselectDate. States : AvailabilityLoaded, AvailabilityLoading, AvailabilityError.
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Composants Modifies</h2>
+
+            <div class="component-card">
+                <div class="component-name">RemiseInfo</div>
+                <div class="component-desc">
+                    Palette simplifiee : suppression des 4 couleurs (vert, teal, bleu, indigo) au profit d'une
+                    palette monochrome orange + gris. Nouveau parametre <code>selectedDays</code> pour surligner
+                    le palier actif avec bordure orange.
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-name">AppartBottom</div>
+                <div class="component-desc">
+                    Affichage enrichi du prix : prix original barre quand reduction applicable, badge pourcentage (-X%),
+                    ligne "Economisez X F" en vert (successColor #4CAF50). Utilise DiscountDetails.calculate().
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-name">AppartDetailContent</div>
+                <div class="component-desc">
+                    Reorganisation des sections : reductions juste apres le prix, ajout de la carte de localisation,
+                    suppression de la section "Info Proprietaire". Utilise DetailSectionCard pour le style.
+                </div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-name">ResidenceMapSection</div>
+                <div class="component-desc">
+                    Refactoring pour utiliser BaseLocationMap au lieu de dupliquer le code d'affichage de carte.
+                    Simple wrapper qui extrait les donnees de la residence.
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Palette de Couleurs</h2>
+            <p>Nouvelles couleurs semantiques ajoutees a <code>Style.dart</code> :</p>
+
+            <table>
+                <tr>
+                    <th>Variable</th>
+                    <th>Valeur</th>
+                    <th>Usage</th>
+                </tr>
+                <tr>
+                    <td><code>successColor</code></td>
+                    <td>#4CAF50</td>
+                    <td>Economie realisee, dates disponibles</td>
+                </tr>
+                <tr>
+                    <td><code>surfaceColor</code></td>
+                    <td>#2D2D2D</td>
+                    <td>Fond des cards (plus clair que background)</td>
+                </tr>
+                <tr>
+                    <td><code>surfaceColorLight</code></td>
+                    <td>#3D3D3D</td>
+                    <td>Fond surligne (ligne active)</td>
+                </tr>
+                <tr>
+                    <td><code>textSecondary</code></td>
+                    <td>#9E9E9E</td>
+                    <td>Texte secondaire</td>
+                </tr>
+                <tr>
+                    <td><code>textMuted</code></td>
+                    <td>#757575</td>
+                    <td>Texte desactive</td>
+                </tr>
+                <tr>
+                    <td><code>calendarBlocked</code></td>
+                    <td>#616161</td>
+                    <td>Dates bloquees calendrier</td>
+                </tr>
+                <tr>
+                    <td><code>calendarReserved</code></td>
+                    <td>#FFA02A</td>
+                    <td>Dates reservees calendrier</td>
+                </tr>
+            </table>
+        </section>
+
+        <section>
+            <h2>Fichiers</h2>
+
+            <h3>Fichiers crees (7)</h3>
+            <div class="file-list">
+                <div class="file-item">
+                    <span class="file-icon">+</span>
+                    <code>lib/widget/map/base_location_map.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">+</span>
+                    <code>lib/widget/map/appart_map_section.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">+</span>
+                    <code>lib/widget/detail_appart/detail_section_card.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">+</span>
+                    <code>lib/widget/calendar/availability_calendar.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">+</span>
+                    <code>lib/bloc/availability_bloc/availability_bloc.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">+</span>
+                    <code>lib/bloc/availability_bloc/availability_event.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">+</span>
+                    <code>lib/bloc/availability_bloc/availability_state.dart</code>
+                </div>
+            </div>
+
+            <h3>Fichiers modifies (5)</h3>
+            <div class="file-list">
+                <div class="file-item">
+                    <span class="file-icon">~</span>
+                    <code>lib/service/providers/style.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">~</span>
+                    <code>lib/widget/item/appart/remise_info.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">~</span>
+                    <code>lib/screen/client/locataire/home/widget/appart_bottom.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">~</span>
+                    <code>lib/widget/detail_appart/appart_detail_content.dart</code>
+                </div>
+                <div class="file-item">
+                    <span class="file-icon">~</span>
+                    <code>lib/widget/residence/residence_map_section.dart</code>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Utilisation</h2>
+
+            <h3>Afficher la carte d'un appartement</h3>
+            <pre><code>AppartMapSection(
+  appartement: appartement,
+  isOwner: false,
+  showExactLocation: false,  // true apres paiement
+  onMaskedTap: () {
+    // Action quand locataire tape sur zone masquee
+  },
+)</code></pre>
+
+            <h3>Afficher les reductions avec palier actif</h3>
+            <pre><code>RemiseInfo(
+  remises: appartement.remises,
+  prixBase: appartement.prix?.toDouble() ?? 0.0,
+  selectedDays: nombreJours,  // Surligne le palier correspondant
+)</code></pre>
+
+            <h3>Calendrier proprietaire</h3>
+            <pre><code>BlocProvider(
+  create: (_) => AvailabilityBloc(),
+  child: AvailabilityCalendar(
+    appartementId: appartement.id!,
+    isEditable: true,
+  ),
+)</code></pre>
+        </section>
+
+        <section>
+            <h2>Architecture</h2>
+            <pre><code>lib/
+├── bloc/
+│   └── availability_bloc/
+│       ├── availability_bloc.dart    # Logique metier
+│       ├── availability_event.dart   # Events (Load, Block, Unblock...)
+│       └── availability_state.dart   # States + modeles BlockedPeriod/ReservedPeriod
+│
+├── widget/
+│   ├── map/
+│   │   ├── base_location_map.dart    # Widget generique carte
+│   │   └── appart_map_section.dart   # Wrapper appartement
+│   │
+│   ├── calendar/
+│   │   └── availability_calendar.dart # Calendrier proprietaire
+│   │
+│   └── detail_appart/
+│       ├── detail_section_card.dart  # Card de section
+│       └── appart_detail_content.dart # Contenu page detail
+│
+└── service/providers/
+    └── style.dart                    # Couleurs semantiques</code></pre>
+        </section>
+
+        <section>
+            <h2>Metriques</h2>
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <div class="meta-value">7</div>
+                    <div class="meta-label">Fichiers crees</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-value">5</div>
+                    <div class="meta-label">Fichiers modifies</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-value">92/100</div>
+                    <div class="meta-label">Score audit</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-value">~1400</div>
+                    <div class="meta-label">Lignes de code</div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Historique</h2>
+            <table>
+                <tr>
+                    <th>Version</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>1.0</td>
+                    <td>18 janvier 2026</td>
+                    <td>Version initiale - Refonte interface detail, palette monochrome, carte localisation, calendrier proprietaire</td>
+                </tr>
+            </table>
+        </section>
+
+        <footer>
+            <p>Documentation Asfar | Feature: Amelioration Detail Appartement | v1.0</p>
+        </footer>
+    </div>
+</body>
+</html>

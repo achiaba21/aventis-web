@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendrier Démarcheur — Plages Concurrentes</title>
+  <style>
+    :root {
+      --bg: #1a1a1a;
+      --surface: #242424;
+      --surface2: #2e2e2e;
+      --border: #3a3a3a;
+      --primary: #FFA02A;
+      --success: #4CAF50;
+      --warning: #FF9800;
+      --amber: #FFB300;
+      --error: #EF5350;
+      --text: #f0f0f0;
+      --text-muted: #888;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; }
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #2a1a00, #1a1a1a); border: 1px solid var(--primary); border-radius: var(--radius); padding: 32px; margin-bottom: 32px; }
+    .header h1 { font-size: 1.8rem; color: var(--primary); margin-bottom: 8px; }
+    .header .meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-primary { background: rgba(255,160,42,0.15); color: var(--primary); border: 1px solid rgba(255,160,42,0.4); }
+    .badge-success { background: rgba(76,175,80,0.15); color: var(--success); border: 1px solid rgba(76,175,80,0.4); }
+    .badge-new { background: rgba(76,175,80,0.2); color: #81C784; border: 1px solid rgba(76,175,80,0.5); }
+    .badge-mod { background: rgba(255,160,42,0.2); color: #FFB74D; border: 1px solid rgba(255,160,42,0.5); }
+
+    /* Sections */
+    section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+    section h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    section h3 { font-size: 1rem; color: #ccc; margin: 16px 0 8px; }
+    p { color: #ccc; margin-bottom: 8px; font-size: 0.95rem; }
+
+    /* Cases table */
+    .cases-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+    .case-card { padding: 14px; border-radius: 8px; border: 1px solid; }
+    .case-a { background: rgba(76,175,80,0.1); border-color: rgba(76,175,80,0.4); }
+    .case-b { background: rgba(239,83,80,0.1); border-color: rgba(239,83,80,0.4); }
+    .case-c { background: rgba(255,152,0,0.1); border-color: rgba(255,152,0,0.4); }
+    .case-d { background: rgba(255,179,0,0.1); border-color: rgba(255,179,0,0.4); }
+    .case-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 6px; }
+    .case-a .case-label { color: var(--success); }
+    .case-b .case-label { color: var(--error); }
+    .case-c .case-label { color: var(--warning); }
+    .case-d .case-label { color: var(--amber); }
+    .case-card p { margin: 0; font-size: 0.85rem; }
+
+    /* Code */
+    pre { background: #111; border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow-x: auto; margin: 12px 0; }
+    code { font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.85rem; color: #e0e0e0; }
+    .inline-code { background: #111; padding: 2px 6px; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--primary); }
+
+    /* File list */
+    .file-list { list-style: none; }
+    .file-list li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .file-list li:last-child { border-bottom: none; }
+    .file-path { color: var(--primary); font-family: monospace; }
+    .file-action { font-size: 11px; padding: 2px 8px; border-radius: 4px; white-space: nowrap; margin-top: 2px; }
+    .action-create { background: rgba(76,175,80,0.2); color: #81C784; }
+    .action-modify { background: rgba(255,160,42,0.2); color: #FFB74D; }
+
+    /* API table */
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; margin-top: 12px; }
+    th { background: var(--surface2); color: var(--primary); padding: 10px 12px; text-align: left; border-bottom: 2px solid var(--border); }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    td code { color: #90CAF9; }
+
+    /* Score */
+    .score-bar { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
+    .score-label { width: 130px; font-size: 0.85rem; color: var(--text-muted); }
+    .score-track { flex: 1; background: var(--surface2); border-radius: 4px; height: 8px; overflow: hidden; }
+    .score-fill { height: 100%; border-radius: 4px; background: var(--success); }
+    .score-value { width: 50px; font-size: 0.85rem; font-weight: 600; text-align: right; }
+
+    /* Changelog */
+    .changelog-entry { padding: 12px; background: var(--surface2); border-radius: 8px; margin-bottom: 8px; }
+    .changelog-version { font-size: 0.8rem; color: var(--primary); font-weight: 700; }
+    .changelog-date { font-size: 0.75rem; color: var(--text-muted); margin-left: 8px; }
+    .changelog-items { list-style: disc; padding-left: 20px; margin-top: 6px; font-size: 0.85rem; color: #ccc; }
+
+    /* Flow */
+    .flow { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .flow-step { display: flex; align-items: flex-start; gap: 12px; padding: 10px; background: var(--surface2); border-radius: 8px; }
+    .flow-num { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); color: #000; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .flow-content { font-size: 0.875rem; color: #ccc; }
+    .flow-content strong { color: #fff; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>📅 Calendrier Démarcheur — Plages Concurrentes</h1>
+    <p style="color:#ccc; margin-top:6px;">Gestion des plages EN_ATTENTE superposées avec visibilité concurrentielle des prix</p>
+    <div class="meta">
+      <span class="badge badge-primary">Flutter</span>
+      <span class="badge badge-primary">BLoC</span>
+      <span class="badge badge-success">Audit 94/100</span>
+      <span class="badge badge-primary">v1.0 — 2026-03-09</span>
+    </div>
+  </div>
+
+  <!-- Contexte -->
+  <section>
+    <h2>🎯 Contexte & Objectif</h2>
+    <p>Plusieurs démarcheurs peuvent soumettre des demandes de réservation (<span class="inline-code">EN_ATTENTE</span>) sur le même appartement pour les mêmes dates. La feature rend ces chevauchements visibles afin que chaque démarcheur puisse calibrer son offre de prix en connaissance de cause.</p>
+    <p>La règle métier clé : un démarcheur <strong>ne peut pas</strong> avoir deux demandes EN_ATTENTE pour le même jour sur le même appartement. S'il en a déjà une, le jour est verrouillé mais reste consultable.</p>
+  </section>
+
+  <!-- 4 Cas -->
+  <section>
+    <h2>🎨 Les 4 États d'un Jour</h2>
+    <div class="cases-grid">
+      <div class="case-card case-a">
+        <div class="case-label">Cas A — Disponible</div>
+        <p>Aucune plage ou toutes DISPONIBLE.<br>Couleur : vert<br>Action : formulaire direct</p>
+      </div>
+      <div class="case-card case-b">
+        <div class="case-label">Cas B — Occupé</div>
+        <p>Contient une plage OCCUPE.<br>Couleur : rouge<br>Action : non tappable</p>
+      </div>
+      <div class="case-card case-c">
+        <div class="case-label">Cas C — Concurrence</div>
+        <p>EN_ATTENTE d'autres uniquement.<br>Couleur : orange<br>Action : bottom sheet + créer</p>
+      </div>
+      <div class="case-card case-d">
+        <div class="case-label">Cas D — Ma demande</div>
+        <p>EN_ATTENTE dont une est la mienne.<br>Couleur : amber<br>Action : bottom sheet lecture seule</p>
+      </div>
+    </div>
+    <p style="margin-top:14px; font-size:0.85rem; color:var(--text-muted);">
+      L'identification "ma plage" compare <span class="inline-code">plage.demarcheurTelephone</span> avec <span class="inline-code">user.telephone</span> après normalisation (suppression des espaces).
+    </p>
+  </section>
+
+  <!-- Flux utilisateur -->
+  <section>
+    <h2>🔄 Flux Utilisateur</h2>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num">1</div><div class="flow-content">Le démarcheur ouvre le calendrier d'un appartement partenaire. Le mois courant est chargé via <strong>CalendarPlageBloc</strong>.</div></div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-content">Chaque jour est coloré selon son cas (vert / orange / amber / rouge). Les jours avec EN_ATTENTE affichent des <strong>points sous le numéro</strong> (max 3 points, puis "N+").</div></div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-content"><strong>Cas A :</strong> tap → formulaire de réservation pré-rempli avec la date.</div></div>
+      <div class="flow-step"><div class="flow-num">4</div><div class="flow-content"><strong>Cas C :</strong> tap → bottom sheet avec la liste des concurrents (nom, téléphone, montant FCFA, durée). Bouton "Créer ma réservation" disponible.</div></div>
+      <div class="flow-step"><div class="flow-num">5</div><div class="flow-content"><strong>Cas D :</strong> tap → même bottom sheet en lecture seule, sans bouton de création.</div></div>
+      <div class="flow-step"><div class="flow-num">6</div><div class="flow-content">Après création d'une réservation, le calendrier est rechargé automatiquement.</div></div>
+    </div>
+  </section>
+
+  <!-- Fichiers -->
+  <section>
+    <h2>📁 Fichiers Modifiés / Créés</h2>
+    <ul class="file-list">
+      <li>
+        <div>
+          <span class="badge action-modify file-action">MODIFIÉ</span><br>
+          <span class="file-path">lib/model/calendar/calendar_plage.dart</span><br>
+          <span style="font-size:0.85rem; color:#aaa;">Ajout du champ <span class="inline-code">demarcheurTelephone: String?</span> et son parsing dans <span class="inline-code">fromJson</span>.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="badge action-modify file-action">MODIFIÉ</span><br>
+          <span class="file-path">lib/bloc/calendar_plage_bloc/calendar_plage_state.dart</span><br>
+          <span style="font-size:0.85rem; color:#aaa;">Remplacement de <span class="inline-code">getStatusForDay</span> et <span class="inline-code">getPlageForDay</span> par <span class="inline-code">getPlagesForDay</span> qui retourne toutes les plages superposées d'un jour.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="badge action-create file-action">CRÉÉ</span><br>
+          <span class="file-path">lib/screen/client/demarcheur/calendrier/helper/day_analysis.dart</span><br>
+          <span style="font-size:0.85rem; color:#aaa;">Helper pur : <span class="inline-code">enum DayCas</span> + classe <span class="inline-code">DayAnalysis</span>. Encapsule toute la logique des 4 cas.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="badge action-create file-action">CRÉÉ</span><br>
+          <span class="file-path">lib/screen/client/demarcheur/calendrier/widget/demarcheurs_en_attente_bottom_sheet.dart</span><br>
+          <span style="font-size:0.85rem; color:#aaa;">Bottom sheet avec header coloré contextuel, liste des démarcheurs concurrents, bouton conditionnel.</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <span class="badge action-modify file-action">MODIFIÉ</span><br>
+          <span class="file-path">lib/screen/client/demarcheur/calendrier/demarcheur_calendar_screen.dart</span><br>
+          <span style="font-size:0.85rem; color:#aaa;">Injection de <span class="inline-code">userTelephone</span>, refactoring <span class="inline-code">_DayCell</span> et <span class="inline-code">_CalendarGrid</span>, légende mise à jour (4 entrées), badge dots.</span>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- API DayAnalysis -->
+  <section>
+    <h2>⚙️ API — DayAnalysis</h2>
+    <p>Helper pur (pas d'import Flutter/BLoC), instanciable à tout moment.</p>
+    <pre><code>DayAnalysis({
+  required List&lt;CalendarPlage&gt; plages,
+  required String userTelephone,
+})</code></pre>
+    <table>
+      <tr><th>Propriété</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>cas</code></td><td><code>DayCas</code></td><td>Cas calculé : a / b / c / d</td></tr>
+      <tr><td><code>isTappable</code></td><td><code>bool</code></td><td>Vrai si le tap doit être activé (A, C, D)</td></tr>
+      <tr><td><code>isBookable</code></td><td><code>bool</code></td><td>Vrai si une nouvelle réservation est possible (A, C)</td></tr>
+      <tr><td><code>bgColor</code></td><td><code>Color</code></td><td>Couleur de fond de la cellule calendrier</td></tr>
+      <tr><td><code>headerColor</code></td><td><code>Color</code></td><td>Couleur du header dans le bottom sheet</td></tr>
+      <tr><td><code>badgeCount</code></td><td><code>int</code></td><td>Nombre de plages EN_ATTENTE</td></tr>
+      <tr><td><code>hasBadge</code></td><td><code>bool</code></td><td>Vrai si badgeCount > 0</td></tr>
+      <tr><td><code>enAttentePlages</code></td><td><code>List&lt;CalendarPlage&gt;</code></td><td>Plages EN_ATTENTE du jour</td></tr>
+    </table>
+  </section>
+
+  <!-- API Bottom Sheet -->
+  <section>
+    <h2>⚙️ API — DemarcheursEnAttenteBottomSheet</h2>
+    <pre><code>DemarcheursEnAttenteBottomSheet({
+  required List&lt;CalendarPlage&gt; plages,
+  required String userTelephone,
+  VoidCallback? onCreateReservation,  // null = lecture seule (Cas D)
+})</code></pre>
+    <p>Usage :</p>
+    <pre><code>showModalBottomSheet(
+  context: context,
+  isScrollControlled: true,
+  backgroundColor: Colors.transparent,
+  builder: (_) =&gt; DemarcheursEnAttenteBottomSheet(
+    plages: plagesForDay,
+    userTelephone: _userTelephone,
+    onCreateReservation: isCasC ? () { ... } : null,
+  ),
+);</code></pre>
+  </section>
+
+  <!-- getPlagesForDay -->
+  <section>
+    <h2>⚙️ API — CalendarPlagesLoaded.getPlagesForDay</h2>
+    <pre><code>List&lt;CalendarPlage&gt; getPlagesForDay(DateTime day)</code></pre>
+    <p>Retourne toutes les plages couvrant le jour donné. Remplace les anciens <span class="inline-code">getStatusForDay</span> et <span class="inline-code">getPlageForDay</span> (supprimés).</p>
+    <p style="color:var(--warning); font-size:0.85rem;">⚠️ Breaking change : tout code utilisant les anciens helpers doit migrer vers cette méthode.</p>
+  </section>
+
+  <!-- Score Audit -->
+  <section>
+    <h2>📊 Score Qualité</h2>
+    <div class="score-bar"><span class="score-label">Complexité</span><div class="score-track"><div class="score-fill" style="width:90%"></div></div><span class="score-value" style="color:var(--success)">90</span></div>
+    <div class="score-bar"><span class="score-label">Lisibilité</span><div class="score-track"><div class="score-fill" style="width:95%"></div></div><span class="score-value" style="color:var(--success)">95</span></div>
+    <div class="score-bar"><span class="score-label">DRY</span><div class="score-track"><div class="score-fill" style="width:90%"></div></div><span class="score-value" style="color:var(--success)">90</span></div>
+    <div class="score-bar"><span class="score-label">Documentation</span><div class="score-track"><div class="score-fill" style="width:95%"></div></div><span class="score-value" style="color:var(--success)">95</span></div>
+    <div class="score-bar"><span class="score-label">SOLID</span><div class="score-track"><div class="score-fill" style="width:95%"></div></div><span class="score-value" style="color:var(--success)">95</span></div>
+    <div class="score-bar"><span class="score-label">Dette technique</span><div class="score-track"><div class="score-fill" style="width:100%"></div></div><span class="score-value" style="color:var(--success)">100</span></div>
+    <div class="score-bar" style="margin-top:12px; border-top:1px solid var(--border); padding-top:12px;">
+      <span class="score-label" style="color:#fff; font-weight:700;">Global</span>
+      <div class="score-track"><div class="score-fill" style="width:94%; background:var(--primary)"></div></div>
+      <span class="score-value" style="color:var(--primary); font-size:1rem;">94</span>
+    </div>
+  </section>
+
+  <!-- Changelog -->
+  <section>
+    <h2>📋 Changelog</h2>
+    <div class="changelog-entry">
+      <span class="changelog-version">v1.0</span>
+      <span class="changelog-date">2026-03-09</span>
+      <ul class="changelog-items">
+        <li>Ajout <code>demarcheurTelephone</code> dans <code>CalendarPlage</code></li>
+        <li>Nouveau helper <code>DayAnalysis</code> avec logique 4 cas</li>
+        <li>Nouveau widget <code>DemarcheursEnAttenteBottomSheet</code></li>
+        <li>Refactoring <code>getPlagesForDay</code> remplace les anciens helpers</li>
+        <li><code>_DayCell</code> : badge dots, séparation <code>isTappable</code> / <code>isBookable</code></li>
+        <li>Légende calendrier mise à jour (4 entrées)</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

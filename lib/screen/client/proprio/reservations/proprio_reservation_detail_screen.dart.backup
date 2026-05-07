@@ -1,0 +1,254 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
+import 'package:asfar/bloc/reservation_bloc/reservation_bloc.dart';
+import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
+import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
+import 'package:asfar/bloc/user_bloc/user_bloc.dart';
+import 'package:asfar/bloc/user_bloc/user_state.dart';
+import 'package:asfar/config/app_propertie.dart';
+import 'package:asfar/model/reservation/reservation.dart';
+import 'package:asfar/screen/client/locataire/inbox/conversation.dart';
+import 'package:asfar/service/providers/style.dart';
+import 'package:asfar/screen/client/proprio/reservations/qr_scanner_screen.dart';
+import 'package:asfar/util/formate.dart';
+import 'package:asfar/util/navigation.dart';
+import 'package:asfar/widget/button/plain_button.dart';
+import 'package:asfar/widget/date/date_info.dart';
+import 'package:asfar/widget/item/appart/appart_tile_item.dart';
+import 'package:asfar/widget/reservation/reservation_actions_bar.dart';
+import 'package:asfar/widget/reservation/reservation_info_card.dart';
+import 'package:asfar/widget/reservation/reservation_status_badge.dart';
+import 'package:asfar/widget/text/text_seed.dart';
+import 'package:asfar/widget/user/client_info_card.dart';
+
+/// Page de détail d'une réservation pour le propriétaire
+class ProprioReservationDetailScreen extends StatelessWidget {
+  const ProprioReservationDetailScreen(this.reservation, {super.key});
+  final Reservation reservation;
+
+  @override
+  Widget build(BuildContext context) {
+    final appart = reservation.appart!;
+
+    return BlocListener<ReservationBloc, ReservationState>(
+      listener: (context, state) {
+        if (state is ReservationConfirmed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✅ Réservation confirmée avec succès'),
+              backgroundColor: Color(0xFF4CAF50),
+            ),
+          );
+          Navigator.pop(context);
+        }
+
+        if (state is ReservationRefused) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✅ Réservation refusée'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          Navigator.pop(context);
+        }
+
+        if (state is ReservationCancelled) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✅ Réservation annulée'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          Navigator.pop(context);
+        }
+
+        if (state is ReservationError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: TextSeed("Réservation #${reservation.id ?? ''}"),
+          centerTitle: true,
+          foregroundColor: Style.foregroundColor,
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(Espacement.paddingBloc),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Badge de statut
+                    Center(
+                      child: ReservationStatusBadge(status: reservation.statut),
+                    ),
+
+                    Gap(Espacement.gapSection),
+
+                    // Carte de l'appartement
+                    AppartTileItem(appart),
+
+                    Gap(Espacement.gapSection),
+
+                    // Informations du client
+                    ReservationInfoCard(
+                      title: "Client",
+                      icon: Icons.person,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (reservation.locataire != null)
+                            ClientInfoCard(client: reservation.locataire!),
+                          Gap(Espacement.paddingBloc),
+                          // Bouton actif uniquement si payée ou finalisée
+                          Opacity(
+                            opacity:
+                                (reservation.statut ==
+                                            ReservationStatus.payee ||
+                                        reservation.statut ==
+                                            ReservationStatus.finalisee)
+                                    ? 1.0
+                                    : 0.5,
+                            child: PlainButton(
+                              value: "Contacter le client",
+                              plain: false,
+                                            SnackBar(
+                                              content: Text(
+                                                "Informations du client non disponibles",
+                                              ),
+                                              backgroundColor: Style.errorColor,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                      : null, // Désactivé si non payé/finalisé
+                            ),
+                          ),
+                          // Message explicatif si bouton désactivé
+                          if (reservation.statut != ReservationStatus.payee &&
+                              reservation.statut !=
+                                  ReservationStatus.finalisee) ...[
+                            Gap(Espacement.paddingInput),
+                            TextSeed(
+                              "Vous pourrez contacter le client après le paiement",
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    Gap(Espacement.gapSection),
+
+                    // Dates de réservation
+                    ReservationInfoCard(
+                      title: "Dates de séjour",
+                      icon: Icons.calendar_today,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          DateInfo(reservation.plage),
+                          if (reservation.plage.duration.inDays > 0) ...[
+                            Gap(Espacement.paddingInput),
+                            TextSeed(
+                              "${reservation.plage.duration.inDays} ${reservation.plage.duration.inDays > 1 ? 'nuits' : 'nuit'}",
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    // Informations de paiement (si disponibles)
+                    if (reservation.prix != null ||
+                        reservation.reference != null) ...[
+                      Gap(Espacement.gapSection),
+                      ReservationInfoCard(
+                        title: "Paiement",
+                        icon: Icons.payment,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (reservation.prix != null)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  TextSeed(
+                                    "Montant total",
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                  TextSeed(
+                                    "${helpAmountFormate(reservation.prix!.toInt(), decim: false)} FCFA",
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Style.primaryColor,
+                                  ),
+                                ],
+                              ),
+                            if (reservation.reference != null) ...[
+                              Gap(Espacement.paddingInput),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  TextSeed(
+                                    "Référence",
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                  TextSeed(
+                                    reservation.reference!,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Style.containerColor3,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    Gap(Espacement.gapSection),
+                  ],
+                ),
+              ),
+            ),
+            // Actions de réservation (Accepter/Refuser/Scanner)
+            ReservationActionsBar(
+              reservation: reservation,
+              onAccept: () {
+                if (reservation.reference != null) {
+                  context.read<ReservationBloc>().add(
+                    ConfirmReservation(reservation.reference!),
+                  );
+                }
+              },
+              onRefuse: () {
+                if (reservation.reference != null) {
+                  context.read<ReservationBloc>().add(
+                    RefuseReservation(reservation.reference!),
+                  );
+                }
+              },
+              onScanQR: () {
+                pushScreen(context, QRScannerScreen());
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

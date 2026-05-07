@@ -1,0 +1,11 @@
+41c265c4-4847-4130-a508-1afbe054de3d	text/javascript	109931	/**
+fc335aef-a159-4b20-80d0-6cc3444e5470	text/jsx	14279	// iOS.jsx — Simplified iOS 26 (Liquid Glass) device frame
+c4630092-8870-4ca2-a5af-43d2df3a3e76	application/javascript	12471	// shared.jsx — Asfar shared UI primitives & icons
+9537d89a-cd68-47ef-8083-9872f596c719	application/javascript	9732	// app.jsx — Main app shell, role-aware tab nav, route stack
+da2dbb3d-d5cb-45ac-afd4-0c75b4b47146	application/javascript	30551	// proprietaire.jsx — Owner role screens for Asfar
+328b7fcb-4d57-4768-8b11-24ef0604cebf	text/jsx	25050	// tweaks-panel.jsx
+3b242f91-f934-46c4-b52e-d2121d4b60ad	application/javascript	18497	// extras.jsx — onboarding, messaging, profile, role switcher
+72a7a25a-1b16-49e8-b573-1f56555c3c15	application/javascript	27938	// demarcheur.jsx — Referrer / agent role for Asfar
+e34c7dfe-a3be-4df5-a6ee-b5db67b1358c	text/javascript	1080205	/**
+bb1c6578-353b-4d4a-9765-7c1dcc6934b5	text/javascript	3137752	!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t
+a926aadc-d663-4d6d-bfae-046265b4de75	application/javascript	36084	// locataire.jsx — Tenant role screens for Asfar
