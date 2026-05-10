@@ -4,6 +4,8 @@ import 'package:asfar/bloc/active_shell_cubit/active_shell_cubit.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
+import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
+import 'package:asfar/screen/client/shared/profile/personal_info_screen.dart';
 import 'package:asfar/screen/client/shared/profile/profile_display_info.dart';
 import 'package:asfar/screen/client/shared/profile/widget/profile_hero_card.dart';
 import 'package:asfar/screen/client/shared/profile/widget/profile_role_switcher.dart';
@@ -29,6 +31,15 @@ import 'package:asfar/widget/button/outlined_custom_button.dart';
 /// [ProfileDisplayInfo.forRole] depuis `user.type`.
 class ClientProfileScreen extends StatelessWidget {
   const ClientProfileScreen({super.key});
+
+  void _toast(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   void _onLogout(BuildContext context) {
     final user = context.read<UserBloc>().state.user;
@@ -105,7 +116,16 @@ class ClientProfileScreen extends StatelessWidget {
                   const Text('Compte', style: AppTextStyles.h3),
                   const SizedBox(height: 10),
                   ProfileSettingsCard(
-                    items: info.settingsBuilder(() {}),
+                    items: info.settingsBuilder(
+                      ProfileSettingsCallbacks(
+                        onPersonalInfo: () => pushScreen(
+                            context, const PersonalInfoScreen()),
+                        onNotifications: () => pushScreen(
+                            context, const NotificationsScreen()),
+                        onComingSoon: () => _toast(
+                            context, 'Disponible prochainement'),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 22),
                   OutlinedCustomButton(

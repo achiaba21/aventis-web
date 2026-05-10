@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/screen/client/shared/profile/widget/profile_settings_card.dart';
 
+/// Callbacks utilisés pour wirer les items du `ProfileSettingsCard`.
+class ProfileSettingsCallbacks {
+  final VoidCallback? onPersonalInfo;
+  final VoidCallback? onNotifications;
+  final VoidCallback? onComingSoon;
+
+  const ProfileSettingsCallbacks({
+    this.onPersonalInfo,
+    this.onNotifications,
+    this.onComingSoon,
+  });
+}
+
 /// Mapping rôle → données d'affichage pour `ClientProfileScreen`.
-///
-/// Aligne les libellés sur `extras.jsx::Profile.profiles[role]` du prototype
-/// (lignes 292-296). Les variantes peuvent évoluer indépendamment du modèle
-/// `User` métier.
 class ProfileDisplayInfo {
   final String subtitle;
   final String? badge;
-  final List<ProfileSettingsItem> Function(VoidCallback onTap) settingsBuilder;
+  final List<ProfileSettingsItem> Function(ProfileSettingsCallbacks)
+      settingsBuilder;
 
   const ProfileDisplayInfo._({
     required this.subtitle,
@@ -17,8 +27,6 @@ class ProfileDisplayInfo {
     required this.settingsBuilder,
   });
 
-  /// Factory selon le rôle actif (`user.type`). Les rôles inconnus tombent
-  /// sur le mapping locataire pour éviter un écran cassé.
   factory ProfileDisplayInfo.forRole(String? role) {
     switch ((role ?? '').toLowerCase()) {
       case 'demarcheur':
@@ -43,73 +51,78 @@ class ProfileDisplayInfo {
     }
   }
 
-  static List<ProfileSettingsItem> _locataireSettings(VoidCallback onTap) => [
-        ProfileSettingsItem(
-            icon: Icons.person_outline,
-            label: 'Informations personnelles',
-            onTap: onTap),
-        ProfileSettingsItem(
-            icon: Icons.verified_outlined,
-            label: "Vérification d'identité",
-            value: 'Vérifié',
-            onTap: onTap),
-        ProfileSettingsItem(
-            icon: Icons.account_balance_wallet_outlined,
-            label: 'Méthodes de paiement',
-            value: '3 actives',
-            onTap: onTap),
-        ProfileSettingsItem(
-            icon: Icons.notifications_outlined,
-            label: 'Notifications',
-            onTap: onTap),
-        ProfileSettingsItem(
-            icon: Icons.tune, label: 'Préférences', onTap: onTap),
-      ];
-
-  static List<ProfileSettingsItem> _demarcheurSettings(VoidCallback onTap) => [
-        ProfileSettingsItem(
-            icon: Icons.person_outline,
-            label: 'Informations personnelles',
-            onTap: onTap),
-        ProfileSettingsItem(
-            icon: Icons.verified_outlined,
-            label: "Vérification d'identité",
-            value: 'Vérifié',
-            onTap: onTap),
-        ProfileSettingsItem(
-            icon: Icons.account_balance_outlined,
-            label: 'Méthode de retrait',
-            value: 'Orange Money',
-            onTap: onTap),
-        ProfileSettingsItem(
-            icon: Icons.notifications_outlined,
-            label: 'Notifications',
-            onTap: onTap),
-        ProfileSettingsItem(
-            icon: Icons.tune, label: 'Préférences', onTap: onTap),
-      ];
-
-  static List<ProfileSettingsItem> _proprietaireSettings(VoidCallback onTap) =>
+  static List<ProfileSettingsItem> _locataireSettings(
+          ProfileSettingsCallbacks cb) =>
       [
         ProfileSettingsItem(
             icon: Icons.person_outline,
             label: 'Informations personnelles',
-            onTap: onTap),
+            onTap: cb.onPersonalInfo),
         ProfileSettingsItem(
             icon: Icons.verified_outlined,
             label: "Vérification d'identité",
             value: 'Vérifié',
-            onTap: onTap),
+            onTap: cb.onComingSoon),
         ProfileSettingsItem(
             icon: Icons.account_balance_wallet_outlined,
             label: 'Méthodes de paiement',
             value: '3 actives',
-            onTap: onTap),
+            onTap: cb.onComingSoon),
         ProfileSettingsItem(
             icon: Icons.notifications_outlined,
             label: 'Notifications',
-            onTap: onTap),
+            onTap: cb.onNotifications),
         ProfileSettingsItem(
-            icon: Icons.tune, label: 'Préférences', onTap: onTap),
+            icon: Icons.tune, label: 'Préférences', onTap: cb.onComingSoon),
+      ];
+
+  static List<ProfileSettingsItem> _demarcheurSettings(
+          ProfileSettingsCallbacks cb) =>
+      [
+        ProfileSettingsItem(
+            icon: Icons.person_outline,
+            label: 'Informations personnelles',
+            onTap: cb.onPersonalInfo),
+        ProfileSettingsItem(
+            icon: Icons.verified_outlined,
+            label: "Vérification d'identité",
+            value: 'Vérifié',
+            onTap: cb.onComingSoon),
+        ProfileSettingsItem(
+            icon: Icons.account_balance_outlined,
+            label: 'Méthode de retrait',
+            value: 'Orange Money',
+            onTap: cb.onComingSoon),
+        ProfileSettingsItem(
+            icon: Icons.notifications_outlined,
+            label: 'Notifications',
+            onTap: cb.onNotifications),
+        ProfileSettingsItem(
+            icon: Icons.tune, label: 'Préférences', onTap: cb.onComingSoon),
+      ];
+
+  static List<ProfileSettingsItem> _proprietaireSettings(
+          ProfileSettingsCallbacks cb) =>
+      [
+        ProfileSettingsItem(
+            icon: Icons.person_outline,
+            label: 'Informations personnelles',
+            onTap: cb.onPersonalInfo),
+        ProfileSettingsItem(
+            icon: Icons.verified_outlined,
+            label: "Vérification d'identité",
+            value: 'Vérifié',
+            onTap: cb.onComingSoon),
+        ProfileSettingsItem(
+            icon: Icons.account_balance_wallet_outlined,
+            label: 'Méthodes de paiement',
+            value: '3 actives',
+            onTap: cb.onComingSoon),
+        ProfileSettingsItem(
+            icon: Icons.notifications_outlined,
+            label: 'Notifications',
+            onTap: cb.onNotifications),
+        ProfileSettingsItem(
+            icon: Icons.tune, label: 'Préférences', onTap: cb.onComingSoon),
       ];
 }
