@@ -10,6 +10,7 @@ import 'package:asfar/service/firebase/fcm_background_handler.dart';
 import 'package:asfar/bloc/active_shell_cubit/active_shell_cubit.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_bloc.dart';
+import 'package:asfar/bloc/availability_bloc/availability_bloc.dart';
 import 'package:asfar/bloc/partenariat_bloc/partenariat_bloc.dart';
 import 'package:asfar/bloc/pays_bloc/pays_bloc.dart';
 import 'package:asfar/bloc/partenariat_bloc/partenariat_event.dart';
@@ -104,6 +105,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => DemarcheurBloc()),
         BlocProvider(create: (_) => ProprietaireDemarcheurBloc()),
         BlocProvider(create: (_) => CalendarPlageBloc()),
+        BlocProvider(create: (_) => AvailabilityBloc()),
         BlocProvider(create: (_) => PartenariatBloc()),
         BlocProvider(create: (_) => PaysBloc()),
       ],

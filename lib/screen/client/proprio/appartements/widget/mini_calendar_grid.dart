@@ -3,7 +3,7 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 
-/// Grid 7×N view-only du calendrier — `ProprioListingEditScreen` tab Calendrier.
+/// Grid 7×N du calendrier — `ProprioListingEditScreen` tab Calendrier.
 ///
 /// Reproduit fidèlement le proto `proprietaire.jsx::CalendarView`
 /// (lignes 585-625) :
@@ -13,46 +13,55 @@ import 'package:asfar/theme/app_text_styles.dart';
 /// - 30 cellules carrées (aspectRatio 1:1) avec couleurs :
 ///   - Réservé (booked) : fond `accent` + texte `onAccent` w700
 ///   - En attente (pending) : fond `accentSoft` + texte `accent`
+///   - Bloqué (blocked) : fond `bgElev2` + texte `text2` (déblocage au tap)
 ///   - Aujourd'hui (today, !booked) : border `1.5 accent` + texte `accent`
-///   - Disponible : transparent + texte `text`
+///   - Disponible : transparent + texte `text` (blocage au tap)
 ///
-/// View-only : tous les taps (jour ou chevrons) déclenchent un SnackBar.
+/// V8.5 Lot 12 : interactif via 3 callbacks (`onPrevMonth`, `onNextMonth`,
+/// `onDayTap`). Les jours réservés/en-attente sont non-tappables.
 class MiniCalendarGrid extends StatelessWidget {
-  final String monthTitle;
-  final int daysInMonth;
-  final int startOffset;
-  final int today;
+  final DateTime currentMonth;
   final List<int> bookedDays;
   final List<int> pendingDays;
+  final List<int> blockedDays;
+  final VoidCallback? onPrevMonth;
+  final VoidCallback? onNextMonth;
+  final void Function(DateTime day)? onDayTap;
 
   const MiniCalendarGrid({
     super.key,
-    required this.monthTitle,
-    required this.daysInMonth,
-    required this.startOffset,
-    required this.today,
-    required this.bookedDays,
-    required this.pendingDays,
+    required this.currentMonth,
+    this.bookedDays = const [],
+    this.pendingDays = const [],
+    this.blockedDays = const [],
+    this.onPrevMonth,
+    this.onNextMonth,
+    this.onDayTap,
   });
 
   static const _weekdays = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+  static const _monthNames = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
+  ];
 
-  void _navStub(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Navigation calendrier disponible prochainement'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  String get _monthTitle =>
+      '${_monthNames[currentMonth.month - 1]} ${currentMonth.year}';
+
+  int get _daysInMonth =>
+      DateTime(currentMonth.year, currentMonth.month + 1, 0).day;
+
+  /// Offset Lundi-first : DateTime.weekday = 1 (Lun) … 7 (Dim).
+  int get _startOffset {
+    final firstDay = DateTime(currentMonth.year, currentMonth.month, 1);
+    return firstDay.weekday - 1;
   }
 
-  void _dayStub(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Édition calendrier disponible prochainement'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+  bool _isToday(int day) {
+    final now = DateTime.now();
+    return now.year == currentMonth.year &&
+        now.month == currentMonth.month &&
+        now.day == day;
   }
 
   @override
@@ -66,20 +75,20 @@ class MiniCalendarGrid extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _header(context),
+          _header(),
           const SizedBox(height: 14),
-          _grid(context),
+          _grid(),
         ],
       ),
     );
   }
 
-  Widget _header(BuildContext context) {
+  Widget _header() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         InkWell(
-          onTap: () => _navStub(context),
+          onTap: onPrevMonth,
           borderRadius: BorderRadius.circular(8),
           child: const Padding(
             padding: EdgeInsets.all(4),
@@ -87,9 +96,9 @@ class MiniCalendarGrid extends StatelessWidget {
                 size: 16, color: AppColors.text2),
           ),
         ),
-        Text(monthTitle, style: AppTextStyles.h3),
+        Text(_monthTitle, style: AppTextStyles.h3),
         InkWell(
-          onTap: () => _navStub(context),
+          onTap: onNextMonth,
           borderRadius: BorderRadius.circular(8),
           child: const Padding(
             padding: EdgeInsets.all(4),
@@ -101,7 +110,7 @@ class MiniCalendarGrid extends StatelessWidget {
     );
   }
 
-  Widget _grid(BuildContext context) {
+  Widget _grid() {
     return GridView.count(
       crossAxisCount: 7,
       shrinkWrap: true,
@@ -120,17 +129,17 @@ class MiniCalendarGrid extends StatelessWidget {
               ),
             ),
           ),
-        for (var i = 0; i < startOffset; i++) const SizedBox.shrink(),
-        for (var d = 1; d <= daysInMonth; d++)
-          _dayCell(context, d),
+        for (var i = 0; i < _startOffset; i++) const SizedBox.shrink(),
+        for (var d = 1; d <= _daysInMonth; d++) _dayCell(d),
       ],
     );
   }
 
-  Widget _dayCell(BuildContext context, int day) {
+  Widget _dayCell(int day) {
     final isBooked = bookedDays.contains(day);
     final isPending = pendingDays.contains(day);
-    final isToday = day == today;
+    final isBlocked = blockedDays.contains(day);
+    final isToday = _isToday(day);
 
     Color background;
     Color textColor;
@@ -147,6 +156,11 @@ class MiniCalendarGrid extends StatelessWidget {
       textColor = AppColors.accent;
       border = Border.all(color: Colors.transparent);
       weight = FontWeight.w500;
+    } else if (isBlocked) {
+      background = AppColors.bgElev2;
+      textColor = AppColors.text2;
+      border = Border.all(color: AppColors.line, width: 1);
+      weight = FontWeight.w500;
     } else if (isToday) {
       background = Colors.transparent;
       textColor = AppColors.accent;
@@ -159,8 +173,11 @@ class MiniCalendarGrid extends StatelessWidget {
       weight = FontWeight.w500;
     }
 
+    final canTap = !isBooked && !isPending && onDayTap != null;
+    final tapDate = DateTime(currentMonth.year, currentMonth.month, day);
+
     return InkWell(
-      onTap: () => _dayStub(context),
+      onTap: canTap ? () => onDayTap!(tapDate) : null,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         decoration: BoxDecoration(

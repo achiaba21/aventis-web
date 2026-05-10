@@ -85,7 +85,9 @@ class ProprioListingEditScreen extends StatelessWidget {
                 ),
                 SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
-                  child: const ListingCalendarTab(),
+                  child: ListingCalendarTab(
+                    appartementId: int.tryParse(listing.id),
+                  ),
                 ),
                 SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
