@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_bloc.dart';
+import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
 import 'package:asfar/model/ui_only/pending_request.dart';
 import 'package:asfar/screen/client/proprio/appartements/listing_edit_screen.dart';
@@ -28,10 +29,33 @@ import 'package:asfar/widget/text/section_header.dart';
 /// Reproduit `ProprietaireDashboard` du prototype : greeting eyebrow + h1 +
 /// `RevenueHeroCard` + KPI grid 2×2 + `CashflowSplitCard` + section
 /// « Mes annonces » (4 lignes) + section « Demandes en attente ».
-class ProprioDashboard extends StatelessWidget {
+///
+/// V8.5 : trigger `LoadProprietaireReservations` au mount pour s'assurer
+/// que la section « Demandes en attente » affiche bien les réservations
+/// proprio (le state `ReservationBloc.reservations` peut être écrasé par
+/// `LoadUserReservations` quand l'utilisateur bascule en mode Locataire,
+/// le BLoC partage une seule liste pour les 2 vues).
+class ProprioDashboard extends StatefulWidget {
   final String firstName;
 
   const ProprioDashboard({super.key, this.firstName = 'Aminata'});
+
+  @override
+  State<ProprioDashboard> createState() => _ProprioDashboardState();
+}
+
+class _ProprioDashboardState extends State<ProprioDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Force LoadProprietaireReservations au mount — au cas où le state a été
+      // écrasé par LoadUserReservations (vue Locataire). Le pattern cache-first
+      // côté Repository garantit un rendu instantané.
+      context.read<ReservationBloc>().add(LoadProprietaireReservations());
+    });
+  }
 
   void _stub(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -45,6 +69,7 @@ class ProprioDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final perfs = SamplePropertyPerf.all;
+    final firstName = widget.firstName;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: DynamicAppBar(
