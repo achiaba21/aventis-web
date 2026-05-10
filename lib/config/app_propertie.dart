@@ -37,7 +37,7 @@ final monthS = [
 ];
 
 // final String serveur = "192.168.1.20";
-final String serveur = "192.168.1.3";
+final String serveur = "192.168.1.11";
 final String port = "7565";
 
 final String domain = "http://$serveur:$port";

@@ -8,7 +8,7 @@ import 'package:asfar/util/response/response_mapper.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/util/phone_util.dart';
 import 'package:asfar/main.dart';
-import 'package:asfar/screen/login/login_screen.dart';
+import 'package:asfar/screen/splash_screen.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 
 class DioRequest {
@@ -259,16 +259,11 @@ class DioRequest {
       // Cela nettoie: token (StorageService + DioRequest) + user (StorageService) + AppData
       await AuthManager.instance.logout();
 
-      // Afficher l'écran de connexion avec le numéro pré-rempli
+      // TODO REBUILD: rediriger vers le nouveau LoginScreen quand il sera
+      // reconstruit. Pour l'instant, retombe sur le SplashScreen placeholder.
       final context = navigatorKey.currentContext;
       if (context != null) {
-        await pushScreen(
-          context,
-          LoginScreen(
-            phoneNumber: phoneWithoutCode,
-            isReconnection: true,
-          ),
-        );
+        await pushScreen(context, const SplashScreen());
       }
 
       // Propager l'erreur

@@ -1,38 +1,91 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/config/app_propertie.dart';
-import 'package:asfar/widget/text/text_seed.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/widget/button/button_size.dart';
 
-class PlainButton extends StatelessWidget {
+/// Bouton ghost du design system Asfar Premium.
+///
+/// Reproduit `.btn-ghost` du prototype : fond transparent, texte accent or
+/// (par défaut), scale-on-press 0.97.
+class PlainButton extends StatefulWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final ButtonSize size;
+  final bool block;
+  final IconData? leadingIcon;
+  final Color? textColor;
+
   const PlainButton({
     super.key,
-    this.color,
-    this.value,
-    this.plain = true,
-    this.onPress,
+    required this.text,
+    required this.onPressed,
+    this.size = ButtonSize.md,
+    this.block = false,
+    this.leadingIcon,
+    this.textColor,
   });
 
-  final String? value;
-  final Color? color;
-  final bool plain;
-  final void Function()? onPress;
+  @override
+  State<PlainButton> createState() => _PlainButtonState();
+}
+
+class _PlainButtonState extends State<PlainButton> {
+  bool _pressed = false;
+
+  bool get _disabled => widget.onPressed == null;
 
   @override
   Widget build(BuildContext context) {
-    final colors = color ?? AppColors.accent;
-    return InkWell(
-      onTap: onPress,
+    final color = widget.textColor ?? AppColors.accent;
+    final children = <Widget>[];
+    if (widget.leadingIcon != null) {
+      children.add(Icon(
+        widget.leadingIcon,
+        size: widget.size.fontSize + 2,
+        color: color,
+      ));
+      children.add(const SizedBox(width: 6));
+    }
+    children.add(Text(
+      widget.text,
+      style: TextStyle(
+        color: color,
+        fontSize: widget.size.fontSize,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.1,
+      ),
+    ));
+
+    final button = AnimatedScale(
+      scale: _pressed ? 0.97 : 1.0,
+      duration: const Duration(milliseconds: 90),
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: Espacement.paddingBloc / 2,
-          vertical: Espacement.paddingInput / 2,
+          horizontal: widget.size.paddingX,
+          vertical: widget.size.paddingY,
         ),
         decoration: BoxDecoration(
-          color: plain ? colors : null,
-          border: Border.all(color: colors),
-          borderRadius: BorderRadius.circular(Espacement.radius),
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(widget.size.radius),
         ),
-        child: TextSeed(value, color: plain ? AppColors.background : colors),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisSize: widget.block ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: children,
+        ),
+      ),
+    );
+
+    return Opacity(
+      opacity: _disabled ? 0.5 : 1.0,
+      child: GestureDetector(
+        onTapDown: _disabled ? null : (_) => setState(() => _pressed = true),
+        onTapUp: _disabled ? null : (_) => setState(() => _pressed = false),
+        onTapCancel:
+            _disabled ? null : () => setState(() => _pressed = false),
+        onTap: _disabled ? null : widget.onPressed,
+        child:
+            widget.block ? SizedBox(width: double.infinity, child: button) : button,
       ),
     );
   }

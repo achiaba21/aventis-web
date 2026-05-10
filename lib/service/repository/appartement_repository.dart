@@ -3,7 +3,7 @@ import 'package:asfar/service/model/appartement/appartement_backend_mapper.dart'
 import 'package:asfar/service/model/appartement/appartement_service.dart';
 import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/util/function.dart';
-import 'package:asfar/widget/form/image_uploader.dart';
+import 'package:asfar/model/forms/uploaded_image.dart';
 
 /// Repository pour les appartements - gère le cache Hive et les appels API.
 ///

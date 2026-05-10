@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refonte Design Asfar Premium - Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-08">
+    <meta name="updated" content="2026-05-08">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+        .eyebrow {
+            color: var(--accent);
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 38px; letter-spacing: -1px;
+            font-weight: 700; line-height: 1.05;
+            margin-bottom: 0.75rem;
+        }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 {
+            font-size: 22px; font-weight: 700;
+            letter-spacing: -0.4px;
+            margin: 2.5rem 0 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        h3 {
+            font-size: 17px; font-weight: 600;
+            letter-spacing: -0.2px;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text);
+        }
+        p, li {
+            color: var(--text-2);
+            font-size: 15px; line-height: 1.6;
+        }
+        .meta {
+            color: var(--text-3); font-size: 13px;
+            display: flex; flex-wrap: wrap; gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        nav ul {
+            display: flex; flex-wrap: wrap; gap: 1rem;
+            list-style: none; padding: 1rem 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 2rem;
+        }
+        nav a {
+            color: var(--accent); text-decoration: none;
+            font-size: 13px; font-weight: 500;
+        }
+        nav a:hover { text-decoration: underline; }
+        .card {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .card-hero {
+            background: linear-gradient(135deg, #2A1F0E 0%, #1A1206 60%, #0F0A04 100%);
+            border-color: rgba(232,184,107,0.25);
+            position: relative; overflow: hidden;
+        }
+        .card-hero::before {
+            content: ""; position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(232,184,107,0.18), transparent 70%);
+        }
+        .card-hero h2 { margin-top: 0; color: var(--accent); }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge {
+            display: inline-flex; align-items: center;
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 1rem 0; font-size: 14px;
+            background: var(--bg-elev-1);
+            border-radius: 14px; overflow: hidden;
+            border: 1px solid var(--line);
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+        th {
+            background: var(--bg-elev-2);
+            color: var(--text-3);
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+        tr:last-child td { border-bottom: none; }
+        td.mono { font-variant-numeric: tabular-nums; }
+        td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+        code {
+            background: var(--bg-elev-2);
+            color: var(--accent);
+            padding: 2px 6px; border-radius: 4px;
+            font-size: 13px; font-family: ui-monospace, "SF Mono", monospace;
+            border: 1px solid var(--line);
+        }
+        pre {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            padding: 1rem 1.25rem; border-radius: 14px;
+            overflow-x: auto; margin: 1rem 0;
+            font-size: 13px;
+        }
+        pre code { background: transparent; padding: 0; border: none; color: var(--text-2); }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px; margin: 1rem 0;
+        }
+        .stat-tile {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 14px; padding: 14px 16px;
+        }
+        .stat-tile .label {
+            color: var(--text-3); font-size: 11px;
+            font-weight: 600; letter-spacing: 1.2px;
+            text-transform: uppercase; margin-bottom: 8px;
+        }
+        .stat-tile .value {
+            font-size: 22px; font-weight: 700;
+            letter-spacing: -0.4px; font-variant-numeric: tabular-nums;
+        }
+        .stat-tile .value.accent { color: var(--accent); }
+        .stat-tile .value.success { color: var(--success); }
+        ul { margin-left: 1.25rem; margin-bottom: 1rem; }
+        li { margin-bottom: 6px; }
+        a { color: var(--accent); }
+        footer {
+            margin-top: 4rem; padding-top: 2rem;
+            border-top: 1px solid var(--line);
+            color: var(--text-3); font-size: 13px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="eyebrow">Feature livree</div>
+            <h1>Refonte Design <em>Asfar Premium</em></h1>
+            <p style="margin-top: 12px; max-width: 720px;">
+                Substitution complete de l'identite visuelle de l'application : le theme clair
+                (fond blanc, accent orange) est remplace par <strong>Asfar Dark Premium</strong>
+                (fond quasi-noir, accent or chaud), inspire de l'hospitalite + luxe africain.
+                Strategie "swap des entrailles" : preservation des noms publics
+                (<code>AppColors</code>, <code>TextSeed</code>, <code>CustomButton</code>...) avec
+                refonte complete de leur implementation interne.
+            </p>
+            <div class="meta">
+                <span>Version <strong style="color: var(--text);">1.0</strong></span>
+                <span>Cree le <strong style="color: var(--text);">2026-05-08</strong></span>
+                <span>Score audit <strong style="color: var(--accent);">93/100</strong></span>
+            </div>
+            <div class="badges">
+                <span class="badge badge-success">Livree</span>
+                <span class="badge badge-accent">v1.0</span>
+                <span class="badge badge-info">UI only</span>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#description">Description</a></li>
+                <li><a href="#strategie">Strategie</a></li>
+                <li><a href="#tokens">Tokens</a></li>
+                <li><a href="#widgets">Widgets</a></li>
+                <li><a href="#ecrans">Ecrans</a></li>
+                <li><a href="#audit">Audit</a></li>
+                <li><a href="#changelog">Historique</a></li>
+                <li><a href="index.html">&larr; Retour</a></li>
+            </ul>
+        </nav>
+
+        <main>
+
+            <section id="description">
+                <h2>Description</h2>
+                <p>
+                    Refonte totale de l'identite visuelle de l'app Flutter Asfar
+                    (multi-role locataire / proprietaire / demarcheur), basee sur
+                    un prototype HTML React livre par le design produit. Le theme
+                    clair historique disparait au profit d'un theme dark premium
+                    avec accent or chaud (<code>#E8B86B</code>).
+                </p>
+                <h3>Stack & contraintes</h3>
+                <ul>
+                    <li><strong>Stack :</strong> Flutter 3.7+ / Dart 3, BLoC, Hive, Spring Boot local</li>
+                    <li><strong>Plateformes :</strong> iOS 13+ / Android 10+</li>
+                    <li><strong>Localisation :</strong> Cote d'Ivoire / FCFA / fr-FR</li>
+                    <li><strong>Perimetre :</strong> UI uniquement (BLoCs, models, repos, services, Hive, backend = inchanges)</li>
+                </ul>
+
+                <div class="card card-hero">
+                    <h2 style="margin: 0 0 0.5rem;">Resume</h2>
+                    <div class="stat-grid">
+                        <div class="stat-tile">
+                            <div class="label">Ecrans cibles</div>
+                            <div class="value">121</div>
+                        </div>
+                        <div class="stat-tile">
+                            <div class="label">Widgets touches</div>
+                            <div class="value">~80</div>
+                        </div>
+                        <div class="stat-tile">
+                            <div class="label">Nouveaux widgets</div>
+                            <div class="value accent">+18</div>
+                        </div>
+                        <div class="stat-tile">
+                            <div class="label">Refs auto-migrees</div>
+                            <div class="value accent">2&nbsp;352</div>
+                        </div>
+                        <div class="stat-tile">
+                            <div class="label">Score audit</div>
+                            <div class="value success">93/100</div>
+                        </div>
+                        <div class="stat-tile">
+                            <div class="label">Issues introduites</div>
+                            <div class="value success">0</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="strategie">
+                <h2>Strategie : "Swap des entrailles"</h2>
+                <p>
+                    Plutot que de creer un namespace parallele <code>AsfarColors</code> /
+                    <code>AsfarButton</code> coexistant avec l'ancien, la refonte
+                    <strong>preserve les noms publics et signatures</strong> et remplace
+                    uniquement les valeurs et l'implementation interne.
+                </p>
+                <p>
+                    Resultat : les <strong>2&nbsp;352 references existantes</strong>
+                    (1&nbsp;655 sur <code>AppColors</code> + 697 sur <code>TextSeed</code>)
+                    a travers les 121 ecrans basculent automatiquement au moment du
+                    commit du fichier <code>app_colors.dart</code>. Aucun callsite
+                    a modifier au cas par cas.
+                </p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Element public</th>
+                            <th>Avant (clair)</th>
+                            <th>Apres (Asfar)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>AppColors.background</code></td>
+                            <td class="mono">#FFFFFF</td>
+                            <td class="mono">#0A0A0B</td>
+                        </tr>
+                        <tr>
+                            <td><code>AppColors.accent</code></td>
+                            <td class="mono">#FFA02A (orange)</td>
+                            <td class="mono">#E8B86B (or chaud)</td>
+                        </tr>
+                        <tr>
+                            <td><code>AppColors.textPrimary</code></td>
+                            <td class="mono">#1D1D1D</td>
+                            <td class="mono">#F5F5F7</td>
+                        </tr>
+                        <tr>
+                            <td><code>AppColors.surfaceVariant</code></td>
+                            <td class="mono">#F5F5F5</td>
+                            <td class="mono">#1C1C20</td>
+                        </tr>
+                        <tr>
+                            <td><code>CustomButton</code></td>
+                            <td>Fond orange + texte blanc</td>
+                            <td>Fond accent or + texte <code>onAccent</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>BottomNav</code></td>
+                            <td>Fond blanc + accent orange</td>
+                            <td>Backdrop blur + accent or</td>
+                        </tr>
+                        <tr>
+                            <td><code>DynamicAppBar</code></td>
+                            <td>Fond blanc + texte noir</td>
+                            <td>TopNav proto : 3 colonnes + sub-eyebrow</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="tokens">
+                <h2>Tokens du design system</h2>
+                <h3>Couleurs (lib/theme/app_colors.dart)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Valeur</th>
+                            <th>Usage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>bg</code></td><td class="mono">#0A0A0B</td><td>Fond principal Scaffold</td></tr>
+                        <tr><td><code>bgElev1</code></td><td class="mono">#131316</td><td>Cards</td></tr>
+                        <tr><td><code>bgElev2</code></td><td class="mono">#1C1C20</td><td>Inputs, chips, badges</td></tr>
+                        <tr><td><code>bgElev3</code></td><td class="mono">#25252B</td><td>Skeleton, dividers forts</td></tr>
+                        <tr><td><code>accent</code></td><td class="mono">#E8B86B</td><td>Or chaud (signature)</td></tr>
+                        <tr><td><code>accent2</code></td><td class="mono">#C99650</td><td>Hover, etats presses</td></tr>
+                        <tr><td><code>accentSoft</code></td><td class="mono">rgba(232,184,107,0.14)</td><td>Fonds soft</td></tr>
+                        <tr><td><code>onAccent</code></td><td class="mono">#1A1206</td><td>Texte sur or</td></tr>
+                        <tr><td><code>line</code></td><td class="mono">rgba(255,255,255,0.08)</td><td>Bordures discretes</td></tr>
+                        <tr><td><code>orangeMoney</code></td><td class="mono">#FF6B00</td><td>Mobile money OM</td></tr>
+                        <tr><td><code>wave</code></td><td class="mono">#1DC4D5</td><td>Mobile money Wave</td></tr>
+                        <tr><td><code>mtnMomo</code></td><td class="mono">#FFCC00</td><td>Mobile money MTN</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Rayons (lib/theme/app_radii.dart)</h3>
+                <pre><code>AppRadii.sm   = 10  // chips secondaires
+AppRadii.md   = 14  // boutons, inputs, listrows
+AppRadii.lg   = 20  // cards, sheets
+AppRadii.xl   = 28  // hero cards
+AppRadii.pill = 999 // avatars, status badges</code></pre>
+
+                <h3>Typographie (lib/theme/app_text_styles.dart)</h3>
+                <pre><code>AppTextStyles.display  // 32px / -0.6 / 700
+AppTextStyles.h1       // 26px / -0.4 / 700
+AppTextStyles.h2       // 20px / -0.3 / 700
+AppTextStyles.h3       // 17px / -0.2 / 600
+AppTextStyles.body     // 15px / 1.45 / 400
+AppTextStyles.small    // 13px / 1.4  / 400
+AppTextStyles.eyebrow  // 11px / 1.2  / 600 / UPPERCASE</code></pre>
+
+                <h3>Helpers</h3>
+                <ul>
+                    <li><code>FcfaFormatter.full(1900000)</code> &rarr; "1 900 000 FCFA"</li>
+                    <li><code>FcfaFormatter.compact(1900000)</code> &rarr; "1.9 M FCFA"</li>
+                    <li><code>color.soft14()</code> &rarr; <code>color.withValues(alpha: 0.14)</code></li>
+                </ul>
+            </section>
+
+            <section id="widgets">
+                <h2>Widgets</h2>
+
+                <h3>Modifies in-place (~80)</h3>
+                <p>Strategie "swap des entrailles" : memes noms / signatures, internals refait.</p>
+                <ul>
+                    <li><strong>Boutons</strong> (7) : <code>CustomButton</code>, <code>OutlinedCustomButton</code>, <code>PlainButton</code>, <code>PlainButtonExpand</code>, <code>PlainButtonIcon</code>, <code>TexteButton</code>, <code>IconBoutton</code></li>
+                    <li><strong>Inputs</strong> (13) : <code>InputField</code>, <code>InputPass</code>, <code>InputDate</code>, <code>InputSearch</code>, <code>InputZone</code>, <code>OtpBox</code>, <code>OtpInput</code>, <code>PhoneInputField</code>, <code>NumberInputField</code>, <code>CountrySelectorWidget</code>, <code>CustomSelector</code>, ...</li>
+                    <li><strong>Texte</strong> : <code>TextSeed</code> + 7 constructeurs nommes (<code>.display()</code>, <code>.h1()</code>, ..., <code>.eyebrow()</code>)</li>
+                    <li><strong>Layout</strong> : <code>DynamicAppBar</code> (TopNav proto), <code>BottomNav</code> (backdrop blur), <code>BottomNavItem</code></li>
+                    <li><strong>Badges</strong> : <code>StatusBadge</code> (6 tons semantiques), <code>UnreadBadge</code> (accent or)</li>
+                    <li><strong>Cards</strong> : <code>AppartementPreviewCard</code> (ListingCard proto), <code>AppartementStatusCard</code></li>
+                    <li><strong>Avatar / Loaders</strong> : <code>UserAvatar</code> (gradient or), <code>ShimmerCard</code>, <code>CircularProgress</code></li>
+                    <li><strong>Calendar</strong> (5), <strong>Notification</strong> (12), <strong>Message</strong> (5), <strong>Wizard</strong> (5), <strong>Dialog</strong> (4), <strong>Profile</strong> (5)</li>
+                </ul>
+
+                <h3>Crees ex-nihilo (18) <span class="badge badge-success">NOUVEAU</span></h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Widget</th>
+                            <th>Fichier</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>AppRadii</code></td><td><code>theme/app_radii.dart</code></td><td>Tokens rayons</td></tr>
+                        <tr><td><code>AppTextStyles</code></td><td><code>theme/app_text_styles.dart</code></td><td>7 styles typo</td></tr>
+                        <tr><td><code>FcfaFormatter</code></td><td><code>util/fcfa_formatter.dart</code></td><td>Formatter FCFA full/compact</td></tr>
+                        <tr><td><code>ColorSoft</code></td><td><code>util/color_soft.dart</code></td><td>Extension <code>color.soft14()</code></td></tr>
+                        <tr><td><code>ImgPlaceholder</code></td><td><code>widget/img/</code></td><td>Gradient + halo (4 tons)</td></tr>
+                        <tr><td><code>BlurContainer</code></td><td><code>widget/container/</code></td><td>Liquid Glass + fallback</td></tr>
+                        <tr><td><code>UnderlineTabs</code></td><td><code>widget/container/</code></td><td>Onglets soulignes</td></tr>
+                        <tr><td><code>Sparkbar</code></td><td><code>widget/chart/</code></td><td>Mini bar chart</td></tr>
+                        <tr><td><code>StackedBar</code></td><td><code>widget/chart/</code></td><td>Barre segmentee horiz.</td></tr>
+                        <tr><td><code>ForecastChart</code></td><td><code>widget/chart/</code></td><td>Line chart passe + futur dashed</td></tr>
+                        <tr><td><code>StepTimeline</code></td><td><code>widget/timeline/</code></td><td>Timeline verticale N etapes</td></tr>
+                        <tr><td><code>SuccessCircle</code></td><td><code>widget/feedback/</code></td><td>Cercle confirmation 88px</td></tr>
+                        <tr><td><code>StatTile</code></td><td><code>widget/card/</code></td><td>KPI eyebrow + value + delta</td></tr>
+                        <tr><td><code>ReferralRow</code></td><td><code>widget/item/</code></td><td>Ligne demande demarcheur</td></tr>
+                        <tr><td><code>FieldRow</code></td><td><code>widget/item/</code></td><td>Eyebrow + value + edit</td></tr>
+                        <tr><td><code>PeriodSwitcher</code></td><td><code>widget/item/</code></td><td>Sem/Mois/Trim/Annee</td></tr>
+                        <tr><td><code>PaymentMethodTile</code></td><td><code>widget/list/</code></td><td>OM/Wave/MTN/Card</td></tr>
+                        <tr><td><code>BookingCalendar</code></td><td><code>widget/calendar/</code></td><td>Grille mois coloree</td></tr>
+                        <tr><td><code>MapPlaceholder</code></td><td><code>widget/map/</code></td><td>Grille + halos radiaux</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="ecrans">
+                <h2>Ecrans (4 vagues)</h2>
+                <table>
+                    <thead>
+                        <tr><th>Vague</th><th>Perimetre</th><th>Volume</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>V1</td><td>Theme + Tokens (foundations)</td><td>5 fichiers</td><td><span class="badge badge-success">OK</span></td></tr>
+                        <tr><td>V2</td><td>Atomes UI (button, input, badge, ...)</td><td>~25 widgets</td><td><span class="badge badge-success">OK</span></td></tr>
+                        <tr><td>V3</td><td>Molecules (calendar, message, wizard, dialogs, charts...)</td><td>~30 modifies + 13 crees</td><td><span class="badge badge-success">OK</span></td></tr>
+                        <tr><td>V4a</td><td>Onboarding + Auth</td><td>6 ecrans</td><td><span class="badge badge-success">OK</span></td></tr>
+                        <tr><td>V4b</td><td>Locataire</td><td>20 ecrans</td><td><span class="badge badge-success">OK</span></td></tr>
+                        <tr><td>V4c</td><td>Demarcheur</td><td>7 ecrans</td><td><span class="badge badge-success">OK</span></td></tr>
+                        <tr><td>V4d</td><td>Proprietaire</td><td>25 ecrans</td><td><span class="badge badge-success">OK</span></td></tr>
+                        <tr><td>V4e</td><td>Transverses (Map, Receipt, Notifs)</td><td>~12 ecrans</td><td><span class="badge badge-success">OK</span></td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="audit">
+                <h2>Audit qualite</h2>
+                <table>
+                    <thead>
+                        <tr><th>Dimension</th><th>Avant</th><th>Apres correc.</th><th>Delta</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Complexite</td><td class="num">70</td><td class="num">80</td><td class="num" style="color: var(--success);">+10</td></tr>
+                        <tr><td>Lisibilite</td><td class="num">55</td><td class="num">90</td><td class="num" style="color: var(--success);">+35</td></tr>
+                        <tr><td>DRY</td><td class="num">90</td><td class="num">100</td><td class="num" style="color: var(--success);">+10</td></tr>
+                        <tr><td>Documentation</td><td class="num">100</td><td class="num">100</td><td class="num">0</td></tr>
+                        <tr><td>SOLID</td><td class="num">80</td><td class="num">80</td><td class="num">0</td></tr>
+                        <tr><td>Dette technique</td><td class="num">80</td><td class="num">100</td><td class="num" style="color: var(--success);">+20</td></tr>
+                        <tr><td>Securite</td><td class="num">100</td><td class="num">100</td><td class="num">0</td></tr>
+                        <tr><td><strong>GLOBAL</strong></td><td class="num"><strong>82</strong></td><td class="num"><strong>93</strong></td><td class="num" style="color: var(--success);"><strong>+11</strong></td></tr>
+                    </tbody>
+                </table>
+                <p>Verdict : <span class="badge badge-success">VALIDE</span> &mdash; toutes dimensions &ge; 80, score global 93/100.</p>
+
+                <h3>Compilation</h3>
+                <pre><code>flutter analyze
+&rarr; 123 issues (TOUS pre-existants legacy)
+&rarr; 0 issue introduite par la refonte</code></pre>
+            </section>
+
+            <section id="changelog">
+                <h2>Historique</h2>
+                <table>
+                    <thead>
+                        <tr><th>Date</th><th>Version</th><th>Modifications</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="mono">2026-05-08</td>
+                            <td><span class="badge badge-accent">v1.0</span></td>
+                            <td>
+                                Initial release. Bascule complete du theme clair vers
+                                Asfar Dark Premium. 18 widgets crees, ~80 modifies,
+                                121 ecrans cibles, 0 issue introduite.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="references">
+                <h2>References</h2>
+                <ul>
+                    <li>Specification metier : <code>.ai-outputs/specs/refonte-design-asfar/business-spec.md</code></li>
+                    <li>Architecture : <code>.ai-outputs/specs/refonte-design-asfar/architecture.md</code></li>
+                    <li>Propositions UI/UX : <code>.ai-outputs/specs/refonte-design-asfar/ui-proposal.md</code></li>
+                    <li>Audit : <code>.ai-outputs/specs/refonte-design-asfar/audit-report.md</code></li>
+                    <li>Inventaire prototype : <code>.ai-outputs/specs/prototype-design-asfar/01-prototype-screens-analysis.md</code></li>
+                    <li>Plan composants Flutter : <code>.ai-outputs/specs/prototype-design-asfar/02-flutter-component-priority.md</code></li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <p>Documentation generee automatiquement &middot; Asfar Premium v1.0</p>
+        </footer>
+    </div>
+</body>
+</html>

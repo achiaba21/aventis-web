@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:asfar/model/user/client.dart';
+import 'package:asfar/model/user/demarcheur.dart';
 import 'package:asfar/model/user/locataire.dart';
 import 'package:asfar/model/user/proprietaire.dart';
 
@@ -65,10 +66,26 @@ class User {
   });
 
   static User fromJsonAll(Map<String, dynamic> json) {
-    if (Client.fromJson(json).client != null) {
-      return Client.fromJsonAll(json);
+    // Discrimination prioritaire par le champ `type` (canonique côté backend,
+    // déjà utilisé dans AuthenticationService._signupUrlForRole).
+    final type = (json['type'] as String?)?.toLowerCase();
+    switch (type) {
+      case 'locataire':
+        return Locataire.fromJson(json);
+      case 'proprietaire':
+        return Proprietaire.fromJson(json);
+      case 'demarcheur':
+        return Demarcheur.fromJson(json);
     }
-    
+
+    // Fallback : flags booléens. On compare `== true` plutôt que `!= null`
+    // pour éviter qu'un flag explicitement à `false` envoyé par le backend
+    // ne soit considéré comme un match positif.
+    if (json['locataire'] == true) return Locataire.fromJson(json);
+    if (json['proprietaire'] == true) return Proprietaire.fromJson(json);
+    if (json['demarcheur'] == true) return Demarcheur.fromJson(json);
+    if (json['client'] == true) return Client.fromJson(json);
+
     return User.fromJson(json);
   }
 

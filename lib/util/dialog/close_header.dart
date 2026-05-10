@@ -9,20 +9,14 @@ class CloseHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 2,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(16),
+      color: AppColors.background,
       child: Row(
         children: [
-          IconBoutton(icon: Icons.close, onPressed: () => back(context)),
+          IconBoutton(
+            icon: Icons.close,
+            onPressed: () => back(context),
+          ),
         ],
       ),
     );

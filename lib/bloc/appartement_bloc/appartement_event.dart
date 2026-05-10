@@ -1,6 +1,6 @@
 import 'package:asfar/model/filter/filter_criteria.dart';
 import 'package:asfar/model/residence/appart.dart';
-import 'package:asfar/widget/form/image_uploader.dart';
+import 'package:asfar/model/forms/uploaded_image.dart';
 
 abstract class AppartementEvent {}
 

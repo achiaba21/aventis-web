@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vague 6 — Démarcheur · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-10">
+    <meta name="updated" content="2026-05-10">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+            --wallet-blue: #8B9AFF;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+        .eyebrow {
+            color: var(--accent);
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 38px; letter-spacing: -1px;
+            font-weight: 700; line-height: 1.05;
+            margin-bottom: 0.75rem;
+        }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 {
+            font-size: 22px; font-weight: 700;
+            letter-spacing: -0.4px;
+            margin: 2.5rem 0 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        h3 {
+            font-size: 17px; font-weight: 600;
+            letter-spacing: -0.2px;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text);
+        }
+        p, li {
+            color: var(--text-2);
+            font-size: 15px; line-height: 1.6;
+        }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta {
+            color: var(--text-3); font-size: 13px;
+            display: flex; flex-wrap: wrap; gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        nav ul {
+            display: flex; flex-wrap: wrap; gap: 1rem;
+            list-style: none; padding: 1rem 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 2rem;
+        }
+        nav a {
+            color: var(--accent); text-decoration: none;
+            font-size: 13px; font-weight: 500;
+        }
+        nav a:hover { text-decoration: underline; }
+        .card {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .card-hero {
+            background: linear-gradient(135deg, #1A2A4A 0%, #0E1626 60%, #060A14 100%);
+            border-color: rgba(94,108,255,0.25);
+            position: relative; overflow: hidden;
+        }
+        .card-hero::before {
+            content: ""; position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(94,108,255,0.18), transparent 70%);
+        }
+        .card-hero h2 { margin-top: 0; color: var(--wallet-blue); }
+        .card-hero .stat-amount {
+            font-size: 32px; font-weight: 700; letter-spacing: -1px;
+            color: #fff; margin: 0.5rem 0;
+        }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge {
+            display: inline-flex; align-items: center;
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        .badge-blue { background: rgba(139,154,255,0.14); color: var(--wallet-blue); }
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 1rem 0; font-size: 14px;
+        }
+        th, td {
+            text-align: left; padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+        }
+        th {
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--text-3);
+            background: var(--bg-elev-2);
+        }
+        td { color: var(--text-2); }
+        td code, p code, li code {
+            background: var(--bg-elev-2);
+            padding: 2px 6px; border-radius: 6px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            color: var(--text);
+        }
+        pre {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            margin: 1rem 0;
+        }
+        pre code {
+            background: none; padding: 0; font-size: inherit;
+            color: var(--text);
+        }
+        .check { color: var(--success); }
+        .cross { color: var(--danger); }
+        .arrow { color: var(--accent); }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .stat-cell {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            text-align: center;
+        }
+        .stat-cell .num {
+            font-size: 28px; font-weight: 700;
+            color: var(--accent);
+            font-feature-settings: "tnum";
+        }
+        .stat-cell .lab {
+            font-size: 12px; color: var(--text-3);
+            margin-top: 0.25rem; letter-spacing: 0.4px;
+        }
+        .timeline {
+            border-left: 2px solid var(--line);
+            padding: 0.5rem 0 0.5rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .timeline-step {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .timeline-step::before {
+            content: ""; position: absolute;
+            left: -1.95rem; top: 6px;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        .timeline-step.done::before { background: var(--success); }
+        .timeline-step.upcoming::before { background: var(--bg-elev-3); }
+        .quote {
+            border-left: 3px solid var(--accent);
+            padding-left: 1rem;
+            color: var(--text-2);
+            font-style: italic;
+            margin: 1rem 0;
+        }
+        footer {
+            border-top: 1px solid var(--line);
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            color: var(--text-3);
+            font-size: 13px;
+            text-align: center;
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="eyebrow">Reconstruction UI · Vague 6</div>
+            <h1>Démarcheur · <em>5 onglets fonctionnels</em></h1>
+            <p>Implémentation complète du rôle <strong>Démarcheur</strong> en miroir du pattern Vague 5 (Locataire), avec promotion du Profile en composant transverse partagé entre les rôles et branchement du switch de rôle dans le shell.</p>
+            <div class="meta">
+                <span>📅 Livrée le 10 mai 2026</span>
+                <span>🔢 Version 1.0</span>
+                <span>✅ Score audit 98/100</span>
+                <span>📦 32 livrables</span>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#vue-densemble">Vue d'ensemble</a></li>
+                <li><a href="#perimetre">Périmètre</a></li>
+                <li><a href="#parcours">Parcours utilisateur</a></li>
+                <li><a href="#decisions">Décisions clés</a></li>
+                <li><a href="#fichiers">Fichiers livrés</a></li>
+                <li><a href="#qualite">Qualité</a></li>
+                <li><a href="#suite">Suite</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section class="card card-hero">
+                <h2>Mes commissions ce mois</h2>
+                <div class="stat-amount">228 000 FCFA</div>
+                <div class="badges">
+                    <span class="badge badge-success">↑ 32%</span>
+                    <span class="badge badge-blue">vs. octobre</span>
+                </div>
+                <p style="color: rgba(255,255,255,0.7); font-size: 13px;">
+                    Aperçu visuel du <code>WalletHeroCard</code> du Dashboard démarcheur — gradient bleu-nuit (3 stops), halo radial bleu, montant 32px en mono bold, badge delta succès.
+                </p>
+            </section>
+
+            <section id="vue-densemble">
+                <h2>🎯 Vue d'ensemble</h2>
+                <p>
+                    La <strong>Vague 6</strong> achève le rôle Démarcheur de l'app Asfar : 5 onglets fonctionnels couvrant le Dashboard, les Demandes, le tunnel « Nouvelle demande » en 3 étapes, le détail d'une référence avec timeline, le Wallet, et le Profile transverse partagé.
+                </p>
+                <p>
+                    Particularité métier découverte au BA : <strong>un utilisateur peut cumuler plusieurs rôles</strong> (un démarcheur peut aussi être locataire ou propriétaire). Cette vague débloque le mécanisme de switch de rôle initié en Vague 5 mais resté inerte par dépendance.
+                </p>
+                <div class="quote">
+                    « Un démarcheur peut avoir une interface de locataire, pareil pour un propriétaire » — décision BA actée 2026-05-09
+                </div>
+            </section>
+
+            <section id="perimetre">
+                <h2>📦 Périmètre</h2>
+
+                <h3>Livrables principaux (8)</h3>
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>Livrable</th><th>Source proto</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td><code>DemarcheurShell</code> (5 onglets · IndexedStack)</td><td><code>app.jsx</code></td></tr>
+                        <tr><td>2</td><td><code>DemarcheurDashboard</code> (hero + stats + référés + push)</td><td><code>demarcheur.jsx::DemarcheurDashboard</code></td></tr>
+                        <tr><td>3</td><td><code>DemarcheurReferralsScreen</code> (5 chips + liste filtrée)</td><td><code>app.jsx::ReferralsScreen</code></td></tr>
+                        <tr><td>4</td><td><code>NewReferralScreen</code> (tunnel 3 étapes single screen)</td><td><code>demarcheur.jsx::DemarcheurNew</code></td></tr>
+                        <tr><td>5</td><td><code>ReferralDetailScreen</code> (timeline + cards)</td><td><code>demarcheur.jsx::DemarcheurReferralDetail</code></td></tr>
+                        <tr><td>6</td><td><code>DemarcheurWalletScreen</code> (solde + historique)</td><td><code>demarcheur.jsx::DemarcheurWallet</code></td></tr>
+                        <tr><td>7</td><td><code>ClientProfileScreen</code> transverse + role switcher</td><td><code>extras.jsx::Profile</code></td></tr>
+                        <tr><td>8</td><td><code>RoleHomeRouter</code> case 'demarcheur' branché</td><td>—</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Widgets feature (13)</h3>
+                <div class="badges">
+                    <span class="badge badge-blue">Dashboard ×5</span>
+                    <span class="badge badge-accent">Referrals ×6</span>
+                    <span class="badge badge-info">Wallet ×2</span>
+                </div>
+                <ul>
+                    <li><strong>Dashboard :</strong> <code>WalletHeroCard</code>, <code>MiniStatsInline</code>, <code>SendReferralCtaCard</code>, <code>StatusPillsRow</code>, <code>ListingPushCard</code></li>
+                    <li><strong>Referrals :</strong> <code>ReferralRow</code>, <code>ReferralFilterChips</code>, <code>ReferralListingRadio</code>, <code>TimelineStep</code>, <code>ReferralTimeline</code>, <code>CommissionCard</code></li>
+                    <li><strong>Wallet :</strong> <code>WalletSoldeCard</code>, <code>WalletTransactionRow</code></li>
+                </ul>
+
+                <h3>Helpers et modèles (5)</h3>
+                <ul>
+                    <li><code>ProfileDisplayInfo</code> — mapping rôle → subtitle / badge / settings (extras.jsx::Profile.profiles[role])</li>
+                    <li><code>ReferralStatusDisplay</code> — mapping <code>ReferralStatus</code> → label + tone</li>
+                    <li><code>ReferralPreview</code> + enum <code>ReferralStatus</code> (modèle UI-only)</li>
+                    <li><code>CommissionTransaction</code> + enum <code>TransactionType</code> (modèle UI-only)</li>
+                    <li>3 mocks : <code>SampleReferrals</code>, <code>SampleCommissions</code>, <code>SampleListingsToReferral</code></li>
+                </ul>
+            </section>
+
+            <section id="parcours">
+                <h2>🧭 Parcours utilisateur</h2>
+
+                <h3>Cas nominal — démarcheur connecté</h3>
+                <ol class="timeline" style="list-style: none; padding-left: 1.5rem;">
+                    <li class="timeline-step done"><strong>Splash</strong> → <code>RoleHomeRouter.shellFor(user)</code></li>
+                    <li class="timeline-step done"><strong>DemarcheurShell</strong> 5 onglets · BottomNav blur Liquid Glass</li>
+                    <li class="timeline-step done"><strong>Onglet Accueil</strong> → Dashboard (hero gains + stats + référés + carrousel push)</li>
+                    <li class="timeline-step done"><strong>Tap CTA « Envoyer un client »</strong> → <code>NewReferralScreen</code></li>
+                    <li class="timeline-step"><strong>Étape 1/3</strong> Choix logement (cards radio · 4 listings)</li>
+                    <li class="timeline-step"><strong>Étape 2/3</strong> Infos client (Nom · Tel WhatsApp · Dates · Note · banner commission)</li>
+                    <li class="timeline-step upcoming"><strong>Étape 3/3</strong> Confirmation (cercle accent + REF-D8H3K + récap)</li>
+                </ol>
+
+                <h3>Cas multi-rôle — switch démarcheur ↔ locataire</h3>
+                <ol>
+                    <li>Onglet Profil → <code>ClientProfileScreen</code> (subtitle « Démarcheur · 27 clients » + badge « Top démarcheur »)</li>
+                    <li>Tap dans <code>ProfileRoleSwitcher</code> sur « Locataire »</li>
+                    <li><code>_onSwitchRole('locataire')</code> → mute <code>user.type</code> en mémoire</li>
+                    <li><code>RoleHomeRouter.shellFor(user)</code> retourne <code>LocataireShell</code></li>
+                    <li><code>pushAndRemoveAll</code> → stack vidé, démarcheur redécouvre l'app en mode locataire</li>
+                </ol>
+
+                <h3>Détail d'une référence — timeline 5 étapes</h3>
+                <p>Tap sur une <code>ReferralRow</code> ouvre <code>ReferralDetailScreen</code> avec :</p>
+                <ul>
+                    <li>Statut courant (badge tone success/warn/info/danger)</li>
+                    <li>Timeline verticale 5 étapes : Demande envoyée · Vue · Acceptée · Paiement client · Commission versée</li>
+                    <li>Card listing (réutilise <code>ListingSummaryCard</code> Vague 5)</li>
+                    <li>Card client (avatar + nom + tel + bouton Appeler)</li>
+                    <li>Card propriétaire (réutilise <code>HostCard</code> Vague 5)</li>
+                    <li><code>CommissionCard</code> : sous-total → 10% → à recevoir (accent or)</li>
+                </ul>
+            </section>
+
+            <section id="decisions">
+                <h2>🎯 Décisions clés</h2>
+
+                <h3>1. Profile transverse</h3>
+                <p>
+                    <code>LocataireProfileScreen</code> a été promu en <code>ClientProfileScreen</code> (déplacé dans <code>shared/profile/</code>) avec un helper <code>ProfileDisplayInfo</code> qui mappe <code>user.type</code> vers le subtitle, le badge et la liste de paramètres. Source : <code>extras.jsx::Profile.profiles[role]</code>.
+                </p>
+                <pre><code>// Avant : 1 écran par rôle, hardcodé
+// Après : 1 écran transverse, paramétré
+
+ProfileDisplayInfo.forRole('demarcheur')
+  → subtitle: 'Démarcheur · 27 clients'
+  → badge: 'Top démarcheur'
+  → settings: [Infos perso, Vérif, Méthode de retrait, Notifs, Préfs]</code></pre>
+
+                <h3>2. Switch de rôle muté en mémoire</h3>
+                <p>
+                    Le tap dans le Role Switcher mute <code>user.type</code> directement puis appelle <code>pushAndRemoveAll(RoleHomeRouter.shellFor(user))</code>. <strong>Aucune persistance Hive en Vague 6</strong> — c'est un cas connu, documenté dans la section <em>TODO REBUILD</em> de <code>RECONSTRUCTION_UI_ASFAR.md</code> pour la finition (event <code>UserBloc::SetActiveRole</code>).
+                </p>
+
+                <h3>3. Mocks (cohérence Vague 5)</h3>
+                <p>
+                    Aucun BLoC réel branché en Vague 6. Les listes (référés, commissions, logements à pousser) viennent de <code>SampleReferrals</code>, <code>SampleCommissions</code>, <code>SampleListingsToReferral</code>. Pattern miroir de <code>SampleListings</code> (Vague 5). Les 22 BLoCs existants (<code>DemarcheurBloc</code>, <code>PartenariatBloc</code>, etc.) restent intacts pour branchement en vague de finition.
+                </p>
+
+                <h3>4. CTA « Retirer maintenant » → SnackBar stub</h3>
+                <p>
+                    Le proto n'a pas défini la UX du retrait (bouton sans handler dans <code>demarcheur.jsx:505</code>). En Vague 6, le tap déclenche <code>SnackBar('Retrait disponible prochainement')</code>. La vraie UX sera spécifiée en <strong>F9 (Banque/Cartes/Compte)</strong> avec le contexte complet.
+                </p>
+
+                <h3>5. Tunnel <code>NewReferralScreen</code> single screen</h3>
+                <p>
+                    Au lieu de 3 fichiers séparés (<code>new_step1/2/3</code>), un seul écran avec <code>int _step</code>. Pattern miroir de <code>LocataireReserveScreen</code> Vague 5 (293 lignes, 3 étapes). Avantages : header partagé, navigation forward/back triviale via <code>setState</code>, état du formulaire préservé sans param drilling. Écart documenté dans <code>architecture.md § 3.2</code>.
+                </p>
+
+                <h3>6. Empty states reportés</h3>
+                <p>
+                    Le proto n'en a pas (toutes les listes mockées sont remplies). En Vague 6, <strong>les mocks sont toujours remplis</strong> donc cas non atteignable. Empty states à créer dans une vague de finition post-V9, brancher dans 6 zones (referrals vide, wallet historique, dashboard sections, locataire trips/favorites).
+                </p>
+            </section>
+
+            <section id="fichiers">
+                <h2>📁 Fichiers livrés</h2>
+
+                <div class="stat-grid">
+                    <div class="stat-cell"><div class="num">30</div><div class="lab">FICHIERS DART CRÉÉS</div></div>
+                    <div class="stat-cell"><div class="num">2</div><div class="lab">FICHIERS MODIFIÉS</div></div>
+                    <div class="stat-cell"><div class="num">4</div><div class="lab">TOKENS APPCOLORS</div></div>
+                    <div class="stat-cell"><div class="num">2 948</div><div class="lab">LIGNES DE CODE</div></div>
+                </div>
+
+                <h3>Structure</h3>
+                <pre><code>lib/screen/client/
+├── shared/profile/                        ← NOUVEAU (transverse)
+│   ├── client_profile_screen.dart
+│   ├── profile_display_info.dart          (helper)
+│   └── widget/
+│       ├── profile_hero_card.dart         (déplacé)
+│       ├── profile_role_switcher.dart     (déplacé)
+│       └── profile_settings_card.dart     (déplacé)
+├── locataire/
+│   └── locataire_shell.dart               (modif: ClientProfileScreen)
+├── demarcheur/                            ← NOUVEAU (Vague 6)
+│   ├── demarcheur_shell.dart
+│   ├── home/
+│   │   ├── dashboard_screen.dart
+│   │   └── widget/                        (5 widgets Dashboard)
+│   ├── referrals/
+│   │   ├── referrals_screen.dart
+│   │   ├── new_referral_screen.dart       (tunnel 3 steps)
+│   │   ├── referral_detail_screen.dart
+│   │   └── widget/                        (6 widgets Referrals + helper status)
+│   ├── wallet/
+│   │   ├── wallet_screen.dart
+│   │   └── widget/                        (2 widgets Wallet)
+│   └── sample/                            (3 mocks)
+└── role_home_router.dart                  (modif: case 'demarcheur')
+
+lib/model/ui_only/                         ← NOUVEAU (modèles d'affichage)
+├── referral_preview.dart
+└── commission_transaction.dart
+
+lib/theme/app_colors.dart                  (4 tokens ajoutés:
+  walletBlueAccent, walletBlueBorder,
+  walletBlueHalo, heroGradientBlueShort)</code></pre>
+
+                <h3>Fichiers supprimés</h3>
+                <ul>
+                    <li><code>lib/screen/client/locataire/profile/</code> (4 fichiers · contenu déplacé vers <code>shared/profile/</code>)</li>
+                </ul>
+            </section>
+
+            <section id="qualite">
+                <h2>✅ Qualité</h2>
+
+                <div class="stat-grid">
+                    <div class="stat-cell"><div class="num">98<span style="font-size:18px;">/100</span></div><div class="lab">SCORE AUDIT</div></div>
+                    <div class="stat-cell"><div class="num">0</div><div class="lab">NOUVELLE ERREUR</div></div>
+                    <div class="stat-cell"><div class="num">32/32</div><div class="lab">CONTRAT COUVERT</div></div>
+                </div>
+
+                <h3>Verdict de conformité architecturale</h3>
+                <p>
+                    <span class="badge badge-success">CONFORME</span> — Tous les items du contrat <code>architecture.md § 5</code> sont livrés. 4 écarts identifiés, tous justifiés (tunnel single screen, helpers ajoutés selon règle 3 du projet, tokens couleurs identifiés en UI/UX).
+                </p>
+
+                <h3>Audit qualité — 6 dimensions</h3>
+                <table>
+                    <thead>
+                        <tr><th>Dimension</th><th>Score</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Complexité</td><td>95/100</td><td><span class="badge badge-success">✅</span> 1 ℹ️ mineur (tunnel 315 lignes)</td></tr>
+                        <tr><td>Lisibilité</td><td>95/100</td><td><span class="badge badge-success">✅</span> 1 ℹ️ mineur (font sizes hardcodés, hors V6)</td></tr>
+                        <tr><td>DRY</td><td>100/100</td><td><span class="badge badge-success">✅</span> 1 ⚠️ majeur corrigé pendant audit</td></tr>
+                        <tr><td>Documentation</td><td>100/100</td><td><span class="badge badge-success">✅</span> 100% classes/helpers documentés</td></tr>
+                        <tr><td>SOLID</td><td>100/100</td><td><span class="badge badge-success">✅</span> Helpers extraits, single responsibility</td></tr>
+                        <tr><td>Dette technique</td><td>100/100</td><td><span class="badge badge-success">✅</span> 0 TODO/print/catch vide</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>flutter analyze</h3>
+                <p>
+                    <strong>41 issues</strong> — exactement le même nombre qu'avant Vague 6. <strong>Aucune nouvelle issue introduite par le code Vague 6.</strong> Toutes les issues restantes sont legacy (avoid_print, unused_field) et hors scope.
+                </p>
+
+                <h3>Correction appliquée pendant l'audit</h3>
+                <p>
+                    Une duplication DRY a été détectée : <code>referral_detail_screen.dart</code> redéfinissait localement <code>_statusLabel</code> et <code>_statusTone</code> alors que le helper public <code>ReferralStatusDisplay</code> existait déjà. <strong>25 lignes dupliquées supprimées</strong>, import <code>badge_tone.dart</code> nettoyé.
+                </p>
+            </section>
+
+            <section id="suite">
+                <h2>🛠️ Suite — TODO REBUILD documentés</h2>
+                <p>Notés dans <code>RECONSTRUCTION_UI_ASFAR.md</code> pour les vagues à venir :</p>
+                <ul>
+                    <li>
+                        <strong>UX retrait Wallet</strong> → <span class="badge badge-warn">F9 Banque/Cartes/Compte</span> · bottom sheet ou écran retrait à spécifier
+                    </li>
+                    <li>
+                        <strong>Empty states génériques</strong> → <span class="badge badge-warn">post-V9 finition BLoC</span> · 6 zones à brancher (DemarcheurReferrals, Wallet historique, Dashboard sections, Trips, Favorites)
+                    </li>
+                    <li>
+                        <strong>Persistance switch de rôle</strong> → <span class="badge badge-warn">finition</span> · ajouter <code>UserBloc::SetActiveRole</code> qui persiste en Hive sans déclencher la chaîne de préchargement
+                    </li>
+                    <li>
+                        <strong>Tokens <code>AppTextSizes</code></strong> → <span class="badge badge-info">refacto transverse</span> · harmoniser font sizes hardcodés (13/14/17) au niveau projet (V1-5-6 ensemble)
+                    </li>
+                    <li>
+                        <strong>Branchement BLoCs réels</strong> → <span class="badge badge-info">vague de finition</span> · remplacer mocks par <code>DemarcheurBloc</code>, <code>PartenariatBloc</code>, <code>ReservationBloc</code>, <code>CompteBloc</code>
+                    </li>
+                </ul>
+
+                <h3>Prochaines vagues</h3>
+                <p>
+                    <a href="../specs/refonte-design-asfar/business-spec.md">Roadmap complète</a> :
+                </p>
+                <ul>
+                    <li><strong>Vague 7 — Propriétaire</strong> (5 onglets : Dashboard, Listings, Edit 4 tabs, Finances P&L, Profile)</li>
+                    <li><strong>Vague 8 — Transverses</strong> (Messaging List/Thread, Notifications, Receipt PDF)</li>
+                    <li><strong>Vague 9 — Hors-proto</strong> (F2-F10 : Wizard appart, Scan QR, Compta étendue, Banque, Carte réelle, Calendrier global)</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>📚 Références</h2>
+                <ul>
+                    <li><a href="../specs/vague-6-demarcheur/business-spec.md">Spec métier (BA)</a></li>
+                    <li><a href="../specs/vague-6-demarcheur/architecture.md">Architecture technique (avec rapport conformité § 11)</a></li>
+                    <li><a href="../specs/vague-6-demarcheur/ui-proposal.md">Proposition UI/UX (4 zones tranchées par fidélité proto)</a></li>
+                    <li><a href="../specs/vague-6-demarcheur/audit-report.md">Rapport d'audit (98/100)</a></li>
+                    <li><a href="../../RECONSTRUCTION_UI_ASFAR.md">Plan de reconstruction global</a></li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>📜 Historique</h2>
+                <table>
+                    <thead>
+                        <tr><th>Version</th><th>Date</th><th>Changements</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.0</td>
+                            <td>2026-05-10</td>
+                            <td>Livraison initiale Vague 6 — 30 fichiers Dart, 2 modifs, 4 tokens, score 98/100, 0 nouvelle erreur <code>flutter analyze</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+
+        <footer>
+            <p>Asfar — Vague 6 Démarcheur · Reconstruction UI Asfar Premium</p>
+            <p style="margin-top: 4px;">Documentation générée le 10 mai 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

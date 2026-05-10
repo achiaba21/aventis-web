@@ -1,50 +1,52 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gap/gap.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
-import 'package:asfar/config/app_propertie.dart';
 import 'package:asfar/dto/user_req.dart';
-import 'package:asfar/model/user/demarcheur.dart';
-import 'package:asfar/model/user/locataire.dart';
-import 'package:asfar/model/user/proprietaire.dart';
-import 'package:asfar/screen/client/demarcheur/demarcheur_navigation.dart';
-import 'package:asfar/screen/client/locataire/home/home.dart';
-import 'package:asfar/screen/client/proprio/proprio_navigation.dart';
+import 'package:asfar/screen/role_home_router.dart';
+import 'package:asfar/screen/signup/widget/otp_code_input.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/navigation.dart';
-import 'package:asfar/widget/button/texte_button.dart';
-import 'package:asfar/widget/input/otp_input.dart';
-import 'package:asfar/widget/logo.dart';
-import 'package:asfar/widget/text/text_seed.dart';
+import 'package:asfar/widget/button/button_size.dart';
+import 'package:asfar/widget/button/custom_button.dart';
+import 'package:asfar/widget/button/icon_boutton.dart';
+import 'package:asfar/widget/container/auth_radial_background.dart';
 
+/// Écran de vérification OTP.
+///
+/// L'utilisateur saisit le code SMS reçu sur [telephone]. À la complétion,
+/// le code est combiné avec le [userReq] préparé au signup et envoyé via
+/// [VerifyAndSignup] au [UserBloc].
+///
+/// Cooldown de 60s avant de pouvoir renvoyer un nouveau code.
 class OtpVerificationScreen extends StatefulWidget {
   final UserReq userReq;
+  final String telephone;
 
-  const OtpVerificationScreen({super.key, required this.userReq});
+  const OtpVerificationScreen({
+    super.key,
+    required this.userReq,
+    required this.telephone,
+  });
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  final List<int> _resendDelays = [15, 20, 30, 60];
-
-  int _currentDelayIndex = 0;
-  bool _inputBlocked = false;
-  bool _waitingForVerification = false;
-  String? _errorMessage;
-
+  static const int _cooldownSeconds = 60;
+  String _code = '';
+  int _remainingSeconds = _cooldownSeconds;
   Timer? _timer;
-  int _secondsLeft = 0;
-  int _otpKey = 0;
 
   @override
   void initState() {
     super.initState();
-    _startTimer(_resendDelays[0]);
+    _startCooldown();
   }
 
   @override
@@ -53,161 +55,139 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     super.dispose();
   }
 
-  void _startTimer(int seconds) {
+  void _startCooldown() {
     _timer?.cancel();
-    setState(() => _secondsLeft = seconds);
+    setState(() => _remainingSeconds = _cooldownSeconds);
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (_secondsLeft <= 1) {
+      if (!mounted) {
         t.cancel();
-        setState(() => _secondsLeft = 0);
-      } else {
-        setState(() => _secondsLeft--);
+        return;
       }
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          t.cancel();
+        }
+      });
     });
   }
 
-  bool _isBlockingError(String message) {
-    return message.contains("bloqué") || message.contains("expiré");
+  void _submit() {
+    if (_code.length != 6) return;
+    context.read<UserBloc>().add(VerifyAndSignup(_code, widget.userReq));
   }
 
-  void _onCodeComplete(String code) {
-    if (_inputBlocked) return;
-    setState(() => _waitingForVerification = true);
-    context.read<UserBloc>().add(VerifyAndSignup(code, widget.userReq));
-  }
-
-  void _onResend() {
-    if (_secondsLeft > 0) return;
-
-    context.read<UserBloc>().add(SendOtp(widget.userReq.telephone ?? ""));
-
-    final nextIndex = (_currentDelayIndex + 1).clamp(0, _resendDelays.length - 1);
-    setState(() {
-      _currentDelayIndex = nextIndex;
-      _otpKey++;
-      _inputBlocked = false;
-      _errorMessage = null;
-      _waitingForVerification = false;
-    });
-    _startTimer(_resendDelays[_currentDelayIndex]);
-  }
-
-  void _handleError(String message) {
-    if (!_waitingForVerification) return;
-
-    final blocking = _isBlockingError(message);
-    setState(() {
-      _waitingForVerification = false;
-      _errorMessage = message;
-      _inputBlocked = blocking;
-      if (blocking) _otpKey++;
-    });
-  }
-
-  void _redirectBasedOnUser(dynamic user) {
-    if (user is Proprietaire) {
-      pushAndRemoveAll(context, ProprioNavigation());
-    } else if (user is Demarcheur) {
-      pushAndRemoveAll(context, DemarcheurNavigation());
-    } else if (user is Locataire) {
-      pushAndRemoveAll(context, Home());
-    } else {
-      pushAndRemoveAll(context, Home());
-    }
-  }
-
-  String _maskedPhone(String? telephone) {
-    if (telephone == null || telephone.length < 4) return telephone ?? "";
-    return "${telephone.substring(0, telephone.length - 2).replaceAll(RegExp(r'\d'), '•')}${telephone.substring(telephone.length - 2)}";
+  void _resendCode() {
+    if (_remainingSeconds > 0) return;
+    context.read<UserBloc>().add(SendOtp(widget.telephone));
+    _startCooldown();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: BlocConsumer<UserBloc, UserState>(
-          builder: (context, state) {
-            if (state is UserLoading && _waitingForVerification) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return _buildBody();
-          },
-          listener: (context, state) {
-            if (state is UserLoaded) {
-              _redirectBasedOnUser(state.user);
-            }
-            if (state is UserError) {
-              _handleError(state.message);
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBody() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.all(Espacement.paddingBloc),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            IconButton(
-              alignment: Alignment.centerLeft,
-              icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-              onPressed: () => back(context),
+    return BlocConsumer<UserBloc, UserState>(
+      listener: (context, state) {
+        if (state is UserError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.danger,
             ),
-            const Logo(),
-            Gap(Espacement.paddingBloc),
-            TextSeed(
-              "Vérification",
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
-              textAlign: TextAlign.center,
-            ),
-            Gap(Espacement.gapSection),
-            TextSeed(
-              "Code envoyé au ${_maskedPhone(widget.userReq.telephone)}",
-              color: AppColors.textSecondary,
-              textAlign: TextAlign.center,
-            ),
-            Gap(Espacement.paddingBloc),
-            OtpInput(
-              key: ValueKey(_otpKey),
-              onCompleted: _onCodeComplete,
-              enabled: !_inputBlocked,
-            ),
-            Gap(Espacement.gapSection),
-            if (_errorMessage != null)
-              TextSeed(
-                _errorMessage!,
-                color: AppColors.error,
-                textAlign: TextAlign.center,
+          );
+        }
+        if (state is UserLoaded) {
+          pushAndRemoveAll(
+            context,
+            RoleHomeRouter.shellFor(state.loadedUser),
+          );
+        }
+      },
+      builder: (context, state) {
+        final loading = state is UserLoading;
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: Stack(
+            children: [
+              const AuthRadialBackground(),
+              SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(28, 14, 28, 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      IconBoutton(
+                        icon: Icons.arrow_back_ios_new,
+                        onPressed: () => back(context),
+                      ),
+                      const SizedBox(height: 28),
+                      Text.rich(
+                        TextSpan(
+                          style: AppTextStyles.display,
+                          children: const [
+                            TextSpan(text: 'Vérifier\n'),
+                            TextSpan(
+                              text: 'votre numéro.',
+                              style: TextStyle(color: AppColors.accent),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Entrez le code à 6 chiffres envoyé au ${widget.telephone}.',
+                        style: AppTextStyles.body,
+                      ),
+                      const SizedBox(height: 36),
+                      OtpCodeInput(
+                        onChanged: (v) => setState(() => _code = v),
+                        onCompleted: (_) => _submit(),
+                      ),
+                      const SizedBox(height: 28),
+                      CustomButton(
+                        text: 'Vérifier',
+                        onPressed: (loading || _code.length != 6)
+                            ? null
+                            : _submit,
+                        size: ButtonSize.lg,
+                        block: true,
+                        loading: loading,
+                      ),
+                      const SizedBox(height: 18),
+                      Center(
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              'Pas reçu de code ? ',
+                              style: AppTextStyles.small.copyWith(fontSize: 13),
+                            ),
+                            InkWell(
+                              onTap: _remainingSeconds > 0 ? null : _resendCode,
+                              child: Text(
+                                _remainingSeconds > 0
+                                    ? 'Renvoyer dans ${_remainingSeconds}s'
+                                    : 'Renvoyer',
+                                style: TextStyle(
+                                  color: _remainingSeconds > 0
+                                      ? AppColors.text3
+                                      : AppColors.accent,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            Gap(Espacement.paddingBloc),
-            _buildResendButton(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildResendButton() {
-    if (_secondsLeft > 0) {
-      return Center(
-        child: TextSeed(
-          "Renvoyer dans ${_secondsLeft}s",
-          color: AppColors.textSecondary,
-        ),
-      );
-    }
-
-    return Center(
-      child: TexteButton(
-        text: "Renvoyer le code",
-        onPressed: _onResend,
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

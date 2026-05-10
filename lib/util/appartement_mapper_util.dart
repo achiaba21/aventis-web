@@ -3,8 +3,8 @@ import 'package:asfar/model/locolite/address.dart';
 import 'package:asfar/model/residence/commodite/commodite.dart';
 import 'package:asfar/model/residence/offre.dart';
 import 'package:asfar/util/function.dart';
-import 'package:asfar/widget/form/image_uploader.dart';
-import 'package:asfar/widget/form/location_picker.dart';
+import 'package:asfar/model/forms/uploaded_image.dart';
+import 'package:asfar/model/forms/location_data.dart';
 
 /// Utilitaires pour la conversion des données du formulaire d'appartement
 class AppartementMapperUtil {

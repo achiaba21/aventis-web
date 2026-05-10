@@ -4,7 +4,7 @@ import 'package:asfar/bloc/notification_bloc/notification_bloc.dart';
 import 'package:asfar/bloc/notification_bloc/notification_event.dart';
 import 'package:asfar/model/notification/notification.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/widget/dialog/confirm_dialog.dart';
+// import 'package:asfar/widget/dialog/confirm_dialog.dart'; // TODO REBUILD: ConfirmDialog (widget supprimé)
 
 /// Service helper pour gérer les actions sur les notifications
 class NotificationHelper {
@@ -55,13 +55,15 @@ class NotificationHelper {
   }) async {
     if (notification.id == null) return;
 
-    final confirmed = await ConfirmDialog.show(
-      context: context,
-      title: 'Supprimer la notification',
-      content: 'Voulez-vous vraiment supprimer cette notification ?',
-      confirmText: 'Supprimer',
-      isDangerous: true,
-    );
+    // TODO REBUILD: brancher sur le nouveau ConfirmDialog
+    // final confirmed = await ConfirmDialog.show(
+    //   context: context,
+    //   title: 'Supprimer la notification',
+    //   content: 'Voulez-vous vraiment supprimer cette notification ?',
+    //   confirmText: 'Supprimer',
+    //   isDangerous: true,
+    // );
+    const confirmed = true;
 
     if (confirmed && context.mounted) {
       final notificationBloc = context.read<NotificationBloc>();
@@ -111,12 +113,14 @@ class NotificationHelper {
   }) async {
     if (unreadCount == 0) return;
 
-    final confirmed = await ConfirmDialog.show(
-      context: context,
-      title: 'Tout marquer comme lu',
-      content: 'Marquer les $unreadCount notification${unreadCount > 1 ? 's' : ''} comme lue${unreadCount > 1 ? 's' : ''} ?',
-      confirmText: 'Confirmer',
-    );
+    // TODO REBUILD: brancher sur le nouveau ConfirmDialog
+    // final confirmed = await ConfirmDialog.show(
+    //   context: context,
+    //   title: 'Tout marquer comme lu',
+    //   content: 'Marquer les $unreadCount notification${unreadCount > 1 ? 's' : ''} comme lue${unreadCount > 1 ? 's' : ''} ?',
+    //   confirmText: 'Confirmer',
+    // );
+    const confirmed = true;
 
     if (confirmed && context.mounted) {
       final notificationBloc = context.read<NotificationBloc>();
@@ -139,13 +143,15 @@ class NotificationHelper {
   }) async {
     if (totalCount == 0) return;
 
-    final confirmed = await ConfirmDialog.show(
-      context: context,
-      title: 'Effacer toutes les notifications',
-      content: 'Cette action supprimera définitivement toutes vos $totalCount notification${totalCount > 1 ? 's' : ''}. Continuer ?',
-      confirmText: 'Tout effacer',
-      isDangerous: true,
-    );
+    // TODO REBUILD: brancher sur le nouveau ConfirmDialog
+    // final confirmed = await ConfirmDialog.show(
+    //   context: context,
+    //   title: 'Effacer toutes les notifications',
+    //   content: 'Cette action supprimera définitivement toutes vos $totalCount notification${totalCount > 1 ? 's' : ''}. Continuer ?',
+    //   confirmText: 'Tout effacer',
+    //   isDangerous: true,
+    // );
+    const confirmed = true;
 
     if (confirmed && context.mounted) {
       final notificationBloc = context.read<NotificationBloc>();

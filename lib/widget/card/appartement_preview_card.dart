@@ -1,197 +1,170 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-
-import 'package:asfar/config/app_propertie.dart';
-import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/widget/text/text_seed.dart';
+import 'package:asfar/theme/app_radii.dart';
+import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/fcfa_formatter.dart';
+import 'package:asfar/widget/badge/certified_badge.dart';
+import 'package:asfar/widget/card/listing_preview.dart';
+import 'package:asfar/widget/card/spec_chip.dart';
+import 'package:asfar/widget/img/floating_heart_button.dart';
+import 'package:asfar/widget/img/img_placeholder.dart';
+import 'package:asfar/widget/img/photo_dots.dart';
 
-/// Aperçu de l'annonce comme la verra le locataire.
+/// Card de logement plein largeur — équivalent `ListingCard` du proto.
 ///
-/// Réutilisé en étape 5 du wizard. Affiche photo de couverture, titre,
-/// adresse résumée et statistiques de capacité.
+/// Image 16:10 + badges flottants (heart, certifié) + photo dots + body
+/// avec titre, rating, lieu, beds/baths/wifi, prix/nuit + total nuits.
 class AppartementPreviewCard extends StatelessWidget {
+  final ListingPreview listing;
+  final VoidCallback? onTap;
+  final VoidCallback? onLikeTap;
+  final bool liked;
+  final int nights;
+
   const AppartementPreviewCard({
     super.key,
-    required this.appartement,
+    required this.listing,
+    this.onTap,
+    this.onLikeTap,
+    this.liked = false,
+    this.nights = 3,
   });
 
-  final Appartement appartement;
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(Espacement.radius),
-        border: Border.all(color: AppColors.divider),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+    final priceTotal = listing.price * nights;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.bgElev1,
+            borderRadius: BorderRadius.circular(AppRadii.lg),
+            border: Border.all(color: AppColors.line, width: 1),
           ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _PreviewCover(appartement: appartement),
-          Padding(
-            padding: EdgeInsets.all(Espacement.paddingBloc),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextSeed(
-                  appartement.titre?.trim().isNotEmpty == true
-                      ? appartement.titre!
-                      : "Sans titre",
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AspectRatio(
+                aspectRatio: 16 / 10,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ImgPh(tone: listing.tone, radius: 0),
+                    ),
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: FloatingHeartButton(
+                        onTap: onLikeTap,
+                        active: liked,
+                      ),
+                    ),
+                    if (listing.superhost)
+                      const Positioned(
+                        top: 12,
+                        left: 12,
+                        child: CertifiedBadge(),
+                      ),
+                    const Positioned(
+                      bottom: 12,
+                      left: 0,
+                      right: 0,
+                      child: PhotoDots(active: 0, count: 4),
+                    ),
+                  ],
                 ),
-                SizedBox(height: Espacement.gapItem),
-                _PreviewLocation(appartement: appartement),
-                SizedBox(height: Espacement.gapSection),
-                _PreviewStats(appartement: appartement),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PreviewCover extends StatelessWidget {
-  const _PreviewCover({required this.appartement});
-
-  final Appartement appartement;
-
-  @override
-  Widget build(BuildContext context) {
-    final firstPhoto = appartement.photos?.isNotEmpty == true
-        ? appartement.photos!.first
-        : null;
-    final hasLocalFile = firstPhoto?.path != null && firstPhoto!.path!.isNotEmpty;
-
-    return Container(
-      height: 180,
-      width: double.infinity,
-      color: AppColors.surfaceVariant,
-      child: hasLocalFile
-          ? _CoverImage(path: firstPhoto.path!)
-          : Center(
-              child: Icon(
-                Icons.image_outlined,
-                size: 48,
-                color: AppColors.textMuted,
               ),
-            ),
-    );
-  }
-}
-
-class _CoverImage extends StatelessWidget {
-  const _CoverImage({required this.path});
-
-  final String path;
-
-  @override
-  Widget build(BuildContext context) {
-    final file = File(path);
-    if (file.existsSync()) {
-      return Image.file(file, fit: BoxFit.cover, width: double.infinity);
-    }
-    return Image.network(
-      path,
-      fit: BoxFit.cover,
-      width: double.infinity,
-      errorBuilder: (_, __, ___) => Center(
-        child: Icon(
-          Icons.broken_image_outlined,
-          size: 48,
-          color: AppColors.textMuted,
-        ),
-      ),
-    );
-  }
-}
-
-class _PreviewLocation extends StatelessWidget {
-  const _PreviewLocation({required this.appartement});
-
-  final Appartement appartement;
-
-  @override
-  Widget build(BuildContext context) {
-    final addr = appartement.address;
-    final label = addr?.commune?.nom ?? addr?.nom ?? "Adresse non renseignée";
-    return Row(
-      children: [
-        Icon(Icons.location_on_outlined, size: 16, color: AppColors.accent),
-        SizedBox(width: Espacement.gapItem),
-        Expanded(
-          child: TextSeed(
-            label,
-            fontSize: 13,
-            color: AppColors.textSecondary,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            listing.title,
+                            style: AppTextStyles.h3.copyWith(fontSize: 15),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.star,
+                            size: 13, color: AppColors.accent),
+                        const SizedBox(width: 4),
+                        Text(
+                          listing.rating.toStringAsFixed(2),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.text,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${listing.reviews})',
+                          style: AppTextStyles.small.copyWith(
+                              fontSize: 12, color: AppColors.text3),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${listing.area} · ${listing.city} · ${listing.surface} m²',
+                      style: AppTextStyles.small,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        SpecChip(
+                            icon: Icons.bed_outlined,
+                            label: '${listing.beds} ch.'),
+                        const SizedBox(width: 12),
+                        SpecChip(
+                            icon: Icons.bathtub_outlined,
+                            label: '${listing.baths} sdb.'),
+                        const SizedBox(width: 12),
+                        const SpecChip(icon: Icons.wifi, label: 'WiFi'),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          FcfaFormatter.compact(listing.price),
+                          style: AppTextStyles.mono(const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.text,
+                          )),
+                        ),
+                        Text(
+                          ' / nuit',
+                          style: AppTextStyles.small.copyWith(
+                              fontSize: 13, color: AppColors.text3),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '$nights nuits · ${FcfaFormatter.compact(priceTotal)}',
+                          style: AppTextStyles.small.copyWith(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _PreviewStats extends StatelessWidget {
-  const _PreviewStats({required this.appartement});
-
-  final Appartement appartement;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _StatItem(
-          icon: Icons.bed_outlined,
-          value: "${appartement.nbChambres ?? 0} ch",
-        ),
-        SizedBox(width: Espacement.gapSection),
-        _StatItem(
-          icon: Icons.single_bed_outlined,
-          value: "${appartement.nbLits ?? 0} lits",
-        ),
-        SizedBox(width: Espacement.gapSection),
-        _StatItem(
-          icon: Icons.bathroom_outlined,
-          value: "${appartement.nbDouches ?? 0} sdb",
-        ),
-      ],
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  const _StatItem({required this.icon, required this.value});
-
-  final IconData icon;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
-        SizedBox(width: Espacement.gapItem),
-        TextSeed(
-          value,
-          fontSize: 13,
-          color: AppColors.textSecondary,
-        ),
-      ],
+      ),
     );
   }
 }

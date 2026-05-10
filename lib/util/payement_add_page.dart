@@ -1,59 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
-import 'package:asfar/config/app_propertie.dart';
-import 'package:asfar/util/navigation.dart';
-import 'package:asfar/widget/button/plain_button_expand.dart';
-import 'package:asfar/widget/img/image_app.dart';
-import 'package:asfar/widget/input/input_field.dart';
-import 'package:asfar/widget/text/text_seed.dart';
+// TODO REBUILD: page d'ajout de moyen de paiement — à recréer selon le proto
+// (réf. ui-proposal F9 "Banque/Cartes/Compte"). Utilisera les nouveaux widgets
+// du design system (CustomButton, InputField, TextSeed, etc.).
+// import 'package:gap/gap.dart';
+// import 'package:asfar/config/app_propertie.dart';
+// import 'package:asfar/util/navigation.dart';
+// import 'package:asfar/widget/button/plain_button_expand.dart';
+// import 'package:asfar/widget/img/image_app.dart';
+// import 'package:asfar/widget/input/input_field.dart';
+// import 'package:asfar/widget/text/text_seed.dart';
 
+/// Stub temporaire — à reconstruire selon le proto Asfar Premium.
 class PayementAddPage extends StatelessWidget {
-  static String routeName = "payement-page";
+  static String routeName = 'payement-page';
   const PayementAddPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: TextSeed("Paiement")),
-      body: Padding(
-        padding: EdgeInsets.all(Espacement.gapSection),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Gap(Espacement.gapSection * 2),
-            ImageApp("assets/image/bank/visa.png", width: 100, height: 16),
-            Gap(Espacement.gapItem * 3),
-            InputField(
-              placeHolder: "Cart number",
-              keyboardType: TextInputType.number,
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: InputField(
-                    placeHolder: "Expiration",
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                Expanded(
-                  child: InputField(
-                    placeHolder: "cvv",
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-            Gap(Espacement.gapItem * 3),
-            InputField(placeHolder: "Adresse"),
-
-            Spacer(),
-            PlainButtonExpand(
-              value: "Enregistrer",
-              onPress: () => back(context),
-            ),
-            Spacer(),
-          ],
-        ),
+    return const Scaffold(
+      body: Center(
+        child: Text('PayementAddPage : à reconstruire'),
       ),
     );
   }

@@ -40,7 +40,7 @@ import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/service/preload/preload_coordinator_builder.dart';
 import 'package:asfar/util/json_constructors_registry.dart';
 import 'package:asfar/util/function.dart';
-import 'package:asfar/widget/websocket/websocket_initializer.dart';
+// import 'package:asfar/widget/websocket/websocket_initializer.dart'; // TODO REBUILD: WebSocketInitializer (widget supprimé)
 
 /// Clé globale pour la navigation (utilisée pour la gestion de l'expiration du token)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -142,18 +142,15 @@ class AppWithBlocListener extends StatelessWidget {
         ),
 
       ],
-      // Envelopper le MaterialApp avec WebSocketInitializer
-      // pour activer les notifications temps réel pour tous les utilisateurs
-      child: WebSocketInitializer(
-        child: MaterialApp(
-          navigatorKey: navigatorKey,
-          scaffoldMessengerKey: scaffoldMessengerKey,
-          title: 'Asfar',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          // SplashScreen comme écran initial
-          home: const SplashScreen(),
-        ),
+      // TODO REBUILD: réintroduire WebSocketInitializer quand le widget
+      // sera reconstruit. Pour l'instant, MaterialApp direct.
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        scaffoldMessengerKey: scaffoldMessengerKey,
+        title: 'Asfar',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.dark,
+        home: const SplashScreen(),
       ),
     );
   }

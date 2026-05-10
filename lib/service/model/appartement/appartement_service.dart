@@ -5,7 +5,7 @@ import 'package:asfar/model/filter/filter_criteria.dart';
 import 'package:asfar/model/filter/filter_options.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/service/dio/dio_request.dart';
-import 'package:asfar/widget/form/image_uploader.dart';
+import 'package:asfar/model/forms/uploaded_image.dart';
 
 /// Service API des appartements.
 ///
