@@ -7,7 +7,7 @@ import 'package:asfar/screen/client/proprio/appartements/widget/listing_calendar
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_edit_hero.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_edit_stats_card.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_infos_tab.dart';
-import 'package:asfar/screen/client/proprio/appartements/widget/listing_pricing_tab.dart';
+import 'package:asfar/screen/client/proprio/appartements/widget/listing_reductions_tab.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_rules_tab.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -113,7 +113,10 @@ class ProprioListingEditScreen extends StatelessWidget {
                     ),
                     SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
-                      child: ListingPricingTab(listing: listing),
+                      child: ListingReductionsTab(
+                        listing: listing,
+                        source: source,
+                      ),
                     ),
                     SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
@@ -160,7 +163,7 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
         tabs: const [
           Tab(text: 'Infos'),
           Tab(text: 'Calendrier'),
-          Tab(text: 'Tarifs'),
+          Tab(text: 'Réductions'),
           Tab(text: 'Règles'),
         ],
       ),
