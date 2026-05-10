@@ -5,6 +5,7 @@ import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
 import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
+import 'package:asfar/screen/client/shared/partenariats/partenariats_screen.dart';
 import 'package:asfar/screen/client/shared/profile/personal_info_screen.dart';
 import 'package:asfar/screen/client/shared/profile/profile_display_info.dart';
 import 'package:asfar/screen/client/shared/profile/widget/profile_hero_card.dart';
@@ -122,6 +123,8 @@ class ClientProfileScreen extends StatelessWidget {
                             context, const PersonalInfoScreen()),
                         onNotifications: () => pushScreen(
                             context, const NotificationsScreen()),
+                        onPartenariats: () => pushScreen(
+                            context, const PartenariatsScreen()),
                         onComingSoon: () => _toast(
                             context, 'Disponible prochainement'),
                       ),

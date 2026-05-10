@@ -5,11 +5,13 @@ import 'package:asfar/screen/client/shared/profile/widget/profile_settings_card.
 class ProfileSettingsCallbacks {
   final VoidCallback? onPersonalInfo;
   final VoidCallback? onNotifications;
+  final VoidCallback? onPartenariats;
   final VoidCallback? onComingSoon;
 
   const ProfileSettingsCallbacks({
     this.onPersonalInfo,
     this.onNotifications,
+    this.onPartenariats,
     this.onComingSoon,
   });
 }
@@ -84,6 +86,10 @@ class ProfileDisplayInfo {
             label: 'Informations personnelles',
             onTap: cb.onPersonalInfo),
         ProfileSettingsItem(
+            icon: Icons.handshake_outlined,
+            label: 'Mes partenariats',
+            onTap: cb.onPartenariats),
+        ProfileSettingsItem(
             icon: Icons.verified_outlined,
             label: "Vérification d'identité",
             value: 'Vérifié',
@@ -108,6 +114,10 @@ class ProfileDisplayInfo {
             icon: Icons.person_outline,
             label: 'Informations personnelles',
             onTap: cb.onPersonalInfo),
+        ProfileSettingsItem(
+            icon: Icons.handshake_outlined,
+            label: 'Demandes de démarcheurs',
+            onTap: cb.onPartenariats),
         ProfileSettingsItem(
             icon: Icons.verified_outlined,
             label: "Vérification d'identité",
