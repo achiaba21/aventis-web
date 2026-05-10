@@ -76,48 +76,53 @@ class SavedListingCard extends StatelessWidget {
               ),
               Flexible(
                 child: Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                    Text(
-                      listing.title,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.text,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            listing.title,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.text,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            listing.area,
+                            style: AppTextStyles.small.copyWith(fontSize: 11),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      listing.area,
-                      style: AppTextStyles.small.copyWith(fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          FcfaFormatter.compact(listing.price),
-                          style: AppTextStyles.mono(const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.text,
-                          )),
-                        ),
-                        Text(
-                          '/n',
-                          style: AppTextStyles.small.copyWith(
-                              fontSize: 11, color: AppColors.text3),
-                        ),
-                      ],
-                    ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            FcfaFormatter.compact(listing.price),
+                            style: AppTextStyles.mono(const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.text,
+                            )),
+                          ),
+                          Text(
+                            '/n',
+                            style: AppTextStyles.small.copyWith(
+                                fontSize: 11, color: AppColors.text3),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
