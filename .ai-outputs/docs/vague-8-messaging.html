@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vague 8 — Messaging · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-10">
+    <meta name="updated" content="2026-05-10">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+        .eyebrow {
+            color: var(--accent);
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 38px; letter-spacing: -1px;
+            font-weight: 700; line-height: 1.05;
+            margin-bottom: 0.75rem;
+        }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 {
+            font-size: 22px; font-weight: 700;
+            letter-spacing: -0.4px;
+            margin: 2.5rem 0 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        h3 {
+            font-size: 17px; font-weight: 600;
+            letter-spacing: -0.2px;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text);
+        }
+        p, li {
+            color: var(--text-2);
+            font-size: 15px; line-height: 1.6;
+        }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta {
+            color: var(--text-3); font-size: 13px;
+            display: flex; flex-wrap: wrap; gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        nav ul {
+            display: flex; flex-wrap: wrap; gap: 1rem;
+            list-style: none; padding: 1rem 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 2rem;
+        }
+        nav a {
+            color: var(--accent); text-decoration: none;
+            font-size: 13px; font-weight: 500;
+        }
+        nav a:hover { text-decoration: underline; }
+        .card {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .card-hero {
+            background: linear-gradient(135deg, #2A1F0E 0%, #1A1206 60%, #0F0A04 100%);
+            border-color: rgba(232,184,107,0.25);
+            position: relative; overflow: hidden;
+        }
+        .card-hero::before {
+            content: ""; position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(232,184,107,0.18), transparent 70%);
+        }
+        .card-hero h2 { margin-top: 0; color: var(--accent); }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge {
+            display: inline-flex; align-items: center;
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 1rem 0; font-size: 14px;
+        }
+        th, td {
+            text-align: left; padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+        }
+        th {
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--text-3);
+            background: var(--bg-elev-2);
+        }
+        td { color: var(--text-2); }
+        td code, p code, li code {
+            background: var(--bg-elev-2);
+            padding: 2px 6px; border-radius: 6px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            color: var(--text);
+        }
+        pre {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            margin: 1rem 0;
+        }
+        pre code {
+            background: none; padding: 0; font-size: inherit;
+            color: var(--text);
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .stat-cell {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            text-align: center;
+        }
+        .stat-cell .num {
+            font-size: 28px; font-weight: 700;
+            color: var(--accent);
+            font-feature-settings: "tnum";
+        }
+        .stat-cell .lab {
+            font-size: 12px; color: var(--text-3);
+            margin-top: 0.25rem; letter-spacing: 0.4px;
+        }
+        .quote {
+            border-left: 3px solid var(--accent);
+            padding-left: 1rem;
+            color: var(--text-2);
+            font-style: italic;
+            margin: 1rem 0;
+        }
+        .bubble-demo {
+            display: flex; gap: 8px; flex-direction: column;
+            margin: 1rem 0;
+        }
+        .bubble {
+            padding: 10px 14px;
+            font-size: 14px; line-height: 1.4;
+            max-width: 78%;
+        }
+        .bubble-them {
+            background: var(--bg-elev-2);
+            border-radius: 18px 18px 18px 6px;
+            color: var(--text);
+            align-self: flex-start;
+        }
+        .bubble-me {
+            background: var(--accent);
+            border-radius: 18px 18px 6px 18px;
+            color: #1A1206;
+            align-self: flex-end;
+        }
+        footer {
+            border-top: 1px solid var(--line);
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            color: var(--text-3);
+            font-size: 13px;
+            text-align: center;
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="eyebrow">Reconstruction UI · Vague 8</div>
+            <h1>Messaging · <em>Transverse adaptatif au rôle</em></h1>
+            <p>Reconstruction de la <strong>messagerie partagée</strong> entre les 3 rôles (Locataire, Démarcheur, Propriétaire). Avec la Vague 8 livrée, <strong>tous les écrans du prototype Asfar Premium sont reconstruits en Flutter</strong> — la dette de l'onglet Messages des 3 Shells est purgée.</p>
+            <div class="meta">
+                <span>📅 Livrée le 10 mai 2026</span>
+                <span>🔢 Version 1.0</span>
+                <span>✅ Score audit 98/100</span>
+                <span>📦 21 livrables (15 fichiers + 3 Shells modifiés + 3 suppressions)</span>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#vue-densemble">Vue d'ensemble</a></li>
+                <li><a href="#perimetre">Périmètre</a></li>
+                <li><a href="#parcours">Parcours utilisateur</a></li>
+                <li><a href="#decisions">Décisions clés</a></li>
+                <li><a href="#fichiers">Fichiers livrés</a></li>
+                <li><a href="#qualite">Qualité</a></li>
+                <li><a href="#completion">Complétion proto</a></li>
+                <li><a href="#suite">Suite</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section class="card card-hero">
+                <h2>Aperçu MessagingThread — bubbles fidélité proto</h2>
+                <div class="bubble-demo">
+                    <div class="bubble bubble-them">Bonjour Aïcha 👋 ! Bienvenue à Abidjan !</div>
+                    <div class="bubble bubble-them">Voici les infos pour votre arrivée demain :</div>
+                    <div class="bubble bubble-me">Super merci ! On arrivera vers 18h</div>
+                    <div class="bubble bubble-them">Parfait, je serai là pour vous accueillir.</div>
+                </div>
+                <p style="color: rgba(255,255,255,0.7); font-size: 13px;">
+                    Aperçu visuel du <code>MessageBubble</code> — radius 18 sur 3 coins + 6 sur le coin opposé à la queue. Bubble <code>me</code> = accent or fond + texte foncé. Bubble <code>them</code> = bgElev2 + texte clair.
+                </p>
+            </section>
+
+            <section id="vue-densemble">
+                <h2>🎯 Vue d'ensemble</h2>
+                <p>
+                    La <strong>Vague 8</strong> reconstruit la <strong>messagerie transverse</strong> en suivant fidèlement le prototype HTML (<code>extras.jsx::MessagingList</code> + <code>::MessagingThread</code>). Cette messagerie est <strong>adaptative au rôle</strong> : un même utilisateur voit des conversations différentes selon qu'il navigue en mode Locataire, Démarcheur ou Propriétaire.
+                </p>
+                <p>
+                    Avant la V8, les 3 Shells (Locataire V5, Démarcheur V6, Propriétaire V7) avaient un <code>_MessagesPlaceholder</code> indiquant « Messagerie à venir (Vague 8) ». La V8 supprime ces 3 placeholders et branche directement <code>MessagingListScreen</code>, qui lit dynamiquement le rôle actif via <code>UserBloc</code>.
+                </p>
+                <div class="quote">
+                    « C'est le même compte sous différentes interfaces, ça doit être dynamique » — décision utilisateur actée 2026-05-10
+                </div>
+                <p>
+                    Notifications (F6) et Receipt PDF preview (F8) ont été <strong>reportés à V9</strong> (hors-proto) — décision BA pour scope V8 maîtrisé.
+                </p>
+            </section>
+
+            <section id="perimetre">
+                <h2>📦 Périmètre</h2>
+
+                <h3>Livrables principaux (8)</h3>
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>Livrable</th><th>Source proto</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td><code>MessagingListScreen</code> (adaptatif rôle via UserBloc)</td><td><code>extras.jsx::MessagingList</code> (l. 77-155)</td></tr>
+                        <tr><td>2</td><td><code>MessagingThreadScreen</code> (header custom + bubbles + cards)</td><td><code>extras.jsx::MessagingThread</code> (l. 157-288)</td></tr>
+                        <tr><td>3</td><td>Branchement <code>LocataireShell</code></td><td>—</td></tr>
+                        <tr><td>4</td><td>Branchement <code>DemarcheurShell</code></td><td>—</td></tr>
+                        <tr><td>5</td><td>Branchement <code>ProprioShell</code></td><td>—</td></tr>
+                        <tr><td>6</td><td>Suppression <code>_MessagesPlaceholder</code> × 3</td><td>—</td></tr>
+                        <tr><td>7</td><td><code>RECONSTRUCTION_UI_ASFAR.md</code> Vague 8 cochée + journal</td><td>—</td></tr>
+                        <tr><td>8</td><td>Documentation HTML (ce document)</td><td>—</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Widgets feature (6 + 1 helper)</h3>
+                <ul>
+                    <li><code>MessagingSearchBar</code> — input filtre local case-insensitive</li>
+                    <li><code>ConversationRow</code> — listrow conversation (UserAvatar 46 + 3 rows nom/badge rôle/last message)</li>
+                    <li><code>MessageBubble</code> — bubble me/them avec queue radius 6</li>
+                    <li><code>ReservationMessageCard</code> — card spéciale Réservation (img listing + dates + bookingCode)</li>
+                    <li><code>AcceptedReferralMessageCard</code> — card spéciale Demande acceptée (accentSoft + commission)</li>
+                    <li><code>ChatInputBar</code> — BlurContainer + plus + InputField + bouton rond send</li>
+                    <li><code>ConversationRoleDisplay</code> — helper labelOf + toneOf (mapping rôle → tone proto)</li>
+                </ul>
+
+                <h3>Modèles UI-only (4 classes + 3 enums) et mocks (2)</h3>
+                <ul>
+                    <li><code>ConversationPreview</code> + enum <code>ConversationRole</code> (host/tenant/demarcheur/asfar/client)</li>
+                    <li><code>ChatMessage</code> + enums <code>MessageSender</code> + <code>MessageKind</code></li>
+                    <li><code>ReservationCardPayload</code> (utilise <code>ListingPreview</code> V5)</li>
+                    <li><code>AcceptedReferralCardPayload</code></li>
+                    <li><code>SampleConversations.byRole</code> — 3 listes (locataire 3 / proprio 4 / démarcheur 3 entries fidèles proto)</li>
+                    <li><code>SampleThreads</code> — 3 threads riches (L1/P1/D1 fidèles proto avec cards spéciales) + threads vides pour les autres conversations</li>
+                </ul>
+            </section>
+
+            <section id="parcours">
+                <h2>🧭 Parcours utilisateur</h2>
+
+                <h3>Scénario nominal — démarcheur ouvre la messagerie</h3>
+                <ol>
+                    <li>Démarcheur tap onglet <strong>Messages</strong> dans le <code>DemarcheurShell</code></li>
+                    <li><code>MessagingListScreen</code> lit <code>UserBloc.state.user?.type</code> = <code>'demarcheur'</code></li>
+                    <li>Charge <code>SampleConversations.forRole('demarcheur')</code> = 3 conversations (Aminata K. certifiée, Rachid B., M. Konaté)</li>
+                    <li>Affiche la liste avec badges rôle (<code>info</code> pour Démarcheur, <code>accent</code> pour Hôte/Client) + cercle unread accent or pour les non-lus</li>
+                    <li>Démarcheur tape « Aminata » dans la search bar → filtre local case-insensitive → 1 résultat</li>
+                    <li>Tap sur Aminata K. → <code>pushScreen(MessagingThreadScreen(conversation: D1))</code></li>
+                    <li>Header custom affiché avec back + avatar + nom + shield certifié + sub « Hôte certifié · Loft Plateau » + bouton phone</li>
+                    <li>Liste des 5 messages avec séparateur « Aujourd'hui » + dernier message = card <code>AcceptedReferralCardPayload</code> (REF-D8H3K, commission 13 500 FCFA)</li>
+                    <li>Démarcheur saisit « OK je préviens le client » dans l'input bar → bouton send activé (opacity 1)</li>
+                    <li>Tap send → <code>setState</code> ajoute le message <code>me</code> en bas de la liste + scroll auto via <code>WidgetsBinding.addPostFrameCallback</code></li>
+                </ol>
+
+                <h3>Scénario multi-rôle — switch via Profile</h3>
+                <ol>
+                    <li>Locataire tap onglet Profil → <code>ClientProfileScreen</code> V6 → tap « Démarcheur » dans <code>ProfileRoleSwitcher</code></li>
+                    <li><code>RoleHomeRouter.shellFor</code> push <code>DemarcheurShell</code> avec <code>pushAndRemoveAll</code></li>
+                    <li>L'utilisateur arrive sur Démarcheur Dashboard. Tap onglet Messages → <strong>la messagerie affiche les conversations du rôle Démarcheur</strong> (pas locataire) — adaptation automatique via <code>BlocBuilder</code></li>
+                </ol>
+            </section>
+
+            <section id="decisions">
+                <h2>🎯 Décisions clés</h2>
+
+                <h3>1. MessagingList adaptatif au rôle</h3>
+                <p>
+                    Le screen lit <code>UserBloc.state.user?.type</code> via <code>BlocBuilder</code> et appelle <code>SampleConversations.forRole(role)</code>. Fallback locataire si rôle inconnu (cohérence proto <code>extras.jsx:98</code> = <code>convosByRole[role] || convosByRole.locataire</code>).
+                </p>
+                <pre><code>BlocBuilder&lt;UserBloc, UserState&gt;(
+  builder: (context, state) {
+    final allConvos = SampleConversations.forRole(state.user?.type);
+    final visible = _filtered(allConvos);
+    // ...
+  },
+)</code></pre>
+
+                <h3>2. Header thread custom (pas DynamicAppBar)</h3>
+                <p>
+                    Le proto utilise un Container border-bottom + Row inline (back + avatar + Column[nom + sub] + phone). On reproduit fidèlement plutôt que de passer par <code>DynamicAppBar</code> V2 (qui ne supporte pas le double texte vertical avec shield inline). Décision proto-aligned.
+                </p>
+
+                <h3>3. Threads dynamiques (3 riches + autres vides)</h3>
+                <p>
+                    <strong>Décision utilisateur acté</strong> : « ça doit être dynamique ». Le proto hardcode 1 thread par rôle (incohérent UX). Notre solution :
+                </p>
+                <ul>
+                    <li><strong>3 threads riches</strong> fidèles proto :
+                        <ul>
+                            <li><code>L1</code> Aminata K. : 5 messages dont 1 <code>reservationCard</code> (Loft Plateau, 12-15 nov, ASF-7K2N9)</li>
+                            <li><code>P1</code> Rachid B. : 4 messages texte (À quelle heure puis-je arriver ?)</li>
+                            <li><code>D1</code> Aminata K. : 5 messages dont 1 <code>acceptedReferralCard</code> (REF-D8H3K, commission 13 500 FCFA)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Autres conversations</strong> : thread vide → placeholder « Démarrez la conversation… » centré</li>
+                    <li><strong>Header dynamique</strong> : adapté à la <code>ConversationPreview</code> cliquée (nom + sub + certified)</li>
+                </ul>
+
+                <h3>4. Cards spéciales fidèles au proto</h3>
+                <p>
+                    Les 2 cards spéciales du proto sont reproduites au pixel-near :
+                </p>
+                <ul>
+                    <li><strong>Card Réservation</strong> (<code>ReservationMessageCard</code>) : Container <code>bgElev1</code> 82% + Row[ImgPh 56×56 + eyebrow RÉSERVATION + titre + dates + bookingCode mono]</li>
+                    <li><strong>Card Demande acceptée</strong> (<code>AcceptedReferralMessageCard</code>) : Container <code>accentSoft</code> + border accent×0.25 + icon check + label « Demande acceptée » + commission mono accent or</li>
+                </ul>
+
+                <h3>5. <code>BlurContainer</code> wrappe l'input bar</h3>
+                <p>
+                    Le proto utilise <code>rgba(10,10,11,0.92)</code> flat. On enrichit avec <code>BlurContainer</code> V1 pour cohérence Liquid Glass Asfar (V5-V7 BottomNav, BottomBar). Écart documenté.
+                </p>
+
+                <h3>6. Bouton send désactivé visuellement si champ vide</h3>
+                <p>
+                    Listener <code>TextEditingController</code> recalcule <code>_canSend</code>. Si vide, opacity 0.4 + tap ignoré. Si non vide, opacity 1 + tap envoyer + clear + scroll auto.
+                </p>
+
+                <h3>7. Suppression des 3 <code>_MessagesPlaceholder</code></h3>
+                <p>
+                    Les 3 classes privées <code>_MessagesPlaceholder</code> dans <code>locataire_shell.dart</code>, <code>demarcheur_shell.dart</code>, <code>proprio_shell.dart</code> ont été <strong>complètement supprimées</strong> et remplacées par <code>const MessagingListScreen()</code>. Vérification : <code>grep -rn '_MessagesPlaceholder' lib/</code> retourne <strong>0 occurrence</strong>.
+                </p>
+            </section>
+
+            <section id="fichiers">
+                <h2>📁 Fichiers livrés</h2>
+
+                <div class="stat-grid">
+                    <div class="stat-cell"><div class="num">15</div><div class="lab">FICHIERS DART CRÉÉS</div></div>
+                    <div class="stat-cell"><div class="num">3</div><div class="lab">SHELLS MODIFIÉS</div></div>
+                    <div class="stat-cell"><div class="num">3</div><div class="lab">CLASSES SUPPRIMÉES</div></div>
+                    <div class="stat-cell"><div class="num">1 569</div><div class="lab">LIGNES DE CODE</div></div>
+                </div>
+
+                <h3>Structure</h3>
+                <pre><code>lib/screen/client/shared/inbox/                   ← NOUVEAU (transverse)
+├── messaging_list_screen.dart                    (adaptatif rôle)
+├── messaging_thread_screen.dart                  (header custom + setState envoi)
+├── widget/
+│   ├── conversation_role_display.dart            (helper labelOf + toneOf)
+│   ├── messaging_search_bar.dart
+│   ├── conversation_row.dart                     (listrow 3 rows + unread)
+│   ├── message_bubble.dart                       (queue radius 6)
+│   ├── reservation_message_card.dart             (Card Réservation)
+│   ├── accepted_referral_message_card.dart       (Card Demande acceptée)
+│   └── chat_input_bar.dart                       (BlurContainer + send)
+└── sample/
+    ├── sample_conversations.dart                 (byRole locataire/proprio/démarcheur)
+    └── sample_threads.dart                       (3 threads riches + autres vides)
+
+lib/model/ui_only/                                (étendu V8)
+├── conversation_preview.dart                     (+ enum ConversationRole)
+├── chat_message.dart                             (+ enums MessageSender + MessageKind)
+├── reservation_card_payload.dart
+└── accepted_referral_card_payload.dart
+
+lib/screen/client/locataire/locataire_shell.dart  (modif: MessagingListScreen + suppr _MessagesPlaceholder)
+lib/screen/client/demarcheur/demarcheur_shell.dart (modif identique)
+lib/screen/client/proprio/proprio_shell.dart      (modif identique)</code></pre>
+            </section>
+
+            <section id="qualite">
+                <h2>✅ Qualité</h2>
+
+                <div class="stat-grid">
+                    <div class="stat-cell"><div class="num">98<span style="font-size:18px;">/100</span></div><div class="lab">SCORE AUDIT</div></div>
+                    <div class="stat-cell"><div class="num">0</div><div class="lab">NOUVELLE ERREUR</div></div>
+                    <div class="stat-cell"><div class="num">21/21</div><div class="lab">CONTRAT COUVERT</div></div>
+                </div>
+
+                <h3>Verdict de conformité architecturale</h3>
+                <p>
+                    <span class="badge badge-success">CONFORME</span> — Tous les items du contrat <code>architecture.md § 5</code> sont livrés. 3 écarts identifiés, tous justifiés (BlurContainer ChatInputBar, header thread custom, threads dynamiques).
+                </p>
+
+                <h3>Audit qualité — 6 dimensions</h3>
+                <table>
+                    <thead>
+                        <tr><th>Dimension</th><th>Score</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Complexité</td><td>95/100</td><td><span class="badge badge-success">✅</span> 1 ⚠️ majeur (long method 55 lignes accepté cohérence projet)</td></tr>
+                        <tr><td>Lisibilité</td><td>95/100</td><td><span class="badge badge-success">✅</span> 1 ℹ️ mineur (font sizes hardcodés, hors V8)</td></tr>
+                        <tr><td>DRY</td><td>100/100</td><td><span class="badge badge-success">✅</span> Aucune duplication intra-V8</td></tr>
+                        <tr><td>Documentation</td><td>100/100</td><td><span class="badge badge-success">✅</span> 100% classes/helpers documentés</td></tr>
+                        <tr><td>SOLID</td><td>100/100</td><td><span class="badge badge-success">✅</span> Helpers extraits, single responsibility</td></tr>
+                        <tr><td>Dette technique</td><td>100/100</td><td><span class="badge badge-success">✅</span> 0 TODO/print/catch vide</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>flutter analyze</h3>
+                <p>
+                    <strong>41 issues</strong> — exactement le même nombre qu'avant V8. <strong>Aucune nouvelle issue introduite.</strong> Toutes les issues restantes sont legacy (avoid_print, unused_field) et hors scope.
+                </p>
+            </section>
+
+            <section id="completion" class="card" style="background: linear-gradient(135deg, rgba(74,222,128,0.10), rgba(74,222,128,0.02)); border-color: rgba(74,222,128,0.25);">
+                <h2 style="color: var(--success);">🎉 Complétion proto — Vagues 1 à 8</h2>
+                <p>
+                    <strong>Avec la livraison de la Vague 8, les 18 écrans du prototype Asfar Premium + écrans transverses sont 100% reconstruits en Flutter.</strong>
+                </p>
+                <table>
+                    <thead>
+                        <tr><th>Vague</th><th>Périmètre</th><th>Écrans proto</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>V1-V2</td><td>16 atomes UI + 5 layouts</td><td>—</td></tr>
+                        <tr><td>V3</td><td>Onboarding + Splash</td><td>Onboarding</td></tr>
+                        <tr><td>V4</td><td>Auth (Login + Signup + OTP)</td><td>Auth (3 écrans)</td></tr>
+                        <tr><td>V5</td><td>Locataire complet (5 onglets)</td><td>5 écrans + Reserve 3 étapes</td></tr>
+                        <tr><td>V6</td><td>Démarcheur complet (5 onglets) + Profile transverse</td><td>5 écrans + tunnel 3 étapes</td></tr>
+                        <tr><td>V7</td><td>Propriétaire complet (5 onglets) + ListingEdit 4 tabs</td><td>4 écrans + 4 sous-tabs</td></tr>
+                        <tr><td>V8</td><td>Messaging transverse (List + Thread)</td><td>2 écrans + cards spéciales</td></tr>
+                    </tbody>
+                </table>
+                <p style="margin-top: 1rem;">
+                    Reste uniquement la <strong>Vague 9 hors-proto</strong> (F2-F10 : Wizard appart, Scanner QR, Comptabilité étendue, Démarcheurs côté proprio, Carte réelle, Banque/Cartes, Calendrier global) en backlog.
+                </p>
+            </section>
+
+            <section id="suite">
+                <h2>🛠️ Suite — TODO REBUILD</h2>
+                <p>Notés dans <code>RECONSTRUCTION_UI_ASFAR.md</code> pour les vagues à venir :</p>
+                <ul>
+                    <li><strong>Branchement <code>ConversationBloc</code> réel</strong> → vague de finition post-V9 · les services backend existent déjà</li>
+                    <li><strong>Cards spéciales tap navigation</strong> → <code>LocataireDetailScreen</code> V5 (Réservation) et <code>ReferralDetailScreen</code> V6 (Demande acceptée) quand BLoCs branchés</li>
+                    <li><strong>Bouton phone header thread</strong> → <code>url_launcher</code> <code>tel:</code> (V9)</li>
+                    <li><strong>Bouton plus input bar</strong> → pièce jointe (image/file picker) (V9)</li>
+                    <li><strong>WebSocket messages temps réel</strong> → vague de finition</li>
+                    <li><strong>Indicateur de lecture / typing</strong> → non dans proto, vague de finition</li>
+                </ul>
+
+                <h3>Vague 9 — Hors-proto (F2-F10)</h3>
+                <ul>
+                    <li>F2 — Wizard appart (5-7 étapes)</li>
+                    <li>F3 — Scanner QR / check-in</li>
+                    <li>F4 — Comptabilité étendue</li>
+                    <li>F5 — Démarcheurs côté proprio</li>
+                    <li>F6 — Notifications (reportée de V8)</li>
+                    <li>F7 — Carte réelle géocodée</li>
+                    <li>F8 — Receipt PDF preview (reportée de V8)</li>
+                    <li>F9 — Banque / Cartes / Compte</li>
+                    <li>F10 — Calendrier global réservations</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>📚 Références</h2>
+                <ul>
+                    <li><a href="../specs/vague-8-messaging/business-spec.md">Spec métier (BA)</a></li>
+                    <li><a href="../specs/vague-8-messaging/architecture.md">Architecture technique (avec rapport conformité § 11)</a></li>
+                    <li><a href="../specs/vague-8-messaging/ui-proposal.md">Proposition UI/UX (fidélité proto + zone ouverte tranchée)</a></li>
+                    <li><a href="../specs/vague-8-messaging/audit-report.md">Rapport d'audit (98/100)</a></li>
+                    <li><a href="../../RECONSTRUCTION_UI_ASFAR.md">Plan de reconstruction global</a></li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>📜 Historique</h2>
+                <table>
+                    <thead>
+                        <tr><th>Version</th><th>Date</th><th>Changements</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.0</td>
+                            <td>2026-05-10</td>
+                            <td>Livraison initiale Vague 8 — 15 fichiers Dart, 3 Shells modifiés, 3 <code>_MessagesPlaceholder</code> supprimés, score 98/100. <strong>Marque la complétion 100% du prototype.</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+
+        <footer>
+            <p>Asfar — Vague 8 Messaging · Reconstruction UI Asfar Premium</p>
+            <p style="margin-top: 4px;">Documentation générée le 10 mai 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

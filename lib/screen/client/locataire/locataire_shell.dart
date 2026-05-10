@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:asfar/screen/client/locataire/favorite/favorite_screen.dart';
 import 'package:asfar/screen/client/locataire/home/home_screen.dart';
 import 'package:asfar/screen/client/locataire/trips/trips_screen.dart';
+import 'package:asfar/screen/client/shared/inbox/messaging_list_screen.dart';
 import 'package:asfar/screen/client/shared/profile/client_profile_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/widget/bottom_nav/bottom_nav.dart';
@@ -30,7 +31,7 @@ class _LocataireShellState extends State<LocataireShell> {
       LocataireHomeScreen(firstName: firstName),
       const LocataireTripsScreen(),
       const LocataireFavoriteScreen(),
-      const _MessagesPlaceholder(),
+      const MessagingListScreen(),
       const ClientProfileScreen(),
     ];
 
@@ -42,30 +43,6 @@ class _LocataireShellState extends State<LocataireShell> {
         tabs: BottomNavTabs.locataire,
         current: _index,
         onChanged: (i) => setState(() => _index = i),
-      ),
-    );
-  }
-}
-
-/// Placeholder de l'onglet Messages — à reconstruire en Vague 8.
-class _MessagesPlaceholder extends StatelessWidget {
-  const _MessagesPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Messagerie à venir (Vague 8)',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.text2, fontSize: 14),
-            ),
-          ),
-        ),
       ),
     );
   }

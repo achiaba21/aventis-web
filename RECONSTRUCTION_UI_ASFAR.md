@@ -323,14 +323,52 @@
 
 ---
 
-## 📦 Vague 8 — Transverses (Messaging, Notifications, Receipt)
+## 📦 Vague 8 — Messaging ✅ (Notifications + Receipt PDF reportés à V9)
 
-| # | Écran | Source | Fichier | Statut |
+### Phase 8A — Modèles + helper + mocks ✅
+
+| Action | Fichier | Statut |
+|---|---|---|
+| `ConversationPreview` + enum `ConversationRole` | `lib/model/ui_only/conversation_preview.dart` | ✅ |
+| `ChatMessage` + enums `MessageSender` + `MessageKind` | `lib/model/ui_only/chat_message.dart` | ✅ |
+| `ReservationCardPayload` (utilise ListingPreview V5) | `lib/model/ui_only/reservation_card_payload.dart` | ✅ |
+| `AcceptedReferralCardPayload` | `lib/model/ui_only/accepted_referral_card_payload.dart` | ✅ |
+| `ConversationRoleDisplay` (helper labelOf+toneOf) | `lib/screen/client/shared/inbox/widget/conversation_role_display.dart` | ✅ |
+| `SampleConversations.byRole` (3 listes locataire/proprio/démarcheur fidèles proto extras.jsx:80-97) | `lib/screen/client/shared/inbox/sample/sample_conversations.dart` | ✅ |
+| `SampleThreads` (3 threads riches L1/P1/D1 fidèles proto + autres conversations vides) | `lib/screen/client/shared/inbox/sample/sample_threads.dart` | ✅ |
+
+### Phase 8B — 6 widgets feature ✅
+
+| Widget | Fichier | Statut |
+|---|---|---|
+| `MessagingSearchBar` (InputField + icon search + onChanged) | `lib/screen/client/shared/inbox/widget/messaging_search_bar.dart` | ✅ |
+| `ConversationRow` (UserAvatar 46 + 3 rows nom+shield+time / badge rôle+sub / last message + unread cercle accent) | `lib/screen/client/shared/inbox/widget/conversation_row.dart` | ✅ |
+| `MessageBubble` (maxWidth 78%, accent/bgElev2, radius 18 avec queue 6, heure 10px) | `lib/screen/client/shared/inbox/widget/message_bubble.dart` | ✅ |
+| `ReservationMessageCard` (ImgPh 56 + RÉSERVATION + dates + bookingCode mono) | `lib/screen/client/shared/inbox/widget/reservation_message_card.dart` | ✅ |
+| `AcceptedReferralMessageCard` (accentSoft + check + label + commission mono) | `lib/screen/client/shared/inbox/widget/accepted_referral_message_card.dart` | ✅ |
+| `ChatInputBar` (BlurContainer + plus + InputField + bouton rond send désactivé si vide) | `lib/screen/client/shared/inbox/widget/chat_input_bar.dart` | ✅ |
+
+### Phase 8C — 2 écrans + branchement 3 Shells ✅
+
+| # | Écran | Source proto | Fichier | Statut |
 |---|---|---|---|---|
-| 8.1 | Messaging List | `MessagingList` | `lib/screen/client/shared/inbox/messaging_list_screen.dart` | ⬜ |
-| 8.2 | Messaging Thread | `MessagingThread` | `lib/screen/client/shared/inbox/messaging_thread_screen.dart` | ⬜ |
-| 8.3 | Notifications | F6 (UI/UX) | `lib/screen/client/shared/notifications/notifications_screen.dart` | ⬜ |
-| 8.4 | Receipt PDF preview | F8 | `lib/screen/client/shared/receipt/receipt_screen.dart` | ⬜ |
+| 8.1 | MessagingList (adaptatif rôle via UserBloc + filtre local) | `extras.jsx::MessagingList` | `lib/screen/client/shared/inbox/messaging_list_screen.dart` | ✅ |
+| 8.2 | MessagingThread (header custom + bubbles + cards + setState envoi + scroll auto) | `extras.jsx::MessagingThread` | `lib/screen/client/shared/inbox/messaging_thread_screen.dart` | ✅ |
+| 8.3 | LocataireShell branché (suppression `_MessagesPlaceholder`) | — | `lib/screen/client/locataire/locataire_shell.dart` | ✅ |
+| 8.4 | DemarcheurShell branché | — | `lib/screen/client/demarcheur/demarcheur_shell.dart` | ✅ |
+| 8.5 | ProprioShell branché | — | `lib/screen/client/proprio/proprio_shell.dart` | ✅ |
+| 8.6 | Notifications | F6 (V9) | — | ⬜ reporté V9 |
+| 8.7 | Receipt PDF preview | F8 (V9) | — | ⬜ reporté V9 |
+
+**Gate vague 8 :** ✅ 21/21 items cochés (4 modèles + 1 helper + 2 mocks + 6 widgets + 2 écrans + 3 Shells modifiés + 3 `_MessagesPlaceholder` supprimés) · `flutter analyze` 41 issues legacy inchangées (0 nouvelle) · audit pending.
+
+🎉 **Avec V8 livrée, les 18 écrans du proto + transverses sont 100% reconstruits.**
+
+### Écart vs plan initial (acté 2026-05-10)
+- **Notifications + Receipt PDF reportés à V9** (hors-proto) — décision BA pour scope maîtrisé
+- **Threads dynamiques** : 3 threads riches (L1/P1/D1 fidèles proto) + threads vides pour les autres conversations avec placeholder « Démarrez la conversation… ». Header dynamique adapté à la conversation cliquée. Justification utilisateur : « c'est le même compte sous différentes interfaces, ça doit être dynamique »
+- **`BlurContainer`** wrappe l'input bar (Liquid Glass cohérent V1-V7) au lieu du flat alpha proto — enrichissement visuel mineur
+- **`BadgeStatus` fontSize** : 11 (atome V1) vs 9 (proto) — écart visuel de 2px, non bloquant
 
 ---
 
@@ -363,6 +401,10 @@
 | **Persistance switch de rôle** | `user.type` muté en mémoire seulement (cf. `client_profile_screen.dart::_onSwitchRole`) | Vague de finition : ajouter event `UserBloc::SetActiveRole` qui persiste le choix en Hive + dispatch UserLoaded sans déclencher la chaîne de préchargement |
 | **`DynamicAppBar` slot `sub`** | Le proto utilise `sub` (sous le titre) mais V6/V7 utilisent `eyebrow` (au-dessus) pour cohérence projet | Vague de finition transverse : ajouter un paramètre `sub` à `DynamicAppBar` (alternative à `eyebrow`) et migrer les écrans qui le veulent |
 | **Édition calendrier propriétaire** (V7) | `MiniCalendarGrid` view-only, taps = SnackBar | Quand `CalendarPlageBloc` rebranché : permettre tap pour bloquer/débloquer un jour, navigation entre mois |
+| **Branchement `ConversationBloc` réel** (V8) | Mocks `SampleConversations` + `SampleThreads` actuellement | Vague de finition post-V9 : brancher `ConversationBloc` existant + `MessageBloc` + WebSocket pour messages temps réel |
+| **Cards spéciales tap navigation** (V8) | SnackBar stub sur `ReservationMessageCard` et `AcceptedReferralMessageCard` | Quand BLoCs branchés : Card Réservation tap → `LocataireDetailScreen` V5 ; Card Demande acceptée tap → `ReferralDetailScreen` V6 |
+| **Bouton phone header thread** (V8) | SnackBar stub | Brancher sur `url_launcher` `tel:` quand téléphone réel disponible (V9) |
+| **Bouton plus input bar** (V8) | SnackBar stub | Pièce jointe (image/file picker) — V9 |
 
 ---
 
@@ -386,6 +428,17 @@
 - Plan de reconstruction validé en 9 vagues
 - Démarrage Vague 1 — Atomes
 - Vagues 1-4 livrées (21 widgets + 5 écrans)
+
+### 2026-05-10 (Vague 8 — Messaging)
+- **Vague 8 livrée** — 21 items cochés, 3 phases (8A → 8C), `flutter analyze` 41 issues legacy inchangées
+- **Onglet Messages débloqué sur les 3 Shells** : suppression des 3 classes `_MessagesPlaceholder` privées (Locataire/Démarcheur/Proprio) → utilisation directe de `MessagingListScreen`
+- **MessagingList adaptatif au rôle** : lit `UserBloc.state.user?.type` via `BlocBuilder` et appelle `SampleConversations.forRole()` avec fallback locataire (cohérence proto extras.jsx:98)
+- **MessagingThread header custom** (pas DynamicAppBar) : Container borderBottom + Row inline back+avatar+nom+shield+sub+phone — fidélité proto extras.jsx:194-214
+- **3 threads riches** (L1 Aminata K. + P1 Rachid B. + D1 Aminata K.) avec cards spéciales fidèles proto (Réservation ASF-7K2N9 + Demande acceptée REF-D8H3K commission 13500) + threads vides pour les autres conversations avec placeholder « Démarrez la conversation… »
+- **Bubble queue radius** : 18 sur 3 coins + 6 sur le coin opposé à la queue (bottomRight 6 si me, bottomLeft 6 sinon) — fidélité proto
+- **ChatInputBar** : BlurContainer + bouton plus + InputField + bouton rond accent or désactivé visuellement (opacity 0.4) si champ vide. Send → setState ajoute message + scrollToBottom via `WidgetsBinding.addPostFrameCallback`
+- **Mocks UI-only séparés** : `lib/model/ui_only/` (4 nouveaux modèles + 3 enums) + `lib/screen/client/shared/inbox/sample/` (2 mocks)
+- **Décision threads dynamiques** : « c'est le même compte sous différentes interfaces, ça doit être dynamique » → header adapté à la conversation cliquée + 3 threads riches + autres vides. Branchement BLoC réel (`ConversationBloc` existant) en finition post-V9.
 
 ### 2026-05-10 (suite)
 - **Vague 7 livrée** — 36 items cochés, 4 phases (7A → 7D), `flutter analyze` 41 issues legacy inchangées
