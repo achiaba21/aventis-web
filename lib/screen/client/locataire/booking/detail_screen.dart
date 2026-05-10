@@ -66,15 +66,10 @@ class LocataireDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      bottomNavigationBar: DetailBottomBar(
-        pricePerNight: listing.price,
-        dates: dates,
-        onReserve: () => _onReserve(context),
-      ),
       body: Stack(
         children: [
           ListView(
-            padding: EdgeInsets.zero,
+            padding: const EdgeInsets.only(bottom: 120),
             children: [
               DetailHeroGallery(tone: listing.tone),
               Padding(
@@ -217,6 +212,16 @@ class LocataireDetailScreen extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: DetailBottomBar(
+              pricePerNight: listing.price,
+              dates: dates,
+              onReserve: () => _onReserve(context),
             ),
           ),
         ],
