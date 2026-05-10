@@ -1,29 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/conversation_bloc/conversation_bloc.dart';
+import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
+import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
+import 'package:asfar/bloc/user_bloc/user_bloc.dart';
+import 'package:asfar/model/conversation/chat_message.dart' as model;
 import 'package:asfar/model/ui_only/chat_message.dart';
 import 'package:asfar/model/ui_only/conversation_preview.dart';
-import 'package:asfar/screen/client/shared/inbox/sample/sample_threads.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/accepted_referral_message_card.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/chat_input_bar.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/message_bubble.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/reservation_message_card.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/mapping/chat_message_to_ui.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
+import 'package:asfar/widget/feedback/empty_state.dart';
+import 'package:asfar/widget/loader/shimmer_card.dart';
 import 'package:asfar/widget/user/user_avatar.dart';
 
 /// Écran de conversation 1-to-1 — `MessagingThreadScreen`.
 ///
-/// Reproduit le proto `extras.jsx::MessagingThread` (lignes 192-287) :
-/// header CUSTOM (Container borderBottom, pas DynamicAppBar) + ListView de
-/// messages (bubbles + cards spéciales) + ChatInputBar sticky bottom.
-///
-/// Le thread est chargé depuis [SampleThreads.forConversation] selon l'id
-/// de la conversation. Si l'id n'a pas de thread mock, affiche un placeholder
-/// « Démarrez la conversation… » centré.
-///
-/// Tap send sur l'input bar ajoute le message à la liste locale via
-/// `setState` puis scroll automatiquement vers le bas (decision archi V8).
+/// V8.5 Lot 9 : branché sur `ConversationBloc`. Les messages proviennent
+/// de `MessagesLoaded.messages` mappés via `ChatMessageToUiMapper` (avec
+/// détection du `MessageKind` par préfixe). L'envoi déclenche `SendMessage`,
+/// le scroll auto-bottom est conservé.
 class MessagingThreadScreen extends StatefulWidget {
   final ConversationPreview conversation;
 
@@ -34,27 +36,25 @@ class MessagingThreadScreen extends StatefulWidget {
 }
 
 class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
-  late List<ChatMessage> _messages;
   final _scrollController = ScrollController();
+  late final int _conversationId;
 
   @override
   void initState() {
     super.initState();
-    _messages =
-        List.of(SampleThreads.forConversation(widget.conversation.id));
+    _conversationId = int.tryParse(widget.conversation.id) ?? 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _conversationId <= 0) return;
+      context.read<ConversationBloc>().add(
+            LoadConversationMessages(conversationId: _conversationId),
+          );
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  String _nowTime() {
-    final now = DateTime.now();
-    final hh = now.hour.toString().padLeft(2, '0');
-    final mm = now.minute.toString().padLeft(2, '0');
-    return '$hh:$mm';
   }
 
   void _scrollToBottom() {
@@ -69,14 +69,10 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
   }
 
   void _onSend(String text) {
-    setState(() {
-      _messages.add(ChatMessage(
-        id: 'local-${DateTime.now().millisecondsSinceEpoch}',
-        sender: MessageSender.me,
-        text: text,
-        time: _nowTime(),
-      ));
-    });
+    if (text.trim().isEmpty || _conversationId <= 0) return;
+    context.read<ConversationBloc>().add(
+          SendMessage(conversationId: _conversationId, contenu: text.trim()),
+        );
     _scrollToBottom();
   }
 
@@ -98,7 +94,34 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
         child: Column(
           children: [
             _customHeader(),
-            Expanded(child: _messagesList()),
+            Expanded(
+              child: BlocConsumer<ConversationBloc, ConversationState>(
+                listenWhen: (_, curr) =>
+                    curr is MessageSent || curr is NewMessageReceived,
+                listener: (context, state) => _scrollToBottom(),
+                builder: (context, state) {
+                  if (state is MessagesLoading &&
+                      state.conversationId == _conversationId) {
+                    return _buildLoading();
+                  }
+                  if (state is MessagesError &&
+                      state.conversationId == _conversationId) {
+                    return EmptyState.error(
+                      message: state.message,
+                      onRetry: () =>
+                          context.read<ConversationBloc>().add(
+                                LoadConversationMessages(
+                                  conversationId: _conversationId,
+                                  forceRefresh: true,
+                                ),
+                              ),
+                    );
+                  }
+                  final messages = _extractMessages(state);
+                  return _messagesList(messages);
+                },
+              ),
+            ),
             ChatInputBar(
               onSend: _onSend,
               onPlusTap: () => _stub('Pièce jointe disponible prochainement'),
@@ -107,6 +130,15 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
         ),
       ),
     );
+  }
+
+  List<ChatMessage> _extractMessages(ConversationState state) {
+    final currentUser = context.read<UserBloc>().state.user;
+    final raw = <model.ChatMessage>[];
+    if (state is MessagesLoaded && state.conversationId == _conversationId) {
+      raw.addAll(state.messages);
+    }
+    return ChatMessageToUiMapper.mapMany(raw, currentUser: currentUser);
   }
 
   Widget _customHeader() {
@@ -170,27 +202,38 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
     );
   }
 
-  Widget _messagesList() {
-    if (_messages.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text(
-            'Démarrez la conversation…',
-            style: AppTextStyles.small,
-            textAlign: TextAlign.center,
-          ),
+  Widget _buildLoading() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
+      children: const [
+        ShimmerCard(height: 48),
+        SizedBox(height: 8),
+        ShimmerCard(height: 48),
+        SizedBox(height: 8),
+        ShimmerCard(height: 48),
+      ],
+    );
+  }
+
+  Widget _messagesList(List<ChatMessage> messages) {
+    if (messages.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: EmptyState.inline(
+          icon: Icons.chat_outlined,
+          title: 'Démarrez la conversation',
+          body: 'Envoyez un premier message pour briser la glace.',
         ),
       );
     }
     return ListView.separated(
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
-      itemCount: _messages.length + 1,
+      itemCount: messages.length + 1,
       separatorBuilder: (_, __) => const SizedBox(height: 4),
       itemBuilder: (_, index) {
         if (index == 0) return _dateSeparator();
-        return _messageItem(_messages[index - 1]);
+        return _messageItem(messages[index - 1]);
       },
     );
   }
@@ -212,11 +255,17 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
       case MessageKind.text:
         return MessageBubble(message: message);
       case MessageKind.reservationCard:
+        if (message.reservation == null) {
+          return MessageBubble(message: message);
+        }
         return ReservationMessageCard(
           payload: message.reservation!,
           onTap: () => _stub('Détail réservation disponible prochainement'),
         );
       case MessageKind.acceptedReferralCard:
+        if (message.acceptedReferral == null) {
+          return MessageBubble(message: message);
+        }
         return AcceptedReferralMessageCard(
           payload: message.acceptedReferral!,
           onTap: () => _stub('Détail référence disponible prochainement'),

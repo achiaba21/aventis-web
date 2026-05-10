@@ -1,27 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/conversation_bloc/conversation_bloc.dart';
+import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
+import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
+import 'package:asfar/model/conversation/conversation.dart';
 import 'package:asfar/model/ui_only/conversation_preview.dart';
 import 'package:asfar/screen/client/shared/inbox/messaging_thread_screen.dart';
-import 'package:asfar/screen/client/shared/inbox/sample/sample_conversations.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/conversation_row.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/messaging_search_bar.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
-import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/mapping/conversation_to_preview.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
+import 'package:asfar/widget/feedback/empty_state.dart';
+import 'package:asfar/widget/loader/shimmer_card.dart';
 
 /// Écran de liste des conversations — `MessagingListScreen`.
 ///
-/// Adaptatif au rôle : lit `UserBloc.state.user?.type` via `BlocBuilder` et
-/// charge le mock correspondant depuis [SampleConversations.forRole].
-/// Fallback locataire si rôle inconnu (cohérence proto extras.jsx:98).
-///
-/// Search bar filtre la liste localement (case-insensitive sur who, sub,
-/// lastMessage).
+/// V8.5 Lot 9 : branché sur `ConversationBloc`. La liste provient de
+/// `ConversationLoaded.conversations` mappée via
+/// `ConversationToPreviewMapper`. Détermination du rôle de l'interlocuteur
+/// via `UserBloc.state.user`.
 class MessagingListScreen extends StatefulWidget {
   const MessagingListScreen({super.key});
 
@@ -31,6 +34,15 @@ class MessagingListScreen extends StatefulWidget {
 
 class _MessagingListScreenState extends State<MessagingListScreen> {
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<ConversationBloc>().add(const LoadConversations());
+    });
+  }
 
   void _onEditTap() {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -63,40 +75,89 @@ class _MessagingListScreenState extends State<MessagingListScreen> {
         ),
       ),
       body: BlocBuilder<UserBloc, UserState>(
-        builder: (context, state) {
-          final allConvos = SampleConversations.forRole(state.user?.type);
-          final visible = _filtered(allConvos);
-          return SafeArea(
-            top: false,
-            child: Column(
-              children: [
-                const SizedBox(height: 6),
-                MessagingSearchBar(
-                  onChanged: (q) => setState(() => _searchQuery = q),
+        builder: (context, userState) {
+          final currentUser = userState.user;
+          return BlocBuilder<ConversationBloc, ConversationState>(
+            builder: (context, convState) {
+              if (convState is ConversationLoading) return _buildLoading();
+              if (convState is ConversationError) {
+                return EmptyState.error(
+                  message: convState.message,
+                  onRetry: () => context.read<ConversationBloc>().add(
+                      const LoadConversations(forceRefresh: true)),
+                );
+              }
+              final conversations = _extractConversations(convState);
+              final previews = ConversationToPreviewMapper.mapMany(
+                conversations,
+                currentUser: currentUser,
+              );
+              final visible = _filtered(previews);
+              return SafeArea(
+                top: false,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 6),
+                    MessagingSearchBar(
+                      onChanged: (q) => setState(() => _searchQuery = q),
+                    ),
+                    Expanded(
+                      child: _buildBody(previews, visible),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: visible.isEmpty
-                      ? _emptyResults()
-                      : _conversationsList(visible),
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
     );
   }
 
-  Widget _emptyResults() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          'Aucune conversation trouvée.',
-          style: AppTextStyles.small,
-          textAlign: TextAlign.center,
+  List<Conversation> _extractConversations(ConversationState state) {
+    if (state is ConversationLoaded) return state.conversations;
+    if (state is MessagesLoading) return state.conversations;
+    if (state is MessagesLoaded) return state.conversations;
+    return const [];
+  }
+
+  Widget _buildBody(List<ConversationPreview> all, List<ConversationPreview> visible) {
+    if (all.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: EmptyState.hero(
+          icon: Icons.chat_bubble_outline,
+          title: 'Aucune conversation',
+          body:
+              'Vos échanges avec les hôtes, locataires et démarcheurs apparaîtront ici.',
         ),
-      ),
+      );
+    }
+    if (visible.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: EmptyState.inline(
+          icon: Icons.search_off_outlined,
+          title: 'Aucune conversation trouvée',
+          body: 'Essayez un autre mot-clé.',
+        ),
+      );
+    }
+    return _conversationsList(visible);
+  }
+
+  Widget _buildLoading() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
+      children: const [
+        ShimmerCard(height: 76),
+        SizedBox(height: 10),
+        ShimmerCard(height: 76),
+        SizedBox(height: 10),
+        ShimmerCard(height: 76),
+        SizedBox(height: 10),
+        ShimmerCard(height: 76),
+      ],
     );
   }
 
