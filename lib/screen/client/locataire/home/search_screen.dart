@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
+import 'package:asfar/screen/client/locataire/home/widget/search_date_input.dart';
+import 'package:asfar/screen/client/locataire/home/widget/search_display_input.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/util/navigation.dart';
@@ -91,15 +92,22 @@ class _LocataireSearchScreenState extends State<LocataireSearchScreen> {
           children: [
             const Text('Destination', style: AppTextStyles.h3),
             const SizedBox(height: 12),
-            _displayInput('Abidjan, Côte d\'Ivoire', Icons.search),
+            const SearchDisplayInput(
+              value: 'Abidjan, Côte d\'Ivoire',
+              icon: Icons.search,
+            ),
             const SizedBox(height: 24),
             const Text('Dates', style: AppTextStyles.h3),
             const SizedBox(height: 12),
             Row(
-              children: [
-                Expanded(child: _dateInput('ARRIVÉE', '12 nov.')),
-                const SizedBox(width: 10),
-                Expanded(child: _dateInput('DÉPART', '15 nov.')),
+              children: const [
+                Expanded(
+                  child: SearchDateInput(eyebrow: 'ARRIVÉE', value: '12 nov.'),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: SearchDateInput(eyebrow: 'DÉPART', value: '15 nov.'),
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -220,52 +228,6 @@ class _LocataireSearchScreenState extends State<LocataireSearchScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _displayInput(String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.bgElev2,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: AppColors.line, width: 1),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: AppColors.text3),
-          const SizedBox(width: 10),
-          Text(value,
-              style: const TextStyle(fontSize: 15, color: AppColors.text)),
-        ],
-      ),
-    );
-  }
-
-  Widget _dateInput(String eyebrow, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.bgElev2,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: AppColors.line, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(eyebrow, style: AppTextStyles.eyebrow),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.text,
-            ),
-          ),
-        ],
       ),
     );
   }

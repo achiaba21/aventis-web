@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/amenity_item.dart';
-import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/screen/client/locataire/booking/widget/amenity_row.dart';
 
 /// Grille d'équipements 2 colonnes du Detail logement.
 ///
@@ -18,36 +18,16 @@ class AmenitiesGrid extends StatelessWidget {
         for (var i = 0; i < items.length; i += 2)
           Row(
             children: [
-              Expanded(child: _row(items[i])),
+              Expanded(child: AmenityRow(item: items[i])),
               const SizedBox(width: 10),
               Expanded(
                 child: i + 1 < items.length
-                    ? _row(items[i + 1])
+                    ? AmenityRow(item: items[i + 1])
                     : const SizedBox.shrink(),
               ),
             ],
           ),
       ],
-    );
-  }
-
-  Widget _row(AmenityItem a) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Icon(a.icon, size: 18, color: AppColors.accent),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              a.label,
-              style: const TextStyle(fontSize: 14, color: AppColors.text),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

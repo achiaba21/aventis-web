@@ -5,29 +5,24 @@ import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_bloc.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_event.dart';
-import 'package:asfar/bloc/favorite_bloc/favorite_state.dart';
 import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
 import 'package:asfar/screen/client/locataire/home/search_screen.dart';
+import 'package:asfar/screen/client/locataire/home/widget/featured_listings_carousel.dart';
 import 'package:asfar/screen/client/locataire/home/widget/listing_filter_chips.dart';
 import 'package:asfar/screen/client/locataire/home/widget/locataire_home_header.dart';
+import 'package:asfar/screen/client/locataire/home/widget/locataire_home_loading_view.dart';
 import 'package:asfar/screen/client/locataire/home/widget/locataire_search_bar.dart';
+import 'package:asfar/screen/client/locataire/home/widget/recommended_listings_list.dart';
 import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
-import 'package:asfar/widget/card/appartement_preview_card.dart';
-import 'package:asfar/widget/card/featured_listing_card.dart';
 import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
-import 'package:asfar/widget/loader/shimmer_card.dart';
 import 'package:asfar/widget/map/map_teaser.dart';
 import 'package:asfar/widget/text/section_header.dart';
 
 /// Écran d'accueil Locataire — Explorer.
-///
-/// V8.5 : branché sur `AppartementBloc` (au lieu de `SampleListings.all`).
-/// Utilise `state.appartements` (exposé par toutes les variantes Loaded du
-/// BLoC, y compris pendant Loading/Error pour le pattern cache-first).
 class LocataireHomeScreen extends StatefulWidget {
   final String firstName;
 
@@ -61,7 +56,6 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Trigger un load au mount si pas déjà en cache
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final bloc = context.read<AppartementBloc>();
@@ -89,19 +83,6 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
     context.read<FavoriteBloc>().add(ToggleFavorite(apartId));
   }
 
-  List<int> _favoriteIdsFromState(FavoriteState state) {
-    if (state is FavoriteLoaded) return state.favoriteIds;
-    if (state is FavoriteOptimisticUpdate) return state.favoriteIds;
-    if (state is FavoriteActionSuccess) return state.favoriteIds;
-    if (state is FavoriteError) return state.favoriteIds ?? const [];
-    return const [];
-  }
-
-  bool _isLiked(List<int> ids, ListingPreview listing) {
-    final apartId = int.tryParse(listing.id);
-    return apartId != null && ids.contains(apartId);
-  }
-
   void _onSeeMap() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -112,7 +93,6 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
   }
 
   /// Génère 1 à 4 pins distribués sur le teaser à partir des listings réels.
-  /// Le pin actif (highlight accent) est le premier listing (« À la une »).
   List<MapTeaserPin> _pinsForListings(List<ListingPreview> listings) {
     if (listings.isEmpty) return const [];
     final count = listings.length < _pinPositions.length
@@ -155,154 +135,109 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
             final isErrorWithoutCache =
                 state is AppartementError && listings.isEmpty;
 
-            if (isInitialLoading) return _buildLoading();
+            if (isInitialLoading) return const LocataireHomeLoadingView();
             if (isErrorWithoutCache) {
               return EmptyState.error(
                 message: state.message,
                 onRetry: _onRetry,
               );
             }
-            return _buildContent(listings);
+            return CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+                    child: Column(
+                      children: [
+                        LocataireHomeHeader(
+                          firstName: widget.firstName,
+                          onBellTap: () => pushScreen(
+                              context, const NotificationsScreen()),
+                          onAvatarTap: () {},
+                        ),
+                        const SizedBox(height: 14),
+                        LocataireSearchBar(
+                          summary: 'Abidjan · 12-15 nov · 2 voyageurs',
+                          onTap: _onSearchTap,
+                          onFiltersTap: _onSearchTap,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: ListingFilterChips(
+                    filters: _filters,
+                    selected: _filter,
+                    onSelect: (f) => setState(() => _filter = f),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                if (listings.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: EmptyState.hero(
+                      icon: Icons.home_work_outlined,
+                      title: 'Aucun logement disponible',
+                      body:
+                          'Aucun appartement ne correspond pour le moment. Revenez plus tard.',
+                      ctaLabel: 'Actualiser',
+                      onCtaTap: _onRetry,
+                    ),
+                  )
+                else ...[
+                  SliverToBoxAdapter(
+                    child: SectionHeader(
+                      title: 'À la une',
+                      actionLabel: 'Voir tout',
+                      onActionTap: () {},
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: FeaturedListingsCarousel(
+                      listings: listings,
+                      onTap: _onListingTap,
+                      onLikeTap: _onToggleFavorite,
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: SectionHeader(
+                      title: 'Près de vous',
+                      actionLabel: 'Voir carte',
+                      onActionTap: () {},
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: MapTeaser(
+                        pins: _pinsForListings(listings),
+                        totalListings: listings.length,
+                        onSeeMap: _onSeeMap,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 4)),
+                  const SliverToBoxAdapter(
+                    child: SectionHeader(title: 'Recommandés pour vous'),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+                    sliver: SliverToBoxAdapter(
+                      child: RecommendedListingsList(
+                        listings: listings,
+                        onTap: _onListingTap,
+                        onLikeTap: _onToggleFavorite,
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                ],
+              ],
+            );
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(18, 100, 18, 100),
-      itemCount: 4,
-      separatorBuilder: (_, __) => const SizedBox(height: 14),
-      itemBuilder: (_, __) => const ShimmerCard(height: 220),
-    );
-  }
-
-  Widget _buildContent(List<ListingPreview> listings) {
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-            child: Column(
-              children: [
-                LocataireHomeHeader(
-                  firstName: widget.firstName,
-                  onBellTap: () =>
-                      pushScreen(context, const NotificationsScreen()),
-                  onAvatarTap: () {},
-                ),
-                const SizedBox(height: 14),
-                LocataireSearchBar(
-                  summary: 'Abidjan · 12-15 nov · 2 voyageurs',
-                  onTap: _onSearchTap,
-                  onFiltersTap: _onSearchTap,
-                ),
-              ],
-            ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: ListingFilterChips(
-            filters: _filters,
-            selected: _filter,
-            onSelect: (f) => setState(() => _filter = f),
-          ),
-        ),
-        const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        if (listings.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: EmptyState.hero(
-              icon: Icons.home_work_outlined,
-              title: 'Aucun logement disponible',
-              body:
-                  'Aucun appartement ne correspond pour le moment. Revenez plus tard.',
-              ctaLabel: 'Actualiser',
-              onCtaTap: _onRetry,
-            ),
-          )
-        else ...[
-          SliverToBoxAdapter(
-            child: SectionHeader(
-              title: 'À la une',
-              actionLabel: 'Voir tout',
-              onActionTap: () {},
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 360,
-              child: BlocBuilder<FavoriteBloc, FavoriteState>(
-                builder: (context, favState) {
-                  final favIds = _favoriteIdsFromState(favState);
-                  return ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    itemCount: listings.take(3).length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (_, i) {
-                      final l = listings[i];
-                      return FeaturedListingCard(
-                        listing: l,
-                        liked: _isLiked(favIds, l),
-                        onTap: () => _onListingTap(l),
-                        onLikeTap: () => _onToggleFavorite(l),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: SectionHeader(
-              title: 'Près de vous',
-              actionLabel: 'Voir carte',
-              onActionTap: () {},
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: MapTeaser(
-                pins: _pinsForListings(listings),
-                totalListings: listings.length,
-                onSeeMap: () => _onSeeMap(),
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 4)),
-          const SliverToBoxAdapter(
-            child: SectionHeader(title: 'Recommandés pour vous'),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
-            sliver: SliverToBoxAdapter(
-              child: BlocBuilder<FavoriteBloc, FavoriteState>(
-                builder: (context, favState) {
-                  final favIds = _favoriteIdsFromState(favState);
-                  return Column(
-                    children: [
-                      for (var i = 0; i < listings.length; i++) ...[
-                        AppartementPreviewCard(
-                          listing: listings[i],
-                          liked: _isLiked(favIds, listings[i]),
-                          onTap: () => _onListingTap(listings[i]),
-                          onLikeTap: () => _onToggleFavorite(listings[i]),
-                        ),
-                        if (i != listings.length - 1)
-                          const SizedBox(height: 14),
-                      ],
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
-        ],
-      ],
     );
   }
 }
