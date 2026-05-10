@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
+import 'package:asfar/bloc/demarcheur_bloc/demarcheur_bloc.dart';
+import 'package:asfar/bloc/demarcheur_bloc/demarcheur_event.dart';
+import 'package:asfar/bloc/demarcheur_bloc/demarcheur_state.dart';
+import 'package:asfar/model/request/demarcheur_reservation_req.dart';
+import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_listing_radio.dart';
-import 'package:asfar/screen/client/demarcheur/sample/sample_listings_to_referral.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/calc/demarcheur_stats_calculator.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
+import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/button_size.dart';
@@ -12,19 +22,19 @@ import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/button/plain_button.dart';
 import 'package:asfar/widget/card/listing_preview.dart';
+import 'package:asfar/widget/feedback/empty_state.dart';
 import 'package:asfar/widget/feedback/info_banner.dart';
 import 'package:asfar/widget/feedback/success_circle.dart';
 import 'package:asfar/widget/input/input_field.dart';
+import 'package:asfar/widget/loader/shimmer_card.dart';
 
 /// Tunnel « Nouvelle demande » du Démarcheur — 3 étapes.
 ///
-/// Reproduit `DemarcheurNew` du prototype (single screen avec `_step`,
-/// pattern Vague 5 `LocataireReserveScreen`).
-///
-/// Étape 1 : choix du logement (search + cards radio).
-/// Étape 2 : infos client (Nom, Tel WhatsApp, Dates, Note libre + banner
-/// commission estimée).
-/// Étape 3 : confirmation (Cercle accent + REF + récap).
+/// V8.5 Lot 6 : étape 1 lit la liste des appartements depuis
+/// `AppartementBloc` (au lieu de `SampleListingsToReferral`). Le bouton
+/// « Envoyer la demande » dispatche `CreateDemarcheurReservation` via
+/// `DemarcheurBloc` et écoute `DemarcheurReservationCreated` pour passer
+/// à l'étape 3 avec la référence serveur.
 class NewReferralScreen extends StatefulWidget {
   const NewReferralScreen({super.key});
 
@@ -35,14 +45,26 @@ class NewReferralScreen extends StatefulWidget {
 class _NewReferralScreenState extends State<NewReferralScreen> {
   int _step = 1;
   ListingPreview? _selectedListing;
+  Appartement? _selectedAppartement;
 
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _arrivalCtrl = TextEditingController(text: '12 nov.');
   final _departureCtrl = TextEditingController(text: '15 nov.');
   final _noteCtrl = TextEditingController();
+  final _searchCtrl = TextEditingController();
 
-  static const _generatedRef = 'REF-D8H3K';
+  String? _generatedRef;
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<AppartementBloc>().add(LoadAppartements());
+    });
+  }
 
   String get _stepTitle {
     switch (_step) {
@@ -59,7 +81,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
   int get _commissionEstimate {
     final l = _selectedListing;
     if (l == null) return 0;
-    return SampleListingsToReferral.commissionFor(l);
+    return ReferralCommissionHelper.estimate(pricePerNight: l.price);
   }
 
   bool get _step1Valid => _selectedListing != null;
@@ -76,6 +98,22 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
     }
   }
 
+  void _onSubmit() {
+    final appart = _selectedAppartement;
+    if (appart == null || appart.id == null) return;
+    final req = DemarcheurReservationReq(
+      appartId: appart.id!,
+      debut: DateTime.now(),
+      dure: ReferralCommissionHelper.defaultNights,
+      montant: (appart.prix ?? 0) * ReferralCommissionHelper.defaultNights,
+      montantCommission: _commissionEstimate.toDouble(),
+      clientNom: _nameCtrl.text.trim(),
+      clientTelephone: _phoneCtrl.text.trim(),
+    );
+    setState(() => _submitting = true);
+    context.read<DemarcheurBloc>().add(CreateDemarcheurReservation(req));
+  }
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -83,6 +121,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
     _arrivalCtrl.dispose();
     _departureCtrl.dispose();
     _noteCtrl.dispose();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
@@ -100,11 +139,32 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
       ),
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: _stepContent(),
+        child: BlocListener<DemarcheurBloc, DemarcheurState>(
+          listener: (context, state) {
+            if (state is DemarcheurReservationCreated) {
+              setState(() {
+                _submitting = false;
+                _generatedRef = state.reservation.codeReservation?.secretKey ??
+                    state.reservation.reference ??
+                    'REF-${state.reservation.id ?? '?'}';
+                _step = 3;
+              });
+            } else if (state is DemarcheurError) {
+              setState(() => _submitting = false);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _stepContent(),
+            ),
           ),
         ),
       ),
@@ -124,23 +184,44 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
   }
 
   List<Widget> _step1() {
-    final listings = SampleListingsToReferral.listings;
     return [
-      const InputField(
+      InputField(
+        controller: _searchCtrl,
         leadingIcon: Icons.search,
         hintText: 'Rechercher un logement…',
+        onChanged: (_) => setState(() {}),
       ),
       const SizedBox(height: 16),
-      for (var i = 0; i < listings.length; i++) ...[
-        ReferralListingRadio(
-          listing: listings[i],
-          estimatedCommission:
-              SampleListingsToReferral.commissionFor(listings[i]),
-          selected: _selectedListing?.id == listings[i].id,
-          onTap: () => setState(() => _selectedListing = listings[i]),
-        ),
-        const SizedBox(height: 12),
-      ],
+      BlocBuilder<AppartementBloc, AppartementState>(
+        builder: (context, state) {
+          if (state is AppartementLoading && state.appartements.isEmpty) {
+            return const Column(
+              children: [
+                ShimmerCard(height: 96),
+                SizedBox(height: 12),
+                ShimmerCard(height: 96),
+              ],
+            );
+          }
+          final apparts = state.appartements;
+          final filtered = _filterApparts(apparts, _searchCtrl.text.trim());
+          if (filtered.isEmpty) {
+            return EmptyState.inline(
+              icon: Icons.search_off_outlined,
+              title: 'Aucun logement trouvé',
+              body: 'Essayez un autre nom de quartier ou de logement.',
+            );
+          }
+          return Column(
+            children: [
+              for (final a in filtered) ...[
+                _buildRadio(a),
+                const SizedBox(height: 12),
+              ],
+            ],
+          );
+        },
+      ),
       const SizedBox(height: 12),
       CustomButton(
         text: 'Suivant',
@@ -149,6 +230,32 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
         block: true,
       ),
     ];
+  }
+
+  Widget _buildRadio(Appartement a) {
+    final preview = AppartementToListingMapper.mapOne(a);
+    final selected = _selectedListing?.id == preview.id;
+    return ReferralListingRadio(
+      listing: preview,
+      estimatedCommission:
+          ReferralCommissionHelper.estimate(pricePerNight: preview.price),
+      selected: selected,
+      onTap: () => setState(() {
+        _selectedListing = preview;
+        _selectedAppartement = a;
+      }),
+    );
+  }
+
+  List<Appartement> _filterApparts(List<Appartement> apparts, String query) {
+    if (query.isEmpty) return apparts;
+    final q = query.toLowerCase();
+    return apparts.where((a) {
+      final t = (a.titre ?? '').toLowerCase();
+      final c = (a.address?.commune?.nom ?? '').toLowerCase();
+      final v = (a.address?.commune?.ville?.nom ?? '').toLowerCase();
+      return t.contains(q) || c.contains(q) || v.contains(q);
+    }).toList();
   }
 
   List<Widget> _step2() {
@@ -203,8 +310,8 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
       ),
       const SizedBox(height: 22),
       CustomButton(
-        text: 'Envoyer la demande',
-        onPressed: _step2Valid ? () => _goToStep(3) : null,
+        text: _submitting ? 'Envoi…' : 'Envoyer la demande',
+        onPressed: (_step2Valid && !_submitting) ? _onSubmit : null,
         size: ButtonSize.lg,
         block: true,
       ),
@@ -213,6 +320,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
 
   List<Widget> _step3() {
     final l = _selectedListing!;
+    final ref = _generatedRef ?? 'REF-?';
     return [
       const SizedBox(height: 24),
       const Center(child: SuccessCircle(icon: Icons.send)),
@@ -242,7 +350,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
         ),
         child: Column(
           children: [
-            _recapLine('Référence', _generatedRef, mono: true),
+            _recapLine('Référence', ref, mono: true),
             const SizedBox(height: 10),
             _recapLine('Logement', l.title),
             const SizedBox(height: 10),
