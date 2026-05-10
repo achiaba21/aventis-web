@@ -6,7 +6,7 @@ import 'package:asfar/util/function.dart';
 /// Service pour gérer les messages et les séances de discussion
 /// Conforme à l'API backend documentée
 class MessageService {
-  static const String baseUrl = "user/messages";
+  static const String baseUrl = "api/user/messages";
 
   /// 1. Créer une séance de discussion
   /// POST /user/messages/seances
