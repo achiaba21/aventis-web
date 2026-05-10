@@ -5,6 +5,7 @@ import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/model/remise/condition.dart';
 import 'package:asfar/model/remise/remise.dart';
 import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/screen/client/proprio/appartements/widget/base_price_card.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/reduction_palier_dialog.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
@@ -163,7 +164,7 @@ class ListingReductionsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _basePriceCard(basePrice),
+        BasePriceCard(basePrice: basePrice),
         const SizedBox(height: 14),
         if (conditions.isEmpty)
           EmptyState.inline(
@@ -237,47 +238,6 @@ class ListingReductionsTab extends StatelessWidget {
           ),
         ],
       ],
-    );
-  }
-
-  Widget _basePriceCard(int basePrice) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgElev1,
-        borderRadius: BorderRadius.circular(AppRadii.lg),
-        border: Border.all(color: AppColors.line, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('TARIF DE BASE',
-              style: AppTextStyles.eyebrow.copyWith(fontSize: 10)),
-          const SizedBox(height: 6),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                FcfaFormatter.full(basePrice),
-                style: AppTextStyles.mono(const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text,
-                )),
-              ),
-              const SizedBox(width: 4),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 5),
-                child: Text(
-                  '/nuit',
-                  style: AppTextStyles.small.copyWith(fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }
