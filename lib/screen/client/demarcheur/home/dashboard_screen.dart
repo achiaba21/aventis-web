@@ -20,6 +20,7 @@ import 'package:asfar/screen/client/demarcheur/referrals/new_referral_screen.dar
 import 'package:asfar/screen/client/demarcheur/referrals/referral_detail_screen.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/referrals_screen.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_row.dart';
+import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -83,7 +84,7 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
         eyebrow: 'TABLEAU DE BORD',
         trailing: IconBoutton(
           icon: Icons.notifications_none,
-          onPressed: () {},
+          onPressed: () => pushScreen(context, const NotificationsScreen()),
         ),
       ),
       body: SafeArea(

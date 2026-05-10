@@ -11,6 +11,7 @@ import 'package:asfar/screen/client/locataire/home/search_screen.dart';
 import 'package:asfar/screen/client/locataire/home/widget/listing_filter_chips.dart';
 import 'package:asfar/screen/client/locataire/home/widget/locataire_home_header.dart';
 import 'package:asfar/screen/client/locataire/home/widget/locataire_search_bar.dart';
+import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
@@ -149,7 +150,8 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
               children: [
                 LocataireHomeHeader(
                   firstName: widget.firstName,
-                  onBellTap: () {},
+                  onBellTap: () =>
+                      pushScreen(context, const NotificationsScreen()),
                   onAvatarTap: () {},
                 ),
                 const SizedBox(height: 14),

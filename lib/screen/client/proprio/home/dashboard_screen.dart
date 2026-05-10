@@ -22,6 +22,7 @@ import 'package:asfar/screen/client/proprio/home/widget/kpi_tile.dart';
 import 'package:asfar/screen/client/proprio/home/widget/pending_request_row.dart';
 import 'package:asfar/screen/client/proprio/home/widget/proprio_listing_row.dart';
 import 'package:asfar/screen/client/proprio/home/widget/revenue_hero_card.dart';
+import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -89,8 +90,7 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
         ),
         trailing: IconBoutton(
           icon: Icons.notifications_none,
-          onPressed: () =>
-              _stub(context, 'Notifications disponibles prochainement (V8)'),
+          onPressed: () => pushScreen(context, const NotificationsScreen()),
         ),
       ),
       body: SafeArea(
