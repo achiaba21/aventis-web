@@ -49,11 +49,11 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
     'Avec piscine',
     'Court séjour',
   ];
-  static const List<MapTeaserPin> _mapPins = [
-    MapTeaserPin(x: 0.30, y: 0.35, label: '45k'),
-    MapTeaserPin(x: 0.60, y: 0.55, label: '32k', active: true),
-    MapTeaserPin(x: 0.75, y: 0.30, label: '68k'),
-    MapTeaserPin(x: 0.45, y: 0.70, label: '55k'),
+  static const List<List<double>> _pinPositions = [
+    [0.30, 0.35],
+    [0.60, 0.55],
+    [0.75, 0.30],
+    [0.45, 0.70],
   ];
 
   String _filter = 'Tout';
@@ -100,6 +100,44 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
   bool _isLiked(List<int> ids, ListingPreview listing) {
     final apartId = int.tryParse(listing.id);
     return apartId != null && ids.contains(apartId);
+  }
+
+  void _onSeeMap() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Carte interactive bientôt'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  /// Génère 1 à 4 pins distribués sur le teaser à partir des listings réels.
+  /// Le pin actif (highlight accent) est le premier listing (« À la une »).
+  List<MapTeaserPin> _pinsForListings(List<ListingPreview> listings) {
+    if (listings.isEmpty) return const [];
+    final count = listings.length < _pinPositions.length
+        ? listings.length
+        : _pinPositions.length;
+    return [
+      for (var i = 0; i < count; i++)
+        MapTeaserPin(
+          x: _pinPositions[i][0],
+          y: _pinPositions[i][1],
+          label: _compactPriceLabel(listings[i].price),
+          active: i == 0,
+        ),
+    ];
+  }
+
+  String _compactPriceLabel(int price) {
+    if (price >= 1000000) {
+      final m = price / 1000000;
+      return '${m.toStringAsFixed(m % 1 == 0 ? 0 : 1)}M';
+    }
+    if (price >= 1000) {
+      return '${(price / 1000).round()}k';
+    }
+    return '$price';
   }
 
   @override
@@ -228,9 +266,9 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18),
               child: MapTeaser(
-                pins: _mapPins,
+                pins: _pinsForListings(listings),
                 totalListings: listings.length,
-                onSeeMap: () {},
+                onSeeMap: () => _onSeeMap(),
               ),
             ),
           ),
