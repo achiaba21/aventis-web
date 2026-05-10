@@ -42,7 +42,6 @@ import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/service/preload/preload_coordinator_builder.dart';
 import 'package:asfar/util/json_constructors_registry.dart';
 import 'package:asfar/util/function.dart';
-// import 'package:asfar/widget/websocket/websocket_initializer.dart'; // TODO REBUILD: WebSocketInitializer (widget supprimé)
 
 /// Clé globale pour la navigation (utilisée pour la gestion de l'expiration du token)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -137,6 +136,12 @@ class AppWithBlocListener extends StatelessWidget {
                 SetCurrentUser(user: state.loadedUser),
               );
 
+              // P2 — Réactiver le temps réel après login. Connecte le WebSocket
+              // (notifications + actions backend) et initialise FCM (push
+              // notifs cloud). Sans ça, les messages et notifs n'arrivent
+              // qu'au polling manuel.
+              _initRealtime(context, state.loadedUser);
+
               // Attendre la fin de la navigation avant de démarrer le préchargement
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _startDataPreloading(context, state.loadedUser);
@@ -146,8 +151,6 @@ class AppWithBlocListener extends StatelessWidget {
         ),
 
       ],
-      // TODO REBUILD: réintroduire WebSocketInitializer quand le widget
-      // sera reconstruit. Pour l'instant, MaterialApp direct.
       child: MaterialApp(
         navigatorKey: navigatorKey,
         scaffoldMessengerKey: scaffoldMessengerKey,
@@ -210,6 +213,31 @@ class AppWithBlocListener extends StatelessWidget {
     StorageService.instance.clearProprioData();
 
     deboger(['[main.dart] Nettoyage des données privées terminé']);
+  }
+
+  /// P2 — Initialise la couche temps réel (WebSocket + FCM) après login.
+  ///
+  /// - `InitializeNotifications` connecte le WebSocket avec `userPhone` +
+  ///   `authToken` et charge les notifications du cache + API.
+  /// - `InitializeFCM` initialise Firebase Cloud Messaging et abonne le BLoC
+  ///   aux streams notification/token pour les push notifs.
+  ///
+  /// Le cleanup (DisconnectWebSocket + DeleteFCMToken) est dispatché côté
+  /// `_clearPrivateData` à la déconnexion.
+  void _initRealtime(BuildContext context, User user) {
+    final phone = user.telephone;
+    if (phone == null || phone.isEmpty) {
+      deboger('[main.dart] Pas de téléphone user → WebSocket non initialisé');
+      return;
+    }
+    final token = StorageService.instance.getToken();
+    context.read<NotificationBloc>().add(
+          InitializeNotifications(
+            userPhone: phone,
+            authToken: token,
+          ),
+        );
+    context.read<NotificationBloc>().add(const InitializeFCM());
   }
 
   /// Démarre le préchargement transparent des données en arrière-plan
