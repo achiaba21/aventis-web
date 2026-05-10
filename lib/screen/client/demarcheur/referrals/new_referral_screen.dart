@@ -8,7 +8,8 @@ import 'package:asfar/bloc/demarcheur_bloc/demarcheur_event.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_state.dart';
 import 'package:asfar/model/request/demarcheur_reservation_req.dart';
 import 'package:asfar/model/residence/appart.dart';
-import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_listing_radio.dart';
+import 'package:asfar/screen/client/demarcheur/referrals/widget/new_referral_listing_radio_item.dart';
+import 'package:asfar/screen/client/demarcheur/referrals/widget/recap_line.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -286,7 +287,14 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
           return Column(
             children: [
               for (final a in filtered) ...[
-                _buildRadio(a),
+                NewReferralListingRadioItem(
+                  appart: a,
+                  selectedListingId: _selectedListing?.id,
+                  onSelect: (appart, preview) => setState(() {
+                    _selectedAppartement = appart;
+                    _selectedListing = preview;
+                  }),
+                ),
                 const SizedBox(height: 12),
               ],
             ],
@@ -301,21 +309,6 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
         block: true,
       ),
     ];
-  }
-
-  Widget _buildRadio(Appartement a) {
-    final preview = AppartementToListingMapper.mapOne(a);
-    final selected = _selectedListing?.id == preview.id;
-    return ReferralListingRadio(
-      listing: preview,
-      estimatedCommission:
-          ReferralCommissionHelper.estimate(pricePerNight: preview.price),
-      selected: selected,
-      onTap: () => setState(() {
-        _selectedListing = preview;
-        _selectedAppartement = a;
-      }),
-    );
   }
 
   List<Appartement> _filterApparts(List<Appartement> apparts, String query) {
@@ -423,11 +416,11 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
         ),
         child: Column(
           children: [
-            _recapLine('Référence', ref, mono: true),
+            RecapLine(label: 'Référence', value: ref, mono: true),
             const SizedBox(height: 10),
-            _recapLine('Logement', l.title),
+            RecapLine(label: 'Logement', value: l.title),
             const SizedBox(height: 10),
-            _recapLine('Client', _nameCtrl.text.trim()),
+            RecapLine(label: 'Client', value: _nameCtrl.text.trim()),
             const SizedBox(height: 14),
             const Divider(color: AppColors.line, height: 1),
             const SizedBox(height: 14),
@@ -471,26 +464,4 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
     ];
   }
 
-  Widget _recapLine(String label, String value, {bool mono = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: AppTextStyles.small),
-        Text(
-          value,
-          style: mono
-              ? AppTextStyles.mono(const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text,
-                ))
-              : const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.text,
-                ),
-        ),
-      ],
-    );
-  }
 }

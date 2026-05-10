@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/screen/client/demarcheur/referrals/widget/commission_card_line.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -6,11 +7,7 @@ import 'package:asfar/util/fcfa_formatter.dart';
 
 /// Card de calcul de commission — `ReferralDetailScreen`.
 ///
-/// Reproduit le proto `demarcheur.jsx::DemarcheurReferralDetail` :
-/// sous-total séjour → 10% → "À recevoir" en accent or.
-///
-/// Le commission s'affiche en mono bold accent or, séparée par un divider
-/// `line` du sous-total.
+/// Sous-total séjour → 10 % → « À recevoir » en accent or.
 class CommissionCard extends StatelessWidget {
   final int subtotal;
   final int commission;
@@ -36,14 +33,14 @@ class CommissionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _line(
+          CommissionCardLine(
             label: 'Sous-total séjour',
             value: FcfaFormatter.full(subtotal),
             valueColor: AppColors.text,
             mono: true,
           ),
           const SizedBox(height: 10),
-          _line(
+          CommissionCardLine(
             label: 'Commission démarcheur',
             value: '$ratePercent %',
             valueColor: AppColors.text2,
@@ -74,25 +71,6 @@ class CommissionCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _line({
-    required String label,
-    required String value,
-    required Color valueColor,
-    bool mono = false,
-  }) {
-    final base = TextStyle(fontSize: 13, color: valueColor);
-    final style = mono
-        ? AppTextStyles.mono(base.copyWith(fontWeight: FontWeight.w600))
-        : base.copyWith(fontWeight: FontWeight.w500);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: AppTextStyles.small),
-        Text(value, style: style),
-      ],
     );
   }
 }

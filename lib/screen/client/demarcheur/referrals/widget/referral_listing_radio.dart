@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/screen/client/demarcheur/referrals/widget/listing_radio_indicator.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -8,10 +9,6 @@ import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Card radio de sélection d'un logement — étape 1 du tunnel
 /// `NewReferralScreen`.
-///
-/// Bordure `accent` + fond `accentSoft` quand sélectionné, `bgElev1` + bordure
-/// `line` sinon. Layout : ImgPh tone 56×56 + titre + ville + commission
-/// estimée à droite.
 class ReferralListingRadio extends StatelessWidget {
   final ListingPreview listing;
   final int estimatedCommission;
@@ -85,29 +82,11 @@ class ReferralListingRadio extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              _radio(),
+              ListingRadioIndicator(selected: selected),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _radio() {
-    return Container(
-      width: 22,
-      height: 22,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: selected ? AppColors.accent : AppColors.line,
-          width: 2,
-        ),
-        color: selected ? AppColors.accent : Colors.transparent,
-      ),
-      child: selected
-          ? const Icon(Icons.check, size: 14, color: AppColors.onAccent)
-          : null,
     );
   }
 }
