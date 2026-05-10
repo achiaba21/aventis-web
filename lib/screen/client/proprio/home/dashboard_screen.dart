@@ -8,6 +8,7 @@ import 'package:asfar/screen/client/proprio/appartements/listing_edit_screen.dar
 import 'package:asfar/screen/client/proprio/appartements/listings_screen.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/finances_screen.dart';
 import 'package:asfar/screen/client/proprio/home/widget/cashflow_split_card.dart';
+import 'package:asfar/screen/client/proprio/reservations/proprio_reservations_screen.dart';
 import 'package:asfar/screen/client/proprio/home/widget/kpi_tile.dart';
 import 'package:asfar/screen/client/proprio/home/widget/pending_request_row.dart';
 import 'package:asfar/screen/client/proprio/home/widget/proprio_listing_row.dart';
@@ -194,7 +195,12 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(title: 'Demandes en attente'),
+        SectionHeader(
+          title: 'Demandes en attente',
+          actionLabel: 'Voir tout',
+          onActionTap: () =>
+              pushScreen(context, const ProprioReservationsScreen()),
+        ),
         const SizedBox(height: 4),
         if (pending.isEmpty)
           EmptyState.inline(
