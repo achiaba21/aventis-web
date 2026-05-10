@@ -232,7 +232,7 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
           ),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 348,
+              height: 360,
               child: BlocBuilder<FavoriteBloc, FavoriteState>(
                 builder: (context, favState) {
                   final favIds = _favoriteIdsFromState(favState);

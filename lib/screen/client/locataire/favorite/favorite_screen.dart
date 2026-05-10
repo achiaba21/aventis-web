@@ -103,7 +103,7 @@ class _LocataireFavoriteScreenState extends State<LocataireFavoriteScreen> {
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.78,
+        childAspectRatio: 0.70,
       ),
       itemCount: 4,
       itemBuilder: (_, __) => const ShimmerCard(height: 220),
@@ -117,7 +117,7 @@ class _LocataireFavoriteScreenState extends State<LocataireFavoriteScreen> {
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.78,
+        childAspectRatio: 0.70,
       ),
       itemCount: favorites.length,
       itemBuilder: (_, i) => SavedListingCard(
