@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -65,13 +68,21 @@ class _LocataireSearchScreenState extends State<LocataireSearchScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomBar(
-        child: CustomButton(
-          text: 'Voir 124 logements',
-          onPressed: () => back(context),
-          size: ButtonSize.lg,
-          block: true,
-        ),
+      bottomNavigationBar: BlocBuilder<AppartementBloc, AppartementState>(
+        builder: (context, state) {
+          final count = state.appartements.length;
+          final label = count > 0
+              ? 'Voir $count logement${count > 1 ? 's' : ''}'
+              : 'Aucun logement';
+          return BottomBar(
+            child: CustomButton(
+              text: label,
+              onPressed: count > 0 ? () => back(context) : null,
+              size: ButtonSize.lg,
+              block: true,
+            ),
+          );
+        },
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),

@@ -25,7 +25,7 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
   });
 
   static const double _baseHeight = 48;
-  static const double _eyebrowExtra = 16;
+  static const double _eyebrowExtra = 20;
 
   @override
   Size get preferredSize => Size.fromHeight(

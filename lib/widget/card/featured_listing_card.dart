@@ -29,6 +29,15 @@ class FeaturedListingCard extends StatelessWidget {
     this.width = 220,
   });
 
+  /// Format `area · city` en gérant les valeurs vides (vraies données peuvent
+  /// avoir address null ou commune partielle).
+  String _locationText() {
+    final parts = [listing.area, listing.city]
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -91,8 +100,10 @@ class FeaturedListingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${listing.area} · ${listing.city}',
+                      _locationText(),
                       style: AppTextStyles.small.copyWith(fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
                     Row(

@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
 import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
-import 'package:asfar/screen/client/locataire/home/sample_listings.dart';
 import 'package:asfar/screen/client/locataire/home/search_screen.dart';
 import 'package:asfar/screen/client/locataire/home/widget/listing_filter_chips.dart';
 import 'package:asfar/screen/client/locataire/home/widget/locataire_home_header.dart';
 import 'package:asfar/screen/client/locataire/home/widget/locataire_search_bar.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/card/appartement_preview_card.dart';
 import 'package:asfar/widget/card/featured_listing_card.dart';
 import 'package:asfar/widget/card/listing_preview.dart';
+import 'package:asfar/widget/feedback/empty_state.dart';
+import 'package:asfar/widget/loader/shimmer_card.dart';
 import 'package:asfar/widget/map/map_teaser.dart';
 import 'package:asfar/widget/text/section_header.dart';
 
 /// Écran d'accueil Locataire — Explorer.
 ///
-/// Reproduit `LocataireHome` du proto :
-/// 1. Header (greeting + bell + avatar)
-/// 2. Search bar tappable
-/// 3. Chips filtres horizontales
-/// 4. Section "À la une" + carrousel `FeaturedListingCard`
-/// 5. Section "Près de vous" + `MapTeaser` (4 pins prix)
-/// 6. Section "Recommandés pour vous" + liste verticale `AppartementPreviewCard`
+/// V8.5 : branché sur `AppartementBloc` (au lieu de `SampleListings.all`).
+/// Utilise `state.appartements` (exposé par toutes les variantes Loaded du
+/// BLoC, y compris pendant Loading/Error pour le pattern cache-first).
 class LocataireHomeScreen extends StatefulWidget {
   final String firstName;
 
@@ -52,6 +54,19 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
 
   String _filter = 'Tout';
 
+  @override
+  void initState() {
+    super.initState();
+    // Trigger un load au mount si pas déjà en cache
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final bloc = context.read<AppartementBloc>();
+      if (bloc.state.appartements.isEmpty) {
+        bloc.add(LoadAppartements());
+      }
+    });
+  }
+
   void _onListingTap(ListingPreview listing) {
     pushScreen(context, LocataireDetailScreen(listing: listing));
   }
@@ -60,107 +75,155 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
     pushScreen(context, const LocataireSearchScreen());
   }
 
+  void _onRetry() {
+    context.read<AppartementBloc>().add(RefreshAppartements());
+  }
+
   @override
   Widget build(BuildContext context) {
-    final listings = SampleListings.all;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-                child: Column(
-                  children: [
-                    LocataireHomeHeader(
-                      firstName: widget.firstName,
-                      onBellTap: () {},
-                      onAvatarTap: () {},
-                    ),
-                    const SizedBox(height: 14),
-                    LocataireSearchBar(
-                      summary: 'Abidjan · 12-15 nov · 2 voyageurs',
-                      onTap: _onSearchTap,
-                      onFiltersTap: _onSearchTap,
-                    ),
-                  ],
+        child: BlocBuilder<AppartementBloc, AppartementState>(
+          builder: (context, state) {
+            final listings =
+                AppartementToListingMapper.mapMany(state.appartements);
+            final isInitialLoading =
+                state is AppartementLoading && listings.isEmpty;
+            final isErrorWithoutCache =
+                state is AppartementError && listings.isEmpty;
+
+            if (isInitialLoading) return _buildLoading();
+            if (isErrorWithoutCache) {
+              return EmptyState.error(
+                message: state.message,
+                onRetry: _onRetry,
+              );
+            }
+            return _buildContent(listings);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(18, 100, 18, 100),
+      itemCount: 4,
+      separatorBuilder: (_, __) => const SizedBox(height: 14),
+      itemBuilder: (_, __) => const ShimmerCard(height: 220),
+    );
+  }
+
+  Widget _buildContent(List<ListingPreview> listings) {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+            child: Column(
+              children: [
+                LocataireHomeHeader(
+                  firstName: widget.firstName,
+                  onBellTap: () {},
+                  onAvatarTap: () {},
                 ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: ListingFilterChips(
-                filters: _filters,
-                selected: _filter,
-                onSelect: (f) => setState(() => _filter = f),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
-            SliverToBoxAdapter(
-              child: SectionHeader(
-                title: 'À la une',
-                actionLabel: 'Voir tout',
-                onActionTap: () {},
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 322,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  itemCount: listings.take(3).length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (_, i) {
-                    final l = listings[i];
-                    return FeaturedListingCard(
-                      listing: l,
-                      onTap: () => _onListingTap(l),
-                    );
-                  },
+                const SizedBox(height: 14),
+                LocataireSearchBar(
+                  summary: 'Abidjan · 12-15 nov · 2 voyageurs',
+                  onTap: _onSearchTap,
+                  onFiltersTap: _onSearchTap,
                 ),
-              ),
+              ],
             ),
-            SliverToBoxAdapter(
-              child: SectionHeader(
-                title: 'Près de vous',
-                actionLabel: 'Voir carte',
-                onActionTap: () {},
-              ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: ListingFilterChips(
+            filters: _filters,
+            selected: _filter,
+            onSelect: (f) => setState(() => _filter = f),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        if (listings.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState.hero(
+              icon: Icons.home_work_outlined,
+              title: 'Aucun logement disponible',
+              body:
+                  'Aucun appartement ne correspond pour le moment. Revenez plus tard.',
+              ctaLabel: 'Actualiser',
+              onCtaTap: _onRetry,
             ),
-            SliverToBoxAdapter(
-              child: Padding(
+          )
+        else ...[
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'À la une',
+              actionLabel: 'Voir tout',
+              onActionTap: () {},
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 348,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: MapTeaser(
-                  pins: _mapPins,
-                  totalListings: 124,
-                  onSeeMap: () {},
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 4)),
-            const SliverToBoxAdapter(
-              child: SectionHeader(title: 'Recommandés pour vous'),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
-              sliver: SliverList.separated(
-                itemCount: listings.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 14),
+                itemCount: listings.take(3).length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (_, i) {
                   final l = listings[i];
-                  return AppartementPreviewCard(
+                  return FeaturedListingCard(
                     listing: l,
                     onTap: () => _onListingTap(l),
                   );
                 },
               ),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
-          ],
-        ),
-      ),
+          ),
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Près de vous',
+              actionLabel: 'Voir carte',
+              onActionTap: () {},
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: MapTeaser(
+                pins: _mapPins,
+                totalListings: listings.length,
+                onSeeMap: () {},
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 4)),
+          const SliverToBoxAdapter(
+            child: SectionHeader(title: 'Recommandés pour vous'),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+            sliver: SliverList.separated(
+              itemCount: listings.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 14),
+              itemBuilder: (_, i) {
+                final l = listings[i];
+                return AppartementPreviewCard(
+                  listing: l,
+                  onTap: () => _onListingTap(l),
+                );
+              },
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ],
     );
   }
 }
