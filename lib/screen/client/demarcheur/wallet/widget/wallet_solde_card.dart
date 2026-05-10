@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/screen/client/demarcheur/wallet/widget/wallet_withdraw_button.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
@@ -8,8 +9,7 @@ import 'package:asfar/util/fcfa_formatter.dart';
 /// Reproduit fidèlement le proto `demarcheur.jsx::DemarcheurWallet`
 /// (lignes 489-507) : gradient bleu-nuit 2 stops `[#1A2A4A, #0E1626]`,
 /// border bleue translucide, padding 20, radius 22, montant 36 px,
-/// texte info versement vendredi, bouton « Retirer maintenant » sur fond
-/// translucide blanc.
+/// texte info versement vendredi, bouton « Retirer maintenant ».
 class WalletSoldeCard extends StatelessWidget {
   final int amount;
   final String autoTransferText;
@@ -65,42 +65,8 @@ class WalletSoldeCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _withdrawButton(context),
+          WalletWithdrawButton(onTap: onWithdraw),
         ],
-      ),
-    );
-  }
-
-  Widget _withdrawButton(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onWithdraw,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.download_outlined, size: 16, color: Colors.white),
-              const SizedBox(width: 6),
-              const Text(
-                'Retirer maintenant',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
