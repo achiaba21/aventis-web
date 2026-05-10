@@ -179,6 +179,47 @@ class ListingReductionsTab extends StatelessWidget {
             onCtaTap: () => _onAddPalier(context),
           )
         else ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Paliers de réductions',
+                style: AppTextStyles.h3,
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _onAddPalier(context),
+                  borderRadius: BorderRadius.circular(100),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentSoft,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add, size: 16, color: AppColors.accent),
+                        SizedBox(width: 4),
+                        Text(
+                          'Ajouter',
+                          style: TextStyle(
+                            color: AppColors.accent,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
               color: AppColors.bgElev1,
@@ -192,25 +233,10 @@ class ListingReductionsTab extends StatelessWidget {
                   FieldRow(
                     eyebrow: _seuilLabel(c.days),
                     value: _montantLabel(c.montant),
+                    trailingIcon: Icons.chevron_right,
                     onTap: () => _onEditPalier(context, c),
                   ),
               ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: () => _onAddPalier(context),
-              icon: const Icon(Icons.add, size: 18, color: AppColors.accent),
-              label: const Text(
-                'Ajouter un palier',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
             ),
           ),
         ],
