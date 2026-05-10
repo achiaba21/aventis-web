@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/reservation_bloc/reservation_bloc.dart';
+import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
 import 'package:asfar/model/ui_only/pending_request.dart';
 import 'package:asfar/screen/client/proprio/appartements/listing_edit_screen.dart';
 import 'package:asfar/screen/client/proprio/appartements/listings_screen.dart';
@@ -8,15 +11,16 @@ import 'package:asfar/screen/client/proprio/home/widget/kpi_tile.dart';
 import 'package:asfar/screen/client/proprio/home/widget/pending_request_row.dart';
 import 'package:asfar/screen/client/proprio/home/widget/proprio_listing_row.dart';
 import 'package:asfar/screen/client/proprio/home/widget/revenue_hero_card.dart';
-import 'package:asfar/screen/client/proprio/sample/sample_pending_requests.dart';
 import 'package:asfar/screen/client/proprio/sample/sample_property_perf.dart';
 import 'package:asfar/screen/client/proprio/sample/sample_proprio_stats.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/mapping/reservation_to_pending_request.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
+import 'package:asfar/widget/feedback/empty_state.dart';
 import 'package:asfar/widget/text/section_header.dart';
 
 /// Dashboard du Propriétaire — onglet Accueil du `ProprioShell`.
@@ -41,7 +45,6 @@ class ProprioDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final perfs = SamplePropertyPerf.all;
-    final pending = SamplePendingRequests.all;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: DynamicAppBar(
@@ -78,7 +81,7 @@ class ProprioDashboard extends StatelessWidget {
               const SizedBox(height: 22),
               _listingsSection(context, perfs),
               const SizedBox(height: 22),
-              _pendingSection(context, pending),
+              _pendingSection(context),
             ],
           ),
         ),
@@ -150,12 +153,31 @@ class ProprioDashboard extends StatelessWidget {
     );
   }
 
-  Widget _pendingSection(BuildContext context, List<PendingRequest> pending) {
+  Widget _pendingSection(BuildContext context) {
+    return BlocBuilder<ReservationBloc, ReservationState>(
+      builder: (context, state) {
+        final pending = ReservationToPendingRequestMapper.mapPending(
+          state.reservations,
+        );
+        return _buildPendingSection(context, pending);
+      },
+    );
+  }
+
+  Widget _buildPendingSection(
+      BuildContext context, List<PendingRequest> pending) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SectionHeader(title: 'Demandes en attente'),
         const SizedBox(height: 4),
+        if (pending.isEmpty)
+          EmptyState.inline(
+            icon: Icons.inbox_outlined,
+            title: 'Aucune demande en attente',
+            body: 'Les nouvelles demandes de réservation apparaîtront ici.',
+          )
+        else
         Container(
           decoration: BoxDecoration(
             color: AppColors.bgElev1,
