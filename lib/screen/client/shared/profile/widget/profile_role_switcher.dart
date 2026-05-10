@@ -4,32 +4,40 @@ import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/badge/badge_tone.dart';
 
-/// Sélecteur de rôle du Profil — card avec 3 listrows
-/// (Locataire / Propriétaire / Démarcheur).
+/// Sélecteur de vue du Profil — card avec listrows par vue accessible.
 ///
-/// Composant transverse partagé par les Shells locataire/démarcheur/proprio
-/// (cf. `extras.jsx::Profile` du prototype, lignes 318-340).
+/// V8.5 : un utilisateur n'a PAS plusieurs rôles. Mais un proprio/démarcheur
+/// peut basculer en mode Locataire pour séjourner ailleurs sans changer son
+/// type de compte. Ce switcher affiche uniquement les vues accessibles à
+/// l'utilisateur via [availableViews] (cf. `RoleHomeRouter.availableViewsFor`).
 ///
-/// Le rôle actif a un badge "Actif" + icon en accent or, les autres ont
-/// icon en `bgElev3` et arrow.
+/// Si une seule vue est accessible (locataire pur), le switcher peut être
+/// caché par le parent — voir `ClientProfileScreen`.
 class ProfileRoleSwitcher extends StatelessWidget {
   final String currentRole;
+  final List<String> availableViews;
   final ValueChanged<String>? onSwitchRole;
 
   const ProfileRoleSwitcher({
     super.key,
     required this.currentRole,
+    required this.availableViews,
     this.onSwitchRole,
   });
 
-  static const _roles = [
+  static const _allRoles = [
     _RoleInfo(id: 'locataire', icon: Icons.vpn_key_outlined, label: 'Locataire'),
     _RoleInfo(id: 'proprietaire', icon: Icons.home_outlined, label: 'Propriétaire'),
     _RoleInfo(id: 'demarcheur', icon: Icons.handshake_outlined, label: 'Démarcheur'),
   ];
 
+  List<_RoleInfo> get _visibleRoles {
+    return _allRoles.where((r) => availableViews.contains(r.id)).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final roles = _visibleRoles;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.bgElev1,
@@ -39,8 +47,8 @@ class ProfileRoleSwitcher extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          for (var i = 0; i < _roles.length; i++)
-            _row(context, _roles[i], isLast: i == _roles.length - 1),
+          for (var i = 0; i < roles.length; i++)
+            _row(context, roles[i], isLast: i == roles.length - 1),
         ],
       ),
     );

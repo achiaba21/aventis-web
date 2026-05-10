@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/active_shell_cubit/active_shell_cubit.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
@@ -48,9 +49,13 @@ class _SplashScreenState extends State<SplashScreen> {
     _routed = true;
     final state = context.read<UserBloc>().state;
     if (state is UserLoaded) {
+      // V8.5 — restaurer la vue active persistée si disponible (un proprio
+      // qui avait basculé en mode Locataire reste en mode Locataire après
+      // redémarrage). Fallback sur user.type sinon.
+      final activeView = context.read<ActiveShellCubit>().state;
       pushAndRemoveAll(
         context,
-        RoleHomeRouter.shellFor(state.loadedUser),
+        RoleHomeRouter.shellFor(state.loadedUser, viewId: activeView),
       );
     } else {
       pushAndRemoveAll(context, const OnboardingScreen());

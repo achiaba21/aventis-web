@@ -521,6 +521,29 @@ class StorageService {
     await _appSettingsBox.delete(key);
   }
 
+  // ==================== ACTIVE VIEW (V8.5) ====================
+
+  /// Clé Hive pour la vue active de l'utilisateur (différente de `user.type`).
+  ///
+  /// Permet à un proprio/démarcheur de basculer en mode Locataire pour
+  /// séjourner ailleurs sans changer son type de compte.
+  static const String _activeViewKey = 'active_view';
+
+  /// Récupère la vue active persistée.
+  ///
+  /// Retourne `null` si jamais définie (l'utilisateur ouvre alors l'interface
+  /// de son `user.type` par défaut).
+  String? getActiveView() => getAppSetting<String>(_activeViewKey);
+
+  /// Persiste la vue active. Passer `null` pour réinitialiser (au logout).
+  Future<void> saveActiveView(String? viewId) async {
+    if (viewId == null) {
+      await deleteAppSetting(_activeViewKey);
+    } else {
+      await setAppSetting<String>(_activeViewKey, viewId);
+    }
+  }
+
   // ==================== UTILITY ====================
 
   /// Convertit récursivement les Map Hive (_Map<dynamic, dynamic>)

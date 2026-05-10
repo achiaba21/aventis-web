@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:asfar/service/firebase/fcm_background_handler.dart';
+import 'package:asfar/bloc/active_shell_cubit/active_shell_cubit.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_bloc.dart';
 import 'package:asfar/bloc/partenariat_bloc/partenariat_bloc.dart';
@@ -88,6 +89,7 @@ class MyApp extends StatelessWidget {
       providers: [
         // BlocProviders pour tous les blocs
         BlocProvider(create: (_) => UserBloc()),
+        BlocProvider(create: (_) => ActiveShellCubit()),
 
         // AppartementBloc avec cache Hive (singleton AppartementRepository)
         BlocProvider(create: (_) => AppartementBloc()),
@@ -193,6 +195,12 @@ class AppWithBlocListener extends StatelessWidget {
 
     // Partenariats
     context.read<PartenariatBloc>().add(const ResetPartenariatState());
+
+    // ==================== VUE ACTIVE (V8.5) ====================
+
+    // Reset la vue active persistée — au prochain login, on reprend la vue
+    // par défaut du user.type.
+    context.read<ActiveShellCubit>().clear();
 
     // ==================== CACHE HIVE ====================
 

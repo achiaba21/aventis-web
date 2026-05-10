@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/active_shell_cubit/active_shell_cubit.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
@@ -40,10 +41,15 @@ class ClientProfileScreen extends StatelessWidget {
   void _onSwitchRole(BuildContext context, String roleId) {
     final user = context.read<UserBloc>().state.user;
     if (user == null) return;
-    if ((user.type ?? '').toLowerCase() == roleId) return;
+    final cubit = context.read<ActiveShellCubit>();
+    final currentView = cubit.state ?? user.type;
+    if ((currentView ?? '').toLowerCase() == roleId.toLowerCase()) return;
 
-    user.type = roleId;
-    pushAndRemoveAll(context, RoleHomeRouter.shellFor(user));
+    // V8.5 — change la vue active (différente du type de compte) et persiste.
+    // user.type reste INTACT — on n'écrase pas le type de compte.
+    cubit.setView(roleId);
+
+    pushAndRemoveAll(context, RoleHomeRouter.shellFor(user, viewId: roleId));
   }
 
   @override
@@ -65,7 +71,14 @@ class ClientProfileScreen extends StatelessWidget {
             final name = user?.fullName.trim().isNotEmpty == true
                 ? user!.fullName
                 : 'Aïcha Camara';
-            final info = ProfileDisplayInfo.forRole(user?.type);
+            final activeView = context.watch<ActiveShellCubit>().state ??
+                user?.type ??
+                'locataire';
+            final info = ProfileDisplayInfo.forRole(activeView);
+            final availableViews = user != null
+                ? RoleHomeRouter.availableViewsFor(user)
+                : <String>['locataire'];
+            final canSwitchView = availableViews.length > 1;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
@@ -78,13 +91,16 @@ class ClientProfileScreen extends StatelessWidget {
                     badge: info.badge,
                     verified: true,
                   ),
-                  const SizedBox(height: 18),
-                  const Text('Changer de rôle', style: AppTextStyles.h3),
-                  const SizedBox(height: 10),
-                  ProfileRoleSwitcher(
-                    currentRole: user?.type ?? 'locataire',
-                    onSwitchRole: (id) => _onSwitchRole(context, id),
-                  ),
+                  if (canSwitchView) ...[
+                    const SizedBox(height: 18),
+                    const Text('Changer de vue', style: AppTextStyles.h3),
+                    const SizedBox(height: 10),
+                    ProfileRoleSwitcher(
+                      currentRole: activeView,
+                      availableViews: availableViews,
+                      onSwitchRole: (id) => _onSwitchRole(context, id),
+                    ),
+                  ],
                   const SizedBox(height: 18),
                   const Text('Compte', style: AppTextStyles.h3),
                   const SizedBox(height: 10),
