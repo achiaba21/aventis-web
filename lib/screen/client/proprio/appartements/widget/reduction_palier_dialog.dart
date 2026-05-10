@@ -85,11 +85,7 @@ class _ReductionPalierDialogState extends State<ReductionPalierDialog> {
       return;
     }
     if (montant == null || montant <= 0) {
-      setState(() => _error = 'Saisissez un montant de réduction positif.');
-      return;
-    }
-    if (montant > 100) {
-      setState(() => _error = 'Le pourcentage ne peut pas dépasser 100.');
+      setState(() => _error = 'Saisissez un prix journalier positif.');
       return;
     }
     Navigator.of(context).pop(
@@ -127,8 +123,8 @@ class _ReductionPalierDialogState extends State<ReductionPalierDialog> {
             const SizedBox(height: 4),
             Text(
               _isEditing
-                  ? 'Ajustez le seuil de nuits ou le pourcentage.'
-                  : 'À partir d\'un certain nombre de nuits, applique une réduction.',
+                  ? 'Ajustez le seuil de nuits ou le prix journalier appliqué.'
+                  : 'À partir d\'un certain nombre de nuits, applique un prix journalier réduit.',
               style: AppTextStyles.small.copyWith(fontSize: 12),
             ),
             const SizedBox(height: 16),
@@ -142,8 +138,8 @@ class _ReductionPalierDialogState extends State<ReductionPalierDialog> {
             const SizedBox(height: 12),
             InputField(
               controller: _montantCtrl,
-              eyebrow: 'RÉDUCTION (%)',
-              hintText: '10',
+              eyebrow: 'NOUVEAU PRIX / NUIT (FCFA)',
+              hintText: '40000',
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             ),

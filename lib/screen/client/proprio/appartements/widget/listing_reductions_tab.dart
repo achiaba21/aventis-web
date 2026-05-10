@@ -49,19 +49,15 @@ class ListingReductionsTab extends StatelessWidget {
 
   String _seuilLabel(int? days) {
     if (days == null || days <= 0) return 'PALIER';
-    return 'RÉDUCTION ≥ $days NUITS';
+    return 'À PARTIR DE $days NUITS';
   }
 
-  /// Heuristique : montant ≤ 100 → traité comme pourcentage. Au-delà → FCFA
-  /// brut. Cohérent avec la convention backend (montant en % des séjours
-  /// longs, ou montant fixe pour cas particuliers).
+  /// `Condition.montant` = nouveau prix journalier (FCFA) appliqué au-delà
+  /// du seuil `days`. Affiché en format compact "/nuit" pour cohérence avec
+  /// le tarif de base au-dessus.
   String _montantLabel(double? montant) {
     if (montant == null) return '—';
-    if (montant <= 100) {
-      final rounded = montant.round();
-      return '−$rounded %';
-    }
-    return '−${FcfaFormatter.full(montant.round())}';
+    return '${FcfaFormatter.full(montant.round())} / nuit';
   }
 
   Future<void> _onAddPalier(BuildContext context) async {
