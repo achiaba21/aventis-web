@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/screen/client/shared/inbox/widget/chat_send_button.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/container/blur_container.dart';
@@ -8,13 +9,7 @@ import 'package:asfar/widget/input/input_field.dart';
 ///
 /// Reproduit le proto `extras.jsx::MessagingThread` (lignes 270-285) :
 /// borderTop `line`, padding `10×14×30` (bottom = safe area iOS),
-/// Row[IconBoutton plus + InputField flex 1 + bouton rond 40 accent or send].
-///
-/// Wrapping `BlurContainer` pour cohérence Liquid Glass Asfar (le proto
-/// utilise un flat alpha 0.92, on enrichit visuellement).
-///
-/// Le bouton send est désactivé visuellement (opacity 0.4) si le champ est
-/// vide. Tap envoyer appelle [onSend] avec le texte et le contrôleur est vidé.
+/// Row[IconBoutton plus + InputField flex 1 + ChatSendButton].
 class ChatInputBar extends StatefulWidget {
   final ValueChanged<String> onSend;
   final VoidCallback? onPlusTap;
@@ -88,34 +83,11 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                _sendButton(),
+                ChatSendButton(
+                  enabled: _canSend,
+                  onTap: _handleSend,
+                ),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _sendButton() {
-    return Opacity(
-      opacity: _canSend ? 1.0 : 0.4,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(99),
-          onTap: _canSend ? _handleSend : null,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.accent,
-            ),
-            child: const Icon(
-              Icons.send,
-              size: 18,
-              color: AppColors.onAccent,
             ),
           ),
         ),
