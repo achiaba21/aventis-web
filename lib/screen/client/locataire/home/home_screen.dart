@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
+import 'package:asfar/bloc/favorite_bloc/favorite_bloc.dart';
+import 'package:asfar/bloc/favorite_bloc/favorite_event.dart';
+import 'package:asfar/bloc/favorite_bloc/favorite_state.dart';
 import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
 import 'package:asfar/screen/client/locataire/home/search_screen.dart';
 import 'package:asfar/screen/client/locataire/home/widget/listing_filter_chips.dart';
@@ -77,6 +80,25 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
 
   void _onRetry() {
     context.read<AppartementBloc>().add(RefreshAppartements());
+  }
+
+  void _onToggleFavorite(ListingPreview listing) {
+    final apartId = int.tryParse(listing.id);
+    if (apartId == null) return;
+    context.read<FavoriteBloc>().add(ToggleFavorite(apartId));
+  }
+
+  List<int> _favoriteIdsFromState(FavoriteState state) {
+    if (state is FavoriteLoaded) return state.favoriteIds;
+    if (state is FavoriteOptimisticUpdate) return state.favoriteIds;
+    if (state is FavoriteActionSuccess) return state.favoriteIds;
+    if (state is FavoriteError) return state.favoriteIds ?? const [];
+    return const [];
+  }
+
+  bool _isLiked(List<int> ids, ListingPreview listing) {
+    final apartId = int.tryParse(listing.id);
+    return apartId != null && ids.contains(apartId);
   }
 
   @override
@@ -171,16 +193,23 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
           SliverToBoxAdapter(
             child: SizedBox(
               height: 348,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                itemCount: listings.take(3).length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (_, i) {
-                  final l = listings[i];
-                  return FeaturedListingCard(
-                    listing: l,
-                    onTap: () => _onListingTap(l),
+              child: BlocBuilder<FavoriteBloc, FavoriteState>(
+                builder: (context, favState) {
+                  final favIds = _favoriteIdsFromState(favState);
+                  return ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    itemCount: listings.take(3).length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (_, i) {
+                      final l = listings[i];
+                      return FeaturedListingCard(
+                        listing: l,
+                        liked: _isLiked(favIds, l),
+                        onTap: () => _onListingTap(l),
+                        onLikeTap: () => _onToggleFavorite(l),
+                      );
+                    },
                   );
                 },
               ),
@@ -209,16 +238,26 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
-            sliver: SliverList.separated(
-              itemCount: listings.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 14),
-              itemBuilder: (_, i) {
-                final l = listings[i];
-                return AppartementPreviewCard(
-                  listing: l,
-                  onTap: () => _onListingTap(l),
-                );
-              },
+            sliver: SliverToBoxAdapter(
+              child: BlocBuilder<FavoriteBloc, FavoriteState>(
+                builder: (context, favState) {
+                  final favIds = _favoriteIdsFromState(favState);
+                  return Column(
+                    children: [
+                      for (var i = 0; i < listings.length; i++) ...[
+                        AppartementPreviewCard(
+                          listing: listings[i],
+                          liked: _isLiked(favIds, listings[i]),
+                          onTap: () => _onListingTap(listings[i]),
+                          onLikeTap: () => _onToggleFavorite(listings[i]),
+                        ),
+                        if (i != listings.length - 1)
+                          const SizedBox(height: 14),
+                      ],
+                    ],
+                  );
+                },
+              ),
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
