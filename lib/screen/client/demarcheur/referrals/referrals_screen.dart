@@ -72,8 +72,11 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
     pushScreen(context, const NewReferralScreen());
   }
 
-  void _onOpenDetail(ReferralPreview referral) {
-    pushScreen(context, ReferralDetailScreen(referral: referral));
+  void _onOpenDetail(ReferralPreview referral, Reservation? source) {
+    pushScreen(
+      context,
+      ReferralDetailScreen(referral: referral, source: source),
+    );
   }
 
   @override
@@ -110,11 +113,15 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
                 : <Reservation>[];
             final referrals =
                 ReservationToReferralMapper.mapMany(reservations);
+            final sourceById = <String, Reservation>{
+              for (var i = 0; i < referrals.length; i++)
+                referrals[i].id: reservations[i],
+            };
             final wanted = _statusForFilter(_filter);
             final visible = wanted == null
                 ? referrals
                 : referrals.where((r) => r.status == wanted).toList();
-            return _buildContent(context, visible);
+            return _buildContent(context, visible, sourceById);
           },
         ),
       ),
@@ -134,7 +141,11 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
     );
   }
 
-  Widget _buildContent(BuildContext context, List<ReferralPreview> visible) {
+  Widget _buildContent(
+    BuildContext context,
+    List<ReferralPreview> visible,
+    Map<String, Reservation> sourceById,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -172,7 +183,8 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
                           ReferralRow(
                             referral: visible[i],
                             isLast: i == visible.length - 1,
-                            onTap: () => _onOpenDetail(visible[i]),
+                            onTap: () => _onOpenDetail(
+                                visible[i], sourceById[visible[i].id]),
                           ),
                       ],
                     ),

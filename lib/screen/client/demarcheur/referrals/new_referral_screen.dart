@@ -36,7 +36,11 @@ import 'package:asfar/widget/loader/shimmer_card.dart';
 /// `DemarcheurBloc` et écoute `DemarcheurReservationCreated` pour passer
 /// à l'étape 3 avec la référence serveur.
 class NewReferralScreen extends StatefulWidget {
-  const NewReferralScreen({super.key});
+  /// Si fourni, l'étape 1 est pré-sélectionnée sur ce logement et le tunnel
+  /// démarre directement à l'étape 2.
+  final Appartement? initialAppartement;
+
+  const NewReferralScreen({super.key, this.initialAppartement});
 
   @override
   State<NewReferralScreen> createState() => _NewReferralScreenState();
@@ -49,21 +53,82 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
 
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _arrivalCtrl = TextEditingController(text: '12 nov.');
-  final _departureCtrl = TextEditingController(text: '15 nov.');
+  late final TextEditingController _arrivalCtrl;
+  late final TextEditingController _departureCtrl;
   final _noteCtrl = TextEditingController();
   final _searchCtrl = TextEditingController();
+
+  late DateTime _arrival;
+  late DateTime _departure;
 
   String? _generatedRef;
   bool _submitting = false;
 
+  static const _monthsShort = [
+    'janv.', 'févr.', 'mars', 'avril', 'mai', 'juin',
+    'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+  ];
+
+  String _formatDate(DateTime d) =>
+      '${d.day} ${_monthsShort[d.month - 1]}';
+
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    _arrival = DateTime(now.year, now.month, now.day);
+    _departure = _arrival.add(
+      const Duration(days: ReferralCommissionHelper.defaultNights),
+    );
+    _arrivalCtrl = TextEditingController(text: _formatDate(_arrival));
+    _departureCtrl = TextEditingController(text: _formatDate(_departure));
+    final initial = widget.initialAppartement;
+    if (initial != null) {
+      _selectedAppartement = initial;
+      _selectedListing = AppartementToListingMapper.mapOne(initial);
+      _step = 2;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AppartementBloc>().add(LoadAppartements());
     });
+  }
+
+  Future<void> _pickArrival() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _arrival,
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked == null) return;
+    setState(() {
+      _arrival = picked;
+      _arrivalCtrl.text = _formatDate(_arrival);
+      if (!_departure.isAfter(_arrival)) {
+        _departure = _arrival.add(const Duration(days: 1));
+        _departureCtrl.text = _formatDate(_departure);
+      }
+    });
+  }
+
+  Future<void> _pickDeparture() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _departure,
+      firstDate: _arrival.add(const Duration(days: 1)),
+      lastDate: _arrival.add(const Duration(days: 365)),
+    );
+    if (picked == null) return;
+    setState(() {
+      _departure = picked;
+      _departureCtrl.text = _formatDate(_departure);
+    });
+  }
+
+  int get _stayNights {
+    final days = _departure.difference(_arrival).inDays;
+    return days > 0 ? days : 1;
   }
 
   String get _stepTitle {
@@ -81,7 +146,10 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
   int get _commissionEstimate {
     final l = _selectedListing;
     if (l == null) return 0;
-    return ReferralCommissionHelper.estimate(pricePerNight: l.price);
+    return ReferralCommissionHelper.estimate(
+      pricePerNight: l.price,
+      nights: _stayNights,
+    );
   }
 
   bool get _step1Valid => _selectedListing != null;
@@ -91,8 +159,11 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
   void _goToStep(int next) => setState(() => _step = next);
 
   void _onLeading() {
-    if (_step > 1 && _step < 3) {
-      _goToStep(_step - 1);
+    final preselected = widget.initialAppartement != null;
+    if (_step == 2 && !preselected) {
+      _goToStep(1);
+    } else if (_step == 3) {
+      back(context);
     } else {
       back(context);
     }
@@ -103,9 +174,9 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
     if (appart == null || appart.id == null) return;
     final req = DemarcheurReservationReq(
       appartId: appart.id!,
-      debut: DateTime.now(),
-      dure: ReferralCommissionHelper.defaultNights,
-      montant: (appart.prix ?? 0) * ReferralCommissionHelper.defaultNights,
+      debut: _arrival,
+      dure: _stayNights,
+      montant: (appart.prix ?? 0) * _stayNights,
       montantCommission: _commissionEstimate.toDouble(),
       clientNom: _nameCtrl.text.trim(),
       clientTelephone: _phoneCtrl.text.trim(),
@@ -282,6 +353,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
               controller: _arrivalCtrl,
               eyebrow: 'ARRIVÉE',
               readOnly: true,
+              onTap: _pickArrival,
             ),
           ),
           const SizedBox(width: 12),
@@ -290,6 +362,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
               controller: _departureCtrl,
               eyebrow: 'DÉPART',
               readOnly: true,
+              onTap: _pickDeparture,
             ),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/ui_only/referral_preview.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/commission_card.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_status_display.dart';
@@ -18,26 +19,66 @@ import 'package:asfar/widget/user/user_avatar.dart';
 
 /// Détail d'une référence client — `ReferralDetailScreen`.
 ///
-/// Reproduit `DemarcheurReferralDetail` du prototype : timeline 5 étapes
-/// verticales + card résumé du logement + card client + card propriétaire +
-/// card commission.
+/// V8.5 P1 : reçoit en plus du `ReferralPreview` la `Reservation` source
+/// pour dériver dynamiquement la timeline (createdAt + statut + dates),
+/// le client (clientNom + téléphone) et le propriétaire (proprio.fullName).
 class ReferralDetailScreen extends StatelessWidget {
   final ReferralPreview referral;
+  final Reservation? source;
 
-  const ReferralDetailScreen({super.key, required this.referral});
+  const ReferralDetailScreen({
+    super.key,
+    required this.referral,
+    this.source,
+  });
 
-  static const _steps = [
-    TimelineEntry(
-        title: 'Demande envoyée', subtitle: 'il y a 2 j · 8 nov. 09:14'),
-    TimelineEntry(
-        title: 'Vue par le propriétaire', subtitle: '8 nov. 11:42'),
-    TimelineEntry(
-        title: 'Acceptée par Aminata K.', subtitle: '9 nov. 08:20'),
-    TimelineEntry(
-        title: 'Paiement client', subtitle: 'En attente'),
-    TimelineEntry(
-        title: 'Commission versée', subtitle: 'À venir · vendredi'),
-  ];
+  List<TimelineEntry> _buildSteps() {
+    final created = source?.createdAt;
+    final sentLabel = _relativeLabel(created);
+    final acceptedAt = source?.statut == ReservationStatus.confirmee ||
+            source?.statut == ReservationStatus.payee ||
+            source?.statut == ReservationStatus.finalisee ||
+            source?.statut == ReservationStatus.terminee
+        ? source?.createdAt
+        : null;
+    final hostName = source?.proprio?.fullName.trim().isNotEmpty == true
+        ? source!.proprio!.fullName
+        : 'le propriétaire';
+
+    return [
+      TimelineEntry(
+        title: 'Demande envoyée',
+        subtitle: sentLabel ?? 'À l\'instant',
+      ),
+      TimelineEntry(
+        title: 'Vue par le propriétaire',
+        subtitle: source?.statut == ReservationStatus.enAttente
+            ? 'En attente'
+            : (sentLabel ?? '—'),
+      ),
+      TimelineEntry(
+        title: source?.statut == ReservationStatus.refusee
+            ? 'Refusée par $hostName'
+            : 'Acceptée par $hostName',
+        subtitle: _formatDate(acceptedAt) ?? 'En attente',
+      ),
+      TimelineEntry(
+        title: 'Paiement client',
+        subtitle: source?.statut == ReservationStatus.payee ||
+                source?.statut == ReservationStatus.finalisee ||
+                source?.statut == ReservationStatus.terminee
+            ? 'Reçu'
+            : 'En attente',
+      ),
+      TimelineEntry(
+        title: 'Commission versée',
+        subtitle: source?.statut == ReservationStatus.terminee ||
+                source?.statut == ReservationStatus.finalisee
+            ? 'Versée'
+            : 'À venir',
+      ),
+    ];
+  }
 
   int _currentStepIndex(ReferralStatus status) {
     switch (status) {
@@ -82,7 +123,7 @@ class ReferralDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               ReferralTimeline(
-                steps: _steps,
+                steps: _buildSteps(),
                 currentIndex: _currentStepIndex(referral.status),
               ),
               const SizedBox(height: 22),
@@ -97,8 +138,8 @@ class ReferralDetailScreen extends StatelessWidget {
               const Text('Propriétaire', style: AppTextStyles.h3),
               const SizedBox(height: 10),
               HostCard(
-                hostName: 'Aminata Koné',
-                memberSince: '2023',
+                hostName: _hostName(),
+                memberSince: _hostMemberSince(),
                 certified: true,
                 onContactTap: () {},
               ),
@@ -114,6 +155,18 @@ class ReferralDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _hostName() {
+    final p = source?.proprio;
+    if (p == null) return 'Propriétaire';
+    final name = p.fullName.trim();
+    return name.isNotEmpty ? name : 'Propriétaire';
+  }
+
+  String _hostMemberSince() {
+    final created = source?.proprio?.createdAt;
+    return created != null ? '${created.year}' : '—';
   }
 
   Widget _clientCard() {
@@ -142,7 +195,9 @@ class ReferralDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  referral.clientPhone,
+                  referral.clientPhone.isEmpty
+                      ? 'Téléphone non communiqué'
+                      : referral.clientPhone,
                   style: AppTextStyles.small.copyWith(fontSize: 12),
                 ),
               ],
@@ -151,7 +206,7 @@ class ReferralDetailScreen extends StatelessWidget {
           const SizedBox(width: 12),
           OutlinedCustomButton(
             text: 'Appeler',
-            onPressed: () {},
+            onPressed: referral.clientPhone.isEmpty ? null : () {},
             size: ButtonSize.sm,
             leadingIcon: Icons.phone_outlined,
           ),
@@ -160,4 +215,26 @@ class ReferralDetailScreen extends StatelessWidget {
     );
   }
 
+  /// Format "il y a 2 j · 8 nov." / "À l'instant" / "5 min" / etc.
+  String? _relativeLabel(DateTime? dt) {
+    if (dt == null) return null;
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inMinutes < 1) return "À l'instant";
+    if (diff.inMinutes < 60) return 'il y a ${diff.inMinutes} min';
+    if (diff.inHours < 24) return 'il y a ${diff.inHours} h';
+    if (diff.inDays < 7) return 'il y a ${diff.inDays} j';
+    return _formatDate(dt);
+  }
+
+  String? _formatDate(DateTime? dt) {
+    if (dt == null) return null;
+    const months = [
+      'janv.', 'févr.', 'mars', 'avril', 'mai', 'juin',
+      'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+    ];
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
+    return '${dt.day} ${months[dt.month - 1]} $hh:$mm';
+  }
 }

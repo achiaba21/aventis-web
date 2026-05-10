@@ -66,8 +66,22 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
     pushScreen(context, const NewReferralScreen());
   }
 
-  void _onOpenReferralDetail(BuildContext context, ReferralPreview r) {
-    pushScreen(context, ReferralDetailScreen(referral: r));
+  void _onOpenNewForAppart(BuildContext context, Appartement appart) {
+    pushScreen(
+      context,
+      NewReferralScreen(initialAppartement: appart),
+    );
+  }
+
+  void _onOpenReferralDetail(
+    BuildContext context,
+    ReferralPreview r,
+    Reservation? source,
+  ) {
+    pushScreen(
+      context,
+      ReferralDetailScreen(referral: r, source: source),
+    );
   }
 
   void _onOpenAllReferrals(BuildContext context) {
@@ -140,10 +154,14 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
     final acceptanceRate =
         DemarcheurStatsCalculator.acceptanceRate(reservations);
 
-    final referrals =
-        ReservationToReferralMapper.mapMany(reservations).take(3).toList();
+    final allReferrals = ReservationToReferralMapper.mapMany(reservations);
+    final referrals = allReferrals.take(3).toList();
+    final sourceById = <String, Reservation>{
+      for (var i = 0; i < allReferrals.length && i < reservations.length; i++)
+        allReferrals[i].id: reservations[i],
+    };
 
-    final pushListings = _topListingsToPush(pushAppartements);
+    final pushApparts = _topAppartsToPush(pushAppartements);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(18, 8, 18, 100),
@@ -207,8 +225,8 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
                     ReferralRow(
                       referral: referrals[i],
                       isLast: i == referrals.length - 1,
-                      onTap: () =>
-                          _onOpenReferralDetail(context, referrals[i]),
+                      onTap: () => _onOpenReferralDetail(
+                          context, referrals[i], sourceById[referrals[i].id]),
                     ),
                 ],
               ),
@@ -219,7 +237,7 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
             actionLabel: 'Voir tout',
             onActionTap: () {},
           ),
-          if (pushListings.isEmpty)
+          if (pushApparts.isEmpty)
             EmptyState.inline(
               icon: Icons.home_work_outlined,
               title: 'Aucun logement disponible',
@@ -231,15 +249,16 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.zero,
-                itemCount: pushListings.length,
+                itemCount: pushApparts.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (_, i) {
-                  final l = pushListings[i];
+                  final a = pushApparts[i];
+                  final l = AppartementToListingMapper.mapOne(a);
                   return ListingPushCard(
                     listing: l,
-                    estimatedCommission:
-                        ReferralCommissionHelper.estimate(pricePerNight: l.price),
-                    onTap: () => _onOpenNew(context),
+                    estimatedCommission: ReferralCommissionHelper.estimate(
+                        pricePerNight: l.price),
+                    onTap: () => _onOpenNewForAppart(context, a),
                   );
                 },
               ),
@@ -254,13 +273,13 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
     );
   }
 
-  /// Top 5 logements à pousser, triés par note décroissante (proxy de
-  /// performance).
-  List _topListingsToPush(List<Appartement> apparts) {
+  /// Top 5 appartements à pousser, triés par note décroissante (proxy de
+  /// performance). Renvoie les `Appartement` sources pour permettre la
+  /// pré-sélection dans `NewReferralScreen`.
+  List<Appartement> _topAppartsToPush(List<Appartement> apparts) {
     if (apparts.isEmpty) return const [];
-    final mapped = AppartementToListingMapper.mapMany(apparts);
-    final sorted = List.of(mapped)
-      ..sort((a, b) => b.rating.compareTo(a.rating));
+    final sorted = List.of(apparts)
+      ..sort((a, b) => (b.note).compareTo(a.note));
     return sorted.take(5).toList();
   }
 }
