@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
+import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_calendar_tab.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_edit_hero.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_edit_stats_card.dart';
@@ -36,6 +40,18 @@ class ProprioListingEditScreen extends StatelessWidget {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  /// Cherche l'Appartement source dans le cache du BLoC. Renvoie null si
+  /// non trouvé (cas où le screen est ouvert depuis un push qui n'a pas
+  /// préalablement chargé les appartements proprio).
+  Appartement? _findAppartement(List<Appartement> apparts) {
+    final id = int.tryParse(listing.id);
+    if (id == null) return null;
+    for (final a in apparts) {
+      if (a.id == id) return a;
+    }
+    return null;
   }
 
   @override
@@ -77,27 +93,35 @@ class ProprioListingEditScreen extends StatelessWidget {
                 delegate: _TabBarDelegate(),
               ),
             ],
-            body: TabBarView(
-              children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
-                  child: ListingInfosTab(listing: listing),
-                ),
-                SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
-                  child: ListingCalendarTab(
-                    appartementId: int.tryParse(listing.id),
-                  ),
-                ),
-                SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
-                  child: ListingPricingTab(listing: listing),
-                ),
-                SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
-                  child: const ListingRulesTab(),
-                ),
-              ],
+            body: BlocBuilder<AppartementBloc, AppartementState>(
+              builder: (context, state) {
+                final source = _findAppartement(state.appartements);
+                return TabBarView(
+                  children: [
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
+                      child: ListingInfosTab(
+                        listing: listing,
+                        source: source,
+                      ),
+                    ),
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
+                      child: ListingCalendarTab(
+                        appartementId: int.tryParse(listing.id),
+                      ),
+                    ),
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
+                      child: ListingPricingTab(listing: listing),
+                    ),
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
+                      child: ListingRulesTab(source: source),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
