@@ -10,22 +10,17 @@ import 'package:asfar/bloc/reservation_bloc/reservation_bloc.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
 import 'package:asfar/model/comptabilite/charge.dart';
-import 'package:asfar/model/reservation/reservation.dart';
-import 'package:asfar/model/residence/appart.dart';
-import 'package:asfar/model/ui_only/pending_request.dart';
 import 'package:asfar/screen/client/proprio/appartements/listing_edit_screen.dart';
 import 'package:asfar/screen/client/proprio/appartements/listings_screen.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/finances_screen.dart';
-import 'package:asfar/screen/client/proprio/home/widget/cashflow_split_card.dart';
-import 'package:asfar/screen/client/proprio/reservations/proprio_reservations_screen.dart';
-import 'package:asfar/screen/client/proprio/home/widget/kpi_tile.dart';
-import 'package:asfar/screen/client/proprio/home/widget/pending_request_row.dart';
-import 'package:asfar/screen/client/proprio/home/widget/proprio_listing_row.dart';
+import 'package:asfar/screen/client/proprio/home/widget/proprio_cashflow_section.dart';
+import 'package:asfar/screen/client/proprio/home/widget/proprio_kpi_grid.dart';
+import 'package:asfar/screen/client/proprio/home/widget/proprio_listings_section.dart';
+import 'package:asfar/screen/client/proprio/home/widget/proprio_pending_section.dart';
 import 'package:asfar/screen/client/proprio/home/widget/revenue_hero_card.dart';
+import 'package:asfar/screen/client/proprio/reservations/proprio_reservations_screen.dart';
 import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/theme/app_radii.dart';
-import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/calc/cashflow_aggregator.dart';
 import 'package:asfar/util/calc/kpi_aggregator.dart';
 import 'package:asfar/util/calc/monthly_revenue_calculator.dart';
@@ -34,15 +29,12 @@ import 'package:asfar/util/mapping/reservation_to_pending_request.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
-import 'package:asfar/widget/feedback/empty_state.dart';
-import 'package:asfar/widget/text/section_header.dart';
 
 /// Dashboard du Propriétaire — onglet Accueil du `ProprioShell`.
 ///
 /// V8.5 Lot 8b : branché sur `AppartementBloc` + `ReservationBloc` +
 /// `ChargeBloc` via les Calculators (Lot 8a). Toutes les données mocks
-/// (`SampleProprioStats`, `SamplePropertyPerf`) sont remplacées par les
-/// agrégations live des BLoCs.
+/// sont remplacées par les agrégations live des BLoCs.
 class ProprioDashboard extends StatefulWidget {
   final String firstName;
 
@@ -66,7 +58,7 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
     });
   }
 
-  void _stub(BuildContext context, String message) {
+  void _toast(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -85,8 +77,7 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
         eyebrow: 'TABLEAU DE BORD',
         leading: IconBoutton(
           icon: Icons.grid_view_outlined,
-          onPressed: () =>
-              _stub(context, 'Vue alternative disponible prochainement'),
+          onPressed: () => _toast('Vue alternative disponible prochainement'),
         ),
         trailing: IconBoutton(
           icon: Icons.notifications_none,
@@ -106,8 +97,70 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                     final charges = chargeState is ChargeLoaded
                         ? chargeState.charges
                         : <Charge>[];
-                    return _buildContent(
-                        context, appartements, reservations, charges);
+
+                    final monthlyAmount =
+                        MonthlyRevenueCalculator.currentMonth(reservations);
+                    final previousAmount =
+                        MonthlyRevenueCalculator.previousMonth(reservations);
+                    final deltaPercent =
+                        MonthlyRevenueCalculator.deltaPercent(reservations);
+                    final last6 =
+                        MonthlyRevenueCalculator.last6Months(reservations);
+                    final kpis = KpiAggregator.fromData(
+                      appartements: appartements,
+                      reservations: reservations,
+                    );
+                    final cashflow = CashflowAggregator.currentMonth(
+                      reservations: reservations,
+                      charges: charges,
+                    );
+                    final perfs = PropertyPerfAggregator.compute(
+                      appartements: appartements,
+                      reservations: reservations,
+                    );
+                    final pending = ReservationToPendingRequestMapper
+                        .mapPending(reservations);
+
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RevenueHeroCard(
+                            amount: monthlyAmount,
+                            deltaPercent: deltaPercent,
+                            previousAmount: previousAmount,
+                            last6Months: last6,
+                          ),
+                          const SizedBox(height: 16),
+                          ProprioKpiGrid(kpis: kpis),
+                          const SizedBox(height: 22),
+                          ProprioCashflowSection(
+                            segments: cashflow,
+                            onSeeDetails: () => pushScreen(
+                                context, const ProprioFinancesScreen()),
+                          ),
+                          const SizedBox(height: 22),
+                          ProprioListingsSection(
+                            perfs: perfs,
+                            onSeeAll: () => pushScreen(
+                                context, const ProprioListingsScreen()),
+                            onListingTap: (listing) => pushScreen(
+                              context,
+                              ProprioListingEditScreen(listing: listing),
+                            ),
+                          ),
+                          const SizedBox(height: 22),
+                          ProprioPendingSection(
+                            pending: pending,
+                            onSeeAll: () => pushScreen(
+                                context, const ProprioReservationsScreen()),
+                            onPendingTap: (_) => _toast(
+                                'Détail demande disponible prochainement (F5)'),
+                          ),
+                        ],
+                      ),
+                    );
                   },
                 );
               },
@@ -115,192 +168,6 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildContent(
-    BuildContext context,
-    List<Appartement> appartements,
-    List<Reservation> reservations,
-    List<Charge> charges,
-  ) {
-    final monthlyAmount =
-        MonthlyRevenueCalculator.currentMonth(reservations);
-    final previousAmount =
-        MonthlyRevenueCalculator.previousMonth(reservations);
-    final deltaPercent = MonthlyRevenueCalculator.deltaPercent(reservations);
-    final last6 = MonthlyRevenueCalculator.last6Months(reservations);
-
-    final kpis = KpiAggregator.fromData(
-      appartements: appartements,
-      reservations: reservations,
-    );
-
-    final cashflow = CashflowAggregator.currentMonth(
-      reservations: reservations,
-      charges: charges,
-    );
-
-    final perfs = PropertyPerfAggregator.compute(
-      appartements: appartements,
-      reservations: reservations,
-    );
-
-    final pending = ReservationToPendingRequestMapper.mapPending(reservations);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(18, 8, 18, 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          RevenueHeroCard(
-            amount: monthlyAmount,
-            deltaPercent: deltaPercent,
-            previousAmount: previousAmount,
-            last6Months: last6,
-          ),
-          const SizedBox(height: 16),
-          _kpiGrid(kpis),
-          const SizedBox(height: 22),
-          _cashflowSection(context, cashflow),
-          const SizedBox(height: 22),
-          _listingsSection(context, perfs),
-          const SizedBox(height: 22),
-          _buildPendingSection(context, pending),
-        ],
-      ),
-    );
-  }
-
-  Widget _kpiGrid(List kpis) {
-    if (kpis.length < 4) {
-      return EmptyState.inline(
-        icon: Icons.bar_chart_outlined,
-        title: 'Stats indisponibles',
-        body: 'Les statistiques se chargent…',
-      );
-    }
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(child: KpiTile(kpi: kpis[0])),
-            const SizedBox(width: 10),
-            Expanded(child: KpiTile(kpi: kpis[1])),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(child: KpiTile(kpi: kpis[2])),
-            const SizedBox(width: 10),
-            Expanded(child: KpiTile(kpi: kpis[3])),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _cashflowSection(BuildContext context, List cashflow) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHeader(
-          title: 'Flux financier',
-          actionLabel: 'Détails →',
-          onActionTap: () =>
-              pushScreen(context, const ProprioFinancesScreen()),
-        ),
-        const SizedBox(height: 4),
-        if (cashflow.isEmpty)
-          EmptyState.inline(
-            icon: Icons.account_balance_outlined,
-            title: 'Pas encore de flux',
-            body: 'Les revenus du mois apparaîtront ici.',
-          )
-        else
-          CashflowSplitCard(segments: List.from(cashflow)),
-      ],
-    );
-  }
-
-  Widget _listingsSection(BuildContext context, List perfs) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHeader(
-          title: 'Mes annonces',
-          actionLabel: 'Tout voir',
-          onActionTap: () => pushScreen(context, const ProprioListingsScreen()),
-        ),
-        const SizedBox(height: 4),
-        if (perfs.isEmpty)
-          EmptyState.inline(
-            icon: Icons.home_work_outlined,
-            title: 'Aucune annonce',
-            body: 'Vos annonces apparaîtront ici.',
-          )
-        else
-          for (var i = 0; i < perfs.length; i++) ...[
-            ProprioListingRow(
-              listing: perfs[i].listing,
-              occupancyRate: perfs[i].occupancyRate,
-              monthlyRevenue: perfs[i].monthlyRevenue,
-              onTap: () => pushScreen(
-                context,
-                ProprioListingEditScreen(listing: perfs[i].listing),
-              ),
-            ),
-            if (i != perfs.length - 1) const SizedBox(height: 10),
-          ],
-      ],
-    );
-  }
-
-  Widget _buildPendingSection(
-      BuildContext context, List<PendingRequest> pending) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHeader(
-          title: 'Demandes en attente',
-          actionLabel: 'Voir tout',
-          onActionTap: () =>
-              pushScreen(context, const ProprioReservationsScreen()),
-        ),
-        const SizedBox(height: 4),
-        if (pending.isEmpty)
-          EmptyState.inline(
-            icon: Icons.inbox_outlined,
-            title: 'Aucune demande en attente',
-            body: 'Les nouvelles demandes de réservation apparaîtront ici.',
-          )
-        else
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.bgElev1,
-              borderRadius: BorderRadius.circular(AppRadii.lg),
-              border: Border.all(color: AppColors.line, width: 1),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                for (var i = 0; i < pending.length; i++)
-                  PendingRequestRow(
-                    request: pending[i],
-                    isLast: i == pending.length - 1,
-                    onTap: () => _stub(context,
-                        'Détail demande disponible prochainement (F5)'),
-                  ),
-              ],
-            ),
-          ),
-        const SizedBox(height: 8),
-        Text(
-          'Astuce : répondre vite augmente votre taux d\'acceptation.',
-          style: AppTextStyles.small.copyWith(fontSize: 12),
-        ),
-      ],
     );
   }
 }

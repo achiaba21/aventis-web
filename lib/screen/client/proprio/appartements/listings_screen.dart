@@ -7,25 +7,15 @@ import 'package:asfar/screen/client/proprio/appartements/listing_edit_screen.dar
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_full_card.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listings_filter_chips.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/new_listing_card.dart';
+import 'package:asfar/screen/client/proprio/appartements/widget/proprio_listings_loading_view.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
-import 'package:asfar/widget/loader/shimmer_card.dart';
 
 /// Liste des annonces du propriétaire — onglet Annonces du `ProprioShell`.
-///
-/// V8.5 : branché sur `AppartementBloc` via l'event `LoadProprietaireAppartements`
-/// qui charge uniquement les annonces du propriétaire connecté. Affiche les
-/// vraies annonces depuis le backend.
-///
-/// Note : `occupancyRate` et `monthlyRevenue` restent à 0/heuristique simple
-/// jusqu'à Lot 8 qui apportera `KpiAggregator` (calcul depuis Reservation
-/// history + Charge). Pour l'instant, les KPIs OCCUP/REV. MOIS afficheront
-/// `0%` / `0 FCFA` ou des valeurs neutres.
 class ProprioListingsScreen extends StatefulWidget {
   const ProprioListingsScreen({super.key});
 
@@ -42,7 +32,6 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final bloc = context.read<AppartementBloc>();
-      // Charge les annonces du proprio si pas déjà en cache
       if (bloc.state.appartements.isEmpty) {
         bloc.add(LoadProprietaireAppartements());
       }
@@ -100,94 +89,83 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
             final isErrorWithoutCache =
                 state is AppartementError && listings.isEmpty;
 
-            if (isInitialLoading) return _buildLoading();
+            if (isInitialLoading) return const ProprioListingsLoadingView();
             if (isErrorWithoutCache) {
               return EmptyState.error(
                 message: state.message,
                 onRetry: _onRetry,
               );
             }
-            return _buildContent(listings);
+            return Column(
+              children: [
+                const SizedBox(height: 6),
+                ListingsFilterChips(
+                  filters: _buildFilters(listings.length),
+                  selected: _filter.startsWith('Tout')
+                      ? 'Tout (${listings.length})'
+                      : _filter,
+                  onSelect: (f) => setState(() => _filter = f),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: listings.isEmpty
+                      ? EmptyState.hero(
+                          icon: Icons.home_work_outlined,
+                          title: 'Aucune annonce',
+                          body:
+                              'Vos annonces publiées apparaîtront ici.\nCommencez par publier votre 1ère annonce.',
+                          ctaLabel: 'Nouvelle annonce',
+                          onCtaTap: () => _stub(
+                              'Création d\'annonce disponible prochainement (F2)'),
+                        )
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
+                          child: Column(
+                            children: [
+                              for (var i = 0; i < listings.length; i++) ...[
+                                ListingFullCard(
+                                  listing: listings[i],
+                                  occupancyRate: 0,
+                                  monthlyRevenue: 0,
+                                  onTap: () => pushScreen(
+                                    context,
+                                    ProprioListingEditScreen(
+                                        listing: listings[i]),
+                                  ),
+                                  onMoreTap: () =>
+                                      _stub("Plus d'options bientôt"),
+                                  onCalendarTap: () => pushScreen(
+                                    context,
+                                    ProprioListingEditScreen(
+                                      listing: listings[i],
+                                      initialTab: 1,
+                                    ),
+                                  ),
+                                  onEditTap: () => pushScreen(
+                                    context,
+                                    ProprioListingEditScreen(
+                                      listing: listings[i],
+                                      initialTab: 0,
+                                    ),
+                                  ),
+                                  onStatsTap: () => _stub(
+                                      'Statistiques détaillées disponibles prochainement'),
+                                ),
+                                const SizedBox(height: 14),
+                              ],
+                              NewListingCard(
+                                onTap: () => _stub(
+                                    'Création d\'annonce disponible prochainement (F2)'),
+                              ),
+                            ],
+                          ),
+                        ),
+                ),
+              ],
+            );
           },
         ),
       ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
-      itemCount: 3,
-      separatorBuilder: (_, __) => const SizedBox(height: 14),
-      itemBuilder: (_, __) => const ShimmerCard(height: 320),
-    );
-  }
-
-  Widget _buildContent(List<ListingPreview> listings) {
-    return Column(
-      children: [
-        const SizedBox(height: 6),
-        ListingsFilterChips(
-          filters: _buildFilters(listings.length),
-          selected: _filter.startsWith('Tout') ? 'Tout (${listings.length})' : _filter,
-          onSelect: (f) => setState(() => _filter = f),
-        ),
-        const SizedBox(height: 16),
-        Expanded(
-          child: listings.isEmpty
-              ? EmptyState.hero(
-                  icon: Icons.home_work_outlined,
-                  title: 'Aucune annonce',
-                  body:
-                      'Vos annonces publiées apparaîtront ici.\nCommencez par publier votre 1ère annonce.',
-                  ctaLabel: 'Nouvelle annonce',
-                  onCtaTap: () => _stub(
-                      'Création d\'annonce disponible prochainement (F2)'),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
-                  child: Column(
-                    children: [
-                      for (var i = 0; i < listings.length; i++) ...[
-                        ListingFullCard(
-                          listing: listings[i],
-                          // KPIs occupancyRate + monthlyRevenue à 0 jusqu'à
-                          // Lot 8 (KpiAggregator depuis Reservation history)
-                          occupancyRate: 0,
-                          monthlyRevenue: 0,
-                          onTap: () => pushScreen(
-                            context,
-                            ProprioListingEditScreen(listing: listings[i]),
-                          ),
-                          onMoreTap: () => _stub("Plus d'options bientôt"),
-                          onCalendarTap: () => pushScreen(
-                            context,
-                            ProprioListingEditScreen(
-                              listing: listings[i],
-                              initialTab: 1,
-                            ),
-                          ),
-                          onEditTap: () => pushScreen(
-                            context,
-                            ProprioListingEditScreen(
-                              listing: listings[i],
-                              initialTab: 0,
-                            ),
-                          ),
-                          onStatsTap: () => _stub(
-                              'Statistiques détaillées disponibles prochainement'),
-                        ),
-                        const SizedBox(height: 14),
-                      ],
-                      NewListingCard(
-                        onTap: () => _stub(
-                            'Création d\'annonce disponible prochainement (F2)'),
-                      ),
-                    ],
-                  ),
-                ),
-        ),
-      ],
     );
   }
 }

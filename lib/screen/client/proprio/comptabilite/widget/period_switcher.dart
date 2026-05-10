@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/widget/period_switcher_segment.dart';
 import 'package:asfar/theme/app_colors.dart';
 
 /// Segmented control 4 options pour `ProprioFinancesScreen`.
@@ -30,35 +31,14 @@ class PeriodSwitcher extends StatelessWidget {
       child: Row(
         children: [
           for (final option in options)
-            Expanded(child: _segment(option)),
-        ],
-      ),
-    );
-  }
-
-  Widget _segment(String option) {
-    final active = option == selected;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: () => onSelect(option),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          decoration: BoxDecoration(
-            color: active ? AppColors.bgElev3 : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            option,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: active ? AppColors.text : AppColors.text3,
+            Expanded(
+              child: PeriodSwitcherSegment(
+                option: option,
+                active: option == selected,
+                onTap: () => onSelect(option),
+              ),
             ),
-          ),
-        ),
+        ],
       ),
     );
   }

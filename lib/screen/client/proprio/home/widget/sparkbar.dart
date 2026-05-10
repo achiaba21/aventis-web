@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/model/ui_only/monthly_revenue.dart';
-import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/util/fcfa_formatter.dart';
+import 'package:asfar/screen/client/proprio/home/widget/sparkbar_bar.dart';
 
 /// Bar chart simple à barres verticales — atome de Vague 7.
 ///
@@ -38,7 +37,13 @@ class Sparkbar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               for (final m in months)
-                Expanded(child: _bar(m, maxAmount)),
+                Expanded(
+                  child: SparkbarBar(
+                    month: m,
+                    maxAmount: maxAmount,
+                    containerHeight: height,
+                  ),
+                ),
             ],
           ),
         ),
@@ -62,38 +67,4 @@ class Sparkbar extends StatelessWidget {
     );
   }
 
-  Widget _bar(MonthlyRevenue m, int maxAmount) {
-    final ratio = m.amount / maxAmount;
-    final barHeight = (height * ratio).clamp(height * 0.1, height);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.bottomCenter,
-        children: [
-          Container(
-            height: barHeight,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: m.highlight ? AppColors.accent : AppColors.bgElev3,
-              borderRadius: BorderRadius.circular(3),
-            ),
-          ),
-          if (m.highlight)
-            Positioned(
-              bottom: barHeight + 2,
-              child: Text(
-                FcfaFormatter.compact(m.amount),
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.accent,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 }

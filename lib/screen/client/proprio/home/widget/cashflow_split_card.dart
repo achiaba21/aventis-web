@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/model/ui_only/cashflow_segment.dart';
+import 'package:asfar/screen/client/proprio/home/widget/cashflow_legend_row.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
-import 'package:asfar/theme/app_text_styles.dart';
-import 'package:asfar/util/fcfa_formatter.dart';
 
 /// Card « Flux financier » du Dashboard propriétaire — barre stack 4 segments
 /// + légende.
@@ -48,42 +47,7 @@ class CashflowSplitCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          for (final seg in segments) _legendRow(seg),
-        ],
-      ),
-    );
-  }
-
-  Widget _legendRow(CashflowSegment seg) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: seg.color,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              seg.label,
-              style: const TextStyle(fontSize: 13, color: AppColors.text2),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Text(
-            FcfaFormatter.compact(seg.amount),
-            style: AppTextStyles.mono(const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.text,
-            )),
-          ),
+          for (final seg in segments) CashflowLegendRow(segment: seg),
         ],
       ),
     );

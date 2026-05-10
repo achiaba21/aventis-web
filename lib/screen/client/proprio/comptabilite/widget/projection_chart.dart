@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:asfar/model/ui_only/projection_point.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/widget/projection_month_labels.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
@@ -63,7 +64,7 @@ class ProjectionChart extends StatelessWidget {
         const SizedBox(height: 14),
         SizedBox(height: 80, child: LineChart(_chartData())),
         const SizedBox(height: 8),
-        _monthLabels(),
+        ProjectionMonthLabels(points: points),
       ],
     );
   }
@@ -161,26 +162,4 @@ class ProjectionChart extends StatelessWidget {
     );
   }
 
-  Widget _monthLabels() {
-    return Row(
-      children: [
-        for (var i = 0; i < points.length; i++)
-          Expanded(
-            child: Text(
-              points[i].monthShort,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: points[i].isCurrent
-                    ? FontWeight.w700
-                    : FontWeight.w400,
-                color: points[i].isCurrent
-                    ? AppColors.accent
-                    : AppColors.text3,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
 }

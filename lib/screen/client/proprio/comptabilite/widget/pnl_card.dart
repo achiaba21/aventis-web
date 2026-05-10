@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/model/ui_only/pnl_entry.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/widget/pnl_category_header.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/widget/pnl_detail_line.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/widget/pnl_net_income_row.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/widget/pnl_net_margin_row.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
-import 'package:asfar/theme/app_text_styles.dart';
-import 'package:asfar/util/fcfa_formatter.dart';
 
 /// Compte de résultat — `ProprioFinancesScreen`.
 ///
@@ -47,117 +49,21 @@ class PnLCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _categoryHeader(revenueHeader),
-          for (final d in revenueDetails) _detailLine(d),
+          PnLCategoryHeader(entry: revenueHeader),
+          for (final d in revenueDetails) PnLDetailLine(entry: d),
           const SizedBox(height: 12),
           const Divider(color: AppColors.line, height: 1),
           const SizedBox(height: 12),
-          _categoryHeader(chargeHeader),
-          for (final d in chargeDetails) _detailLine(d),
+          PnLCategoryHeader(entry: chargeHeader),
+          for (final d in chargeDetails) PnLDetailLine(entry: d),
           const SizedBox(height: 12),
           const Divider(color: AppColors.line, height: 1),
           const SizedBox(height: 12),
-          _netIncomeRow(),
+          PnLNetIncomeRow(netIncome: netIncome),
           const SizedBox(height: 4),
-          _netMarginRow(),
+          PnLNetMarginRow(netMargin: netMargin),
         ],
       ),
-    );
-  }
-
-  Widget _categoryHeader(PnLEntry entry) {
-    final color = entry.isRevenue ? AppColors.success : AppColors.danger;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            entry.label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          Text(
-            FcfaFormatter.compact(entry.amount),
-            style: AppTextStyles.mono(const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.text,
-            )),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _detailLine(PnLEntry entry) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 6, 0, 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              entry.label,
-              style: const TextStyle(fontSize: 13, color: AppColors.text2),
-            ),
-          ),
-          Text(
-            FcfaFormatter.compact(entry.amount),
-            style: AppTextStyles.mono(const TextStyle(
-              fontSize: 13,
-              color: AppColors.text2,
-            )),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _netIncomeRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Bénéfice net',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: AppColors.text,
-          ),
-        ),
-        Text(
-          FcfaFormatter.compact(netIncome.amount),
-          style: AppTextStyles.mono(const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.accent,
-          )),
-        ),
-      ],
-    );
-  }
-
-  Widget _netMarginRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Marge nette',
-          style: AppTextStyles.small.copyWith(fontSize: 11),
-        ),
-        Text(
-          '${netMargin.amount}%',
-          style: AppTextStyles.mono(const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.success,
-          )),
-        ),
-      ],
     );
   }
 }
