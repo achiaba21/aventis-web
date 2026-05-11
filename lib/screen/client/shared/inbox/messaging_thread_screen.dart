@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_bloc.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/model/conversation/chat_message.dart' as model;
+import 'package:asfar/model/ui_only/accepted_referral_card_payload.dart';
 import 'package:asfar/model/ui_only/conversation_preview.dart';
+import 'package:asfar/model/ui_only/reservation_card_payload.dart';
+import 'package:asfar/screen/client/demarcheur/referrals/referral_detail_screen.dart';
+import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/chat_input_bar.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_custom_header.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_loading_view.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_messages_list.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/util/function.dart';
 import 'package:asfar/util/mapping/chat_message_to_ui.dart';
+import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 
 /// Écran de conversation 1-to-1 — `MessagingThreadScreen`.
@@ -76,6 +83,38 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
     );
   }
 
+  Future<void> _onCall() async {
+    final phone = widget.conversation.phone?.trim();
+    if (phone == null || phone.isEmpty) {
+      _toast('Numéro indisponible');
+      return;
+    }
+    try {
+      final uri = Uri(scheme: 'tel', path: phone);
+      final ok = await launchUrl(uri);
+      if (!ok && mounted) _toast('Impossible de lancer l\'appel');
+    } catch (e) {
+      deboger('MessagingThread.onCall: $e');
+      if (mounted) _toast('Impossible de lancer l\'appel');
+    }
+  }
+
+  void _onReservationTap(ReservationCardPayload payload) {
+    pushScreen(context, LocataireDetailScreen(listing: payload.listing));
+  }
+
+  void _onReferralTap(AcceptedReferralCardPayload payload) {
+    final referral = payload.referral;
+    if (referral == null) {
+      // Le mapper actuel n'enrichit pas encore le payload avec un
+      // ReferralPreview complet (en attente du format backend des cards
+      // [ASFAR_CARD:referral]). Toast informatif en attendant.
+      _toast('Détail de la demande ${payload.referralCode} bientôt disponible');
+      return;
+    }
+    pushScreen(context, ReferralDetailScreen(referral: referral));
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = widget.conversation;
@@ -89,7 +128,7 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
               who: c.who,
               sub: c.sub,
               certified: c.certified,
-              onCall: () => _toast('Appel disponible prochainement'),
+              onCall: _onCall,
             ),
             Expanded(
               child: BlocConsumer<ConversationBloc, ConversationState>(
@@ -127,10 +166,8 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
                   return ThreadMessagesList(
                     messages: messages,
                     scrollController: _scrollController,
-                    onReservationTap: () =>
-                        _toast('Détail réservation disponible prochainement'),
-                    onReferralTap: () =>
-                        _toast('Détail référence disponible prochainement'),
+                    onReservationTap: _onReservationTap,
+                    onReferralTap: _onReferralTap,
                   );
                 },
               ),

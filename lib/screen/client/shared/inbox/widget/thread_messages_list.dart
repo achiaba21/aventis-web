@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/ui_only/accepted_referral_card_payload.dart';
 import 'package:asfar/model/ui_only/chat_message.dart';
+import 'package:asfar/model/ui_only/reservation_card_payload.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_date_separator.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_message_item.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
@@ -10,8 +12,8 @@ import 'package:asfar/widget/feedback/empty_state.dart';
 class ThreadMessagesList extends StatelessWidget {
   final List<ChatMessage> messages;
   final ScrollController? scrollController;
-  final VoidCallback? onReservationTap;
-  final VoidCallback? onReferralTap;
+  final void Function(ReservationCardPayload payload)? onReservationTap;
+  final void Function(AcceptedReferralCardPayload payload)? onReferralTap;
 
   const ThreadMessagesList({
     super.key,

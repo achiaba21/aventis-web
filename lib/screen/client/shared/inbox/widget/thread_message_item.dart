@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/ui_only/accepted_referral_card_payload.dart';
 import 'package:asfar/model/ui_only/chat_message.dart';
+import 'package:asfar/model/ui_only/reservation_card_payload.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/accepted_referral_message_card.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/message_bubble.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/reservation_message_card.dart';
@@ -10,8 +12,8 @@ import 'package:asfar/screen/client/shared/inbox/widget/reservation_message_card
 /// le payload spécial est absent.
 class ThreadMessageItem extends StatelessWidget {
   final ChatMessage message;
-  final VoidCallback? onReservationTap;
-  final VoidCallback? onReferralTap;
+  final void Function(ReservationCardPayload payload)? onReservationTap;
+  final void Function(AcceptedReferralCardPayload payload)? onReferralTap;
 
   const ThreadMessageItem({
     super.key,
@@ -26,20 +28,25 @@ class ThreadMessageItem extends StatelessWidget {
       case MessageKind.text:
         return MessageBubble(message: message);
       case MessageKind.reservationCard:
-        if (message.reservation == null) {
+        final payload = message.reservation;
+        if (payload == null) {
           return MessageBubble(message: message);
         }
         return ReservationMessageCard(
-          payload: message.reservation!,
-          onTap: onReservationTap,
+          payload: payload,
+          onTap: onReservationTap == null
+              ? null
+              : () => onReservationTap!(payload),
         );
       case MessageKind.acceptedReferralCard:
-        if (message.acceptedReferral == null) {
+        final payload = message.acceptedReferral;
+        if (payload == null) {
           return MessageBubble(message: message);
         }
         return AcceptedReferralMessageCard(
-          payload: message.acceptedReferral!,
-          onTap: onReferralTap,
+          payload: payload,
+          onTap:
+              onReferralTap == null ? null : () => onReferralTap!(payload),
         );
     }
   }

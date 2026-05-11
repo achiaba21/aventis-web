@@ -35,6 +35,11 @@ class ConversationPreview {
   final int unread;
   final bool certified;
 
+  /// Numéro de téléphone international (ex: `+22507991234`). Si renseigné,
+  /// le bouton phone du header ouvre l'app téléphone via `tel:`. Sinon
+  /// fallback SnackBar « Numéro indisponible ».
+  final String? phone;
+
   const ConversationPreview({
     required this.id,
     required this.who,
@@ -44,5 +49,6 @@ class ConversationPreview {
     required this.time,
     this.unread = 0,
     this.certified = false,
+    this.phone,
   });
 }

@@ -45,6 +45,7 @@ class ConversationToPreviewMapper {
           : 'Démarrez la conversation…',
       time: _relativeTime(source.lastUpdated ?? last?.createdAt),
       unread: source.unreadCount ?? 0,
+      phone: other?.telephone,
     );
   }
 
