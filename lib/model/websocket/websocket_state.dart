@@ -130,7 +130,10 @@ class RealtimeAction {
   static const String refreshFavorites = 'REFRESH_FAVORITES';
   static const String refreshAppartements = 'REFRESH_APPARTEMENTS';
   static const String refreshBookings = 'REFRESH_BOOKINGS';
-  static const String refreshMapResidences = 'REFRESH_MAP_RESIDENCES';
+  // V9.7b : refonte modèle map (1 marker = 1 appartement). La chaîne backend
+  // reste 'REFRESH_MAP_RESIDENCES' tant que le backend n'a pas été aligné.
+  // TODO V10 : aligner backend → renommer la valeur en 'REFRESH_MAP_APPARTEMENTS'.
+  static const String refreshMapAppartements = 'REFRESH_MAP_RESIDENCES';
   static const String updateAppartementPrice = 'UPDATE_APPARTEMENT_PRICE';
   static const String updateAppartementAvailability = 'UPDATE_APPARTEMENT_AVAILABILITY';
   static const String newAppartementInArea = 'NEW_APPARTEMENT_IN_AREA';

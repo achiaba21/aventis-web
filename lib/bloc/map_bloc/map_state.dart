@@ -1,6 +1,6 @@
 import 'package:latlong2/latlong.dart';
 import 'package:asfar/model/filter/filter_criteria.dart';
-import 'package:asfar/model/map/map_residence.dart';
+import 'package:asfar/model/map/map_appartement.dart';
 
 abstract class MapState {
   const MapState();
@@ -14,96 +14,56 @@ class MapLoading extends MapState {
   const MapLoading();
 }
 
-class MapResidencesLoaded extends MapState {
-  final List<MapResidence> residences;
+class MapAppartementsLoaded extends MapState {
+  final List<MapAppartement> appartements;
   final LatLng center;
   final double radiusKm;
   final FilterCriteria? filter;
-  final bool isClusterMode;
 
-  const MapResidencesLoaded({
-    required this.residences,
+  const MapAppartementsLoaded({
+    required this.appartements,
     required this.center,
     required this.radiusKm,
     this.filter,
-    this.isClusterMode = false,
   });
 
-  MapResidencesLoaded copyWith({
-    List<MapResidence>? residences,
+  MapAppartementsLoaded copyWith({
+    List<MapAppartement>? appartements,
     LatLng? center,
     double? radiusKm,
     FilterCriteria? filter,
-    bool? isClusterMode,
   }) {
-    return MapResidencesLoaded(
-      residences: residences ?? this.residences,
+    return MapAppartementsLoaded(
+      appartements: appartements ?? this.appartements,
       center: center ?? this.center,
       radiusKm: radiusKm ?? this.radiusKm,
-      filter: filter ?? this.filter,
-      isClusterMode: isClusterMode ?? this.isClusterMode,
-    );
-  }
-}
-
-class MapClustersLoaded extends MapState {
-  final List<MapCluster> clusters;
-  final LatLng center;
-  final double radiusKm;
-  final double clusterRadiusKm;
-  final FilterCriteria? filter;
-
-  const MapClustersLoaded({
-    required this.clusters,
-    required this.center,
-    required this.radiusKm,
-    required this.clusterRadiusKm,
-    this.filter,
-  });
-
-  MapClustersLoaded copyWith({
-    List<MapCluster>? clusters,
-    LatLng? center,
-    double? radiusKm,
-    double? clusterRadiusKm,
-    FilterCriteria? filter,
-  }) {
-    return MapClustersLoaded(
-      clusters: clusters ?? this.clusters,
-      center: center ?? this.center,
-      radiusKm: radiusKm ?? this.radiusKm,
-      clusterRadiusKm: clusterRadiusKm ?? this.clusterRadiusKm,
       filter: filter ?? this.filter,
     );
   }
 }
 
-class MapResidenceSelected extends MapState {
-  final MapResidence selectedResidence;
-  final List<MapResidence>? allResidences;
-  final List<MapCluster>? clusters;
+class MapAppartementSelected extends MapState {
+  final MapAppartement selectedAppartement;
+  final List<MapAppartement>? allAppartements;
   final LatLng center;
   final double radiusKm;
   final FilterCriteria? filter;
-  final bool isClusterMode;
 
-  const MapResidenceSelected({
-    required this.selectedResidence,
-    this.allResidences,
-    this.clusters,
+  const MapAppartementSelected({
+    required this.selectedAppartement,
+    this.allAppartements,
     required this.center,
     required this.radiusKm,
     this.filter,
-    this.isClusterMode = false,
   });
 }
 
-class MapResidenceDetailsLoaded extends MapState {
-  final MapResidence residenceDetails;
+class MapAppartementDetailsLoaded extends MapState {
+  final MapAppartement appartementDetails;
   final LatLng? realLocation;
 
-  const MapResidenceDetailsLoaded({
-    required this.residenceDetails,
+  const MapAppartementDetailsLoaded({
+    required this.appartementDetails,
     this.realLocation,
   });
 }
@@ -122,9 +82,8 @@ class MapError extends MapState {
 
 class MapNetworkError extends MapError {
   const MapNetworkError({
-    required String message,
+    required super.message,
   }) : super(
-          message: message,
           errorType: 'network',
           canRetry: true,
         );
@@ -132,9 +91,8 @@ class MapNetworkError extends MapError {
 
 class MapLocationError extends MapError {
   const MapLocationError({
-    required String message,
+    required super.message,
   }) : super(
-          message: message,
           errorType: 'location',
           canRetry: true,
         );
@@ -163,11 +121,11 @@ class MapCenterUpdated extends MapState {
 }
 
 class MapRealLocationLoaded extends MapState {
-  final int residenceId;
+  final int appartementId;
   final LatLng realLocation;
 
   const MapRealLocationLoaded({
-    required this.residenceId,
+    required this.appartementId,
     required this.realLocation,
   });
 }

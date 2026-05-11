@@ -3,77 +3,37 @@ import 'package:latlong2/latlong.dart';
 import 'package:asfar/bloc/map_bloc/map_event.dart';
 import 'package:asfar/bloc/map_bloc/map_state.dart';
 import 'package:asfar/model/filter/filter_criteria.dart';
-import 'package:asfar/model/map/map_residence.dart';
+import 'package:asfar/model/map/map_appartement.dart';
 import 'package:asfar/service/model/map/map_service.dart';
 import 'package:asfar/util/function.dart';
 
+/// BLoC de la carte locataire — V9.7b.
+///
+/// 1 marker = 1 appartement (suppression de la notion de résidence agrégée).
+/// Coordonnées toujours obfusquées en browse ; révélation post-réservation
+/// uniquement via `RequestRealLocation`.
 class MapBloc extends Bloc<MapEvent, MapState> {
   final MapService _mapService = MapService();
 
-  // Variables d'état internes
   LatLng? _currentCenter;
   double _currentRadius = 10.0;
   FilterCriteria? _currentFilter;
-  bool _isClusterMode = false;
-  List<MapResidence>? _cachedResidences;
-  List<MapCluster>? _cachedClusters;
+  List<MapAppartement>? _cachedAppartements;
 
   MapBloc() : super(const MapInitial()) {
-    on<LoadMapResidences>(_onLoadMapResidences);
-    on<LoadFilteredMapResidences>(_onLoadFilteredMapResidences);
-    on<LoadClusteredMapResidences>(_onLoadClusteredMapResidences);
-    on<SelectMapResidence>(_onSelectMapResidence);
-    on<LoadResidenceDetails>(_onLoadResidenceDetails);
+    on<LoadFilteredMapAppartements>(_onLoadFilteredMapAppartements);
+    on<SelectMapAppartement>(_onSelectMapAppartement);
+    on<LoadAppartementDetails>(_onLoadAppartementDetails);
     on<UpdateMapCenter>(_onUpdateMapCenter);
     on<UpdateMapFilter>(_onUpdateMapFilter);
     on<RefreshMapData>(_onRefreshMapData);
     on<ClearMapSelection>(_onClearMapSelection);
     on<RequestRealLocation>(_onRequestRealLocation);
-    on<ToggleClusterMode>(_onToggleClusterMode);
     on<ResetMapState>(_onResetMapState);
   }
 
-  Future<void> _onLoadMapResidences(
-    LoadMapResidences event,
-    Emitter<MapState> emit,
-  ) async {
-    emit(const MapLoading());
-
-    try {
-      _currentCenter = event.center;
-      _currentRadius = event.radiusKm;
-      _isClusterMode = false;
-
-      final residences = await _mapService.getMapResidences(
-        center: event.center,
-        radiusKm: event.radiusKm,
-      );
-
-      _cachedResidences = residences;
-      _cachedClusters = null;
-
-      if (residences.isEmpty) {
-        emit(MapEmpty(
-          message: "Aucune résidence trouvée dans cette zone",
-          center: event.center,
-          radiusKm: event.radiusKm,
-        ));
-      } else {
-        emit(MapResidencesLoaded(
-          residences: residences,
-          center: event.center,
-          radiusKm: event.radiusKm,
-          isClusterMode: false,
-        ));
-      }
-    } catch (e) {
-      deboger('Erreur MapBloc.LoadMapResidences: $e');
-      emit(MapNetworkError(message: 'Erreur lors du chargement des résidences: $e'));
-    }
-  }
-
-  Future<void> _onLoadFilteredMapResidences(
-    LoadFilteredMapResidences event,
+  Future<void> _onLoadFilteredMapAppartements(
+    LoadFilteredMapAppartements event,
     Emitter<MapState> emit,
   ) async {
     emit(const MapLoading());
@@ -82,158 +42,93 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       _currentCenter = event.center;
       _currentRadius = event.radiusKm;
       _currentFilter = event.filter;
-      _isClusterMode = false;
 
-      final residences = await _mapService.getFilteredMapResidences(
+      final appartements = await _mapService.getFilteredMapAppartements(
         center: event.center,
         radiusKm: event.radiusKm,
         filter: event.filter,
       );
 
-      _cachedResidences = residences;
-      _cachedClusters = null;
+      _cachedAppartements = appartements;
 
-      if (residences.isEmpty) {
+      if (appartements.isEmpty) {
         emit(MapEmpty(
-          message: "Aucune résidence ne correspond à vos critères",
+          message: "Aucun appartement ne correspond à vos critères",
           center: event.center,
           radiusKm: event.radiusKm,
           filter: event.filter,
         ));
       } else {
-        emit(MapResidencesLoaded(
-          residences: residences,
+        emit(MapAppartementsLoaded(
+          appartements: appartements,
           center: event.center,
           radiusKm: event.radiusKm,
-          filter: event.filter,
-          isClusterMode: false,
-        ));
-      }
-    } catch (e) {
-      deboger('Erreur MapBloc.LoadFilteredMapResidences: $e');
-      emit(MapNetworkError(message: 'Erreur lors du chargement des résidences filtrées: $e'));
-    }
-  }
-
-  Future<void> _onLoadClusteredMapResidences(
-    LoadClusteredMapResidences event,
-    Emitter<MapState> emit,
-  ) async {
-    emit(const MapLoading());
-
-    try {
-      _currentCenter = event.center;
-      _currentRadius = event.radiusKm;
-      _currentFilter = event.filter;
-      _isClusterMode = true;
-
-      final clusters = await _mapService.getClusteredResidences(
-        center: event.center,
-        radiusKm: event.radiusKm,
-        clusterRadiusKm: event.clusterRadiusKm,
-        filter: event.filter,
-      );
-
-      _cachedClusters = clusters;
-      _cachedResidences = null;
-
-      if (clusters.isEmpty) {
-        emit(MapEmpty(
-          message: "Aucune résidence trouvée dans cette zone",
-          center: event.center,
-          radiusKm: event.radiusKm,
-          filter: event.filter,
-        ));
-      } else {
-        emit(MapClustersLoaded(
-          clusters: clusters,
-          center: event.center,
-          radiusKm: event.radiusKm,
-          clusterRadiusKm: event.clusterRadiusKm,
           filter: event.filter,
         ));
       }
     } catch (e) {
-      deboger('Erreur MapBloc.LoadClusteredMapResidences: $e');
-      emit(MapNetworkError(message: 'Erreur lors du chargement des clusters: $e'));
+      deboger('Erreur MapBloc.LoadFilteredMapAppartements: $e');
+      emit(MapNetworkError(
+        message: 'Erreur lors du chargement des appartements: $e',
+      ));
     }
   }
 
-  Future<void> _onSelectMapResidence(
-    SelectMapResidence event,
+  Future<void> _onSelectMapAppartement(
+    SelectMapAppartement event,
     Emitter<MapState> emit,
   ) async {
     try {
-      MapResidence? selectedResidence;
+      MapAppartement? selected;
 
-      // Chercher dans les résidences cachées ou les clusters
-      if (_cachedResidences != null) {
-        selectedResidence = _cachedResidences!.firstWhere(
-          (r) => r.id == event.residenceId,
-          orElse: () => throw Exception('Résidence non trouvée'),
-        );
-      } else if (_cachedClusters != null) {
-        for (final cluster in _cachedClusters!) {
-          try {
-            selectedResidence = cluster.residences.firstWhere(
-              (r) => r.id == event.residenceId,
-            );
+      if (_cachedAppartements != null) {
+        for (final a in _cachedAppartements!) {
+          if (a.id == event.appartementId) {
+            selected = a;
             break;
-          } catch (e) {
-            continue;
           }
         }
       }
 
-      if (selectedResidence != null) {
-        emit(MapResidenceSelected(
-          selectedResidence: selectedResidence,
-          allResidences: _cachedResidences,
-          clusters: _cachedClusters,
+      if (selected != null && _currentCenter != null) {
+        emit(MapAppartementSelected(
+          selectedAppartement: selected,
+          allAppartements: _cachedAppartements,
           center: _currentCenter!,
           radiusKm: _currentRadius,
           filter: _currentFilter,
-          isClusterMode: _isClusterMode,
         ));
       } else {
-        // Si pas trouvé dans le cache, faire un appel API
-        final residenceDetails = await _mapService.getResidenceDetails(event.residenceId);
-        if (residenceDetails != null) {
-          emit(MapResidenceSelected(
-            selectedResidence: residenceDetails,
-            allResidences: _cachedResidences,
-            clusters: _cachedClusters,
-            center: _currentCenter!,
-            radiusKm: _currentRadius,
-            filter: _currentFilter,
-            isClusterMode: _isClusterMode,
-          ));
-        } else {
-          emit(const MapError(message: 'Résidence non trouvée'));
-        }
+        emit(const MapError(message: 'Appartement non trouvé'));
       }
     } catch (e) {
-      deboger('Erreur MapBloc.SelectMapResidence: $e');
+      deboger('Erreur MapBloc.SelectMapAppartement: $e');
       emit(MapError(message: 'Erreur lors de la sélection: $e'));
     }
   }
 
-  Future<void> _onLoadResidenceDetails(
-    LoadResidenceDetails event,
+  Future<void> _onLoadAppartementDetails(
+    LoadAppartementDetails event,
     Emitter<MapState> emit,
   ) async {
     try {
-      final residenceDetails = await _mapService.getResidenceDetails(event.residenceId);
+      MapAppartement? appartement;
+      if (_cachedAppartements != null) {
+        for (final a in _cachedAppartements!) {
+          if (a.id == event.appartementId) {
+            appartement = a;
+            break;
+          }
+        }
+      }
 
-      if (residenceDetails != null) {
-        emit(MapResidenceDetailsLoaded(
-          residenceDetails: residenceDetails,
-        ));
+      if (appartement != null) {
+        emit(MapAppartementDetailsLoaded(appartementDetails: appartement));
       } else {
-        emit(const MapError(message: 'Détails de la résidence non trouvés'));
+        emit(const MapError(message: 'Détails de l\'appartement non trouvés'));
       }
     } catch (e) {
-      deboger('Erreur MapBloc.LoadResidenceDetails: $e');
+      deboger('Erreur MapBloc.LoadAppartementDetails: $e');
       emit(MapError(message: 'Erreur lors du chargement des détails: $e'));
     }
   }
@@ -249,20 +144,11 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       filter: _currentFilter,
     ));
 
-    // Recharger les données avec le nouveau centre
-    if (_isClusterMode) {
-      add(LoadClusteredMapResidences(
-        center: event.center,
-        radiusKm: _currentRadius,
-        filter: _currentFilter,
-      ));
-    } else {
-      add(LoadFilteredMapResidences(
-        center: event.center,
-        radiusKm: _currentRadius,
-        filter: _currentFilter,
-      ));
-    }
+    add(LoadFilteredMapAppartements(
+      center: event.center,
+      radiusKm: _currentRadius,
+      filter: _currentFilter,
+    ));
   }
 
   Future<void> _onUpdateMapFilter(
@@ -271,75 +157,45 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   ) async {
     _currentFilter = event.filter;
 
+    if (_currentCenter == null) return;
+
     emit(MapFilterUpdated(
       filter: event.filter,
       center: _currentCenter!,
       radiusKm: _currentRadius,
     ));
 
-    // Recharger les données avec le nouveau filtre
-    if (_currentCenter != null) {
-      if (_isClusterMode) {
-        add(LoadClusteredMapResidences(
-          center: _currentCenter!,
-          radiusKm: _currentRadius,
-          filter: event.filter,
-        ));
-      } else {
-        add(LoadFilteredMapResidences(
-          center: _currentCenter!,
-          radiusKm: _currentRadius,
-          filter: event.filter,
-        ));
-      }
-    }
+    add(LoadFilteredMapAppartements(
+      center: _currentCenter!,
+      radiusKm: _currentRadius,
+      filter: event.filter,
+    ));
   }
 
   Future<void> _onRefreshMapData(
     RefreshMapData event,
     Emitter<MapState> emit,
   ) async {
-    if (_currentCenter != null) {
-      _cachedResidences = null;
-      _cachedClusters = null;
-
-      if (_isClusterMode) {
-        add(LoadClusteredMapResidences(
-          center: _currentCenter!,
-          radiusKm: _currentRadius,
-          filter: _currentFilter,
-        ));
-      } else {
-        add(LoadFilteredMapResidences(
-          center: _currentCenter!,
-          radiusKm: _currentRadius,
-          filter: _currentFilter,
-        ));
-      }
-    }
+    if (_currentCenter == null) return;
+    _cachedAppartements = null;
+    add(LoadFilteredMapAppartements(
+      center: _currentCenter!,
+      radiusKm: _currentRadius,
+      filter: _currentFilter,
+    ));
   }
 
   Future<void> _onClearMapSelection(
     ClearMapSelection event,
     Emitter<MapState> emit,
   ) async {
-    if (_cachedClusters != null) {
-      emit(MapClustersLoaded(
-        clusters: _cachedClusters!,
-        center: _currentCenter!,
-        radiusKm: _currentRadius,
-        clusterRadiusKm: 0.5,
-        filter: _currentFilter,
-      ));
-    } else if (_cachedResidences != null) {
-      emit(MapResidencesLoaded(
-        residences: _cachedResidences!,
-        center: _currentCenter!,
-        radiusKm: _currentRadius,
-        filter: _currentFilter,
-        isClusterMode: _isClusterMode,
-      ));
-    }
+    if (_cachedAppartements == null || _currentCenter == null) return;
+    emit(MapAppartementsLoaded(
+      appartements: _cachedAppartements!,
+      center: _currentCenter!,
+      radiusKm: _currentRadius,
+      filter: _currentFilter,
+    ));
   }
 
   Future<void> _onRequestRealLocation(
@@ -347,11 +203,12 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     Emitter<MapState> emit,
   ) async {
     try {
-      final realLocation = await _mapService.getRealCoordinates(event.residenceId);
+      final realLocation =
+          await _mapService.getRealCoordinates(event.appartementId);
 
       if (realLocation != null) {
         emit(MapRealLocationLoaded(
-          residenceId: event.residenceId,
+          appartementId: event.appartementId,
           realLocation: realLocation,
         ));
       } else {
@@ -359,30 +216,9 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       }
     } catch (e) {
       deboger('Erreur MapBloc.RequestRealLocation: $e');
-      emit(MapError(message: 'Erreur lors de la récupération de la localisation: $e'));
-    }
-  }
-
-  Future<void> _onToggleClusterMode(
-    ToggleClusterMode event,
-    Emitter<MapState> emit,
-  ) async {
-    _isClusterMode = event.enableClustering;
-
-    if (_currentCenter != null) {
-      if (event.enableClustering) {
-        add(LoadClusteredMapResidences(
-          center: _currentCenter!,
-          radiusKm: _currentRadius,
-          filter: _currentFilter,
-        ));
-      } else {
-        add(LoadFilteredMapResidences(
-          center: _currentCenter!,
-          radiusKm: _currentRadius,
-          filter: _currentFilter,
-        ));
-      }
+      emit(MapError(
+        message: 'Erreur lors de la récupération de la localisation: $e',
+      ));
     }
   }
 
@@ -396,9 +232,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     _currentCenter = null;
     _currentRadius = 10.0;
     _currentFilter = null;
-    _isClusterMode = false;
-    _cachedResidences = null;
-    _cachedClusters = null;
+    _cachedAppartements = null;
     emit(const MapInitial());
   }
 
@@ -406,5 +240,4 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   LatLng? get currentCenter => _currentCenter;
   double get currentRadius => _currentRadius;
   FilterCriteria? get currentFilter => _currentFilter;
-  bool get isClusterMode => _isClusterMode;
 }

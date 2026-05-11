@@ -68,8 +68,8 @@ class RealtimeActionHandler {
           _handleRefreshBookings(action);
           break;
 
-        case RealtimeAction.refreshMapResidences:
-          _handleRefreshMapResidences(action);
+        case RealtimeAction.refreshMapAppartements:
+          _handleRefreshMapAppartements(action);
           break;
 
         case RealtimeAction.updateAppartementPrice:
@@ -163,7 +163,7 @@ class RealtimeActionHandler {
     }
   }
 
-  void _handleRefreshMapResidences(RealtimeAction action) {
+  void _handleRefreshMapAppartements(RealtimeAction action) {
     try {
       final mapBloc = _currentContext!.read<MapBloc>();
       mapBloc.add(const RefreshMapData());

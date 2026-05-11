@@ -29,12 +29,17 @@ class AsfarChip extends StatelessWidget {
       children.add(Icon(leadingIcon, size: 14, color: fg));
       children.add(const SizedBox(width: 6));
     }
-    children.add(Text(
-      label,
-      style: TextStyle(
-        color: fg,
-        fontSize: 13,
-        fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+    children.add(Flexible(
+      child: Text(
+        label,
+        overflow: TextOverflow.fade,
+        softWrap: false,
+        maxLines: 1,
+        style: TextStyle(
+          color: fg,
+          fontSize: 13,
+          fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+        ),
       ),
     ));
 

@@ -1,31 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/map/map_residence.dart';
+import 'package:asfar/model/map/map_appartement.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/screen/client/locataire/map/widget/map_marker_preview_image.dart';
+import 'package:asfar/service/model/appartement/appartement_service.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
+import 'package:asfar/util/function.dart';
 import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
-import 'package:asfar/widget/img/img_placeholder.dart';
 
-/// BottomSheet de preview affiché au tap sur un marker carte.
+/// BottomSheet preview affiché au tap sur un marker carte — V9.7b.
 ///
-/// Affiche : image placeholder 16:9 + nom + sub-line (priceRange ·
-/// communeName · count) + CTA "Voir détails" full-width.
-class MapMarkerBottomSheet extends StatelessWidget {
-  final MapResidence residence;
-  final VoidCallback? onViewDetails;
+/// Layout : drag handle → photo lazy (chargée via `AppartementService.
+/// getAppartementById` au moment du tap) → titre → sub-line (prix · commune
+/// · type · chambres) → CTA "Voir détails" full-width.
+///
+/// Le callback `onViewDetails` reçoit l'`Appartement` complet si chargé,
+/// sinon `null` (l'appelant utilisera un mapper fallback partiel).
+class MapMarkerBottomSheet extends StatefulWidget {
+  final MapAppartement appartement;
+  final void Function(Appartement? loadedDetails) onViewDetails;
 
   const MapMarkerBottomSheet({
     super.key,
-    required this.residence,
-    this.onViewDetails,
+    required this.appartement,
+    required this.onViewDetails,
   });
 
   /// Helper d'ouverture du modal bottom sheet.
   static Future<void> show(
     BuildContext context, {
-    required MapResidence residence,
-    VoidCallback? onViewDetails,
+    required MapAppartement appartement,
+    required void Function(Appartement? loadedDetails) onViewDetails,
   }) {
     return showModalBottomSheet<void>(
       context: context,
@@ -36,40 +44,85 @@ class MapMarkerBottomSheet extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => MapMarkerBottomSheet(
-        residence: residence,
+        appartement: appartement,
         onViewDetails: onViewDetails,
       ),
     );
   }
 
+  @override
+  State<MapMarkerBottomSheet> createState() => _MapMarkerBottomSheetState();
+}
+
+class _MapMarkerBottomSheetState extends State<MapMarkerBottomSheet> {
+  final AppartementService _service = AppartementService();
+  Appartement? _loadedDetails;
+  bool _isLoadingDetails = true;
+
   int get _tone {
-    final id = residence.id ?? 0;
+    final id = widget.appartement.id ?? 0;
     return (id % 4) + 1;
   }
 
-  String _priceLabel() {
-    final min = residence.minPrice;
-    final max = residence.maxPrice;
-    if (min == null) return '—';
-    if (max == null || max == min) {
-      return '${FcfaFormatter.full(min.round())} / nuit';
-    }
-    return '${FcfaFormatter.compact(min.round())} - ${FcfaFormatter.compact(max.round())}';
+  @override
+  void initState() {
+    super.initState();
+    _loadDetails();
   }
 
-  String _subLine() {
-    final parts = <String>[_priceLabel()];
-    final commune = residence.communeName?.trim();
-    if (commune != null && commune.isNotEmpty) parts.add(commune);
-    final count = residence.appartementCount ?? 0;
-    if (count > 1) parts.add('$count appartements');
-    return parts.join(' · ');
+  Future<void> _loadDetails() async {
+    final id = widget.appartement.id;
+    if (id == null) {
+      if (mounted) setState(() => _isLoadingDetails = false);
+      return;
+    }
+    try {
+      final detail = await _service.getAppartementById(id);
+      if (!mounted) return;
+      setState(() {
+        _loadedDetails = detail;
+        _isLoadingDetails = false;
+      });
+    } catch (e) {
+      deboger('MapMarkerBottomSheet.loadDetails: $e');
+      if (!mounted) return;
+      setState(() => _isLoadingDetails = false);
+    }
   }
 
   String _title() {
-    final n = residence.nom?.trim();
-    if (n != null && n.isNotEmpty) return n;
+    final t = widget.appartement.title?.trim();
+    if (t != null && t.isNotEmpty) return t;
+    final fromDetails = _loadedDetails?.titre?.trim();
+    if (fromDetails != null && fromDetails.isNotEmpty) return fromDetails;
     return 'Logement';
+  }
+
+  String _subLine() {
+    final parts = <String>[];
+
+    final price = widget.appartement.price ?? _loadedDetails?.prix?.round();
+    if (price != null && price > 0) {
+      parts.add('${FcfaFormatter.full(price)} / nuit');
+    }
+
+    final commune = widget.appartement.communeName?.trim();
+    if (commune != null && commune.isNotEmpty) {
+      parts.add(commune);
+    }
+
+    final type = widget.appartement.typeAppart?.trim();
+    if (type != null && type.isNotEmpty) {
+      parts.add(type);
+    }
+
+    final nbCh =
+        widget.appartement.nbChambres ?? _loadedDetails?.nbChambres;
+    if (nbCh != null && nbCh > 0) {
+      parts.add('$nbCh ${nbCh == 1 ? 'chambre' : 'chambres'}');
+    }
+
+    return parts.join(' · ');
   }
 
   @override
@@ -86,14 +139,16 @@ class MapMarkerBottomSheet extends StatelessWidget {
               height: 4,
               decoration: BoxDecoration(
                 color: AppColors.bgElev3,
-                borderRadius: BorderRadius.circular(99),
+                borderRadius: BorderRadius.circular(AppRadii.pill),
               ),
             ),
           ),
           const SizedBox(height: 16),
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: ImgPh(tone: _tone, radius: 14),
+          MapMarkerPreviewImage(
+            tone: _tone,
+            imgUrl: widget.appartement.imgUrl ?? _loadedDetails?.imgUrl,
+            isLoading:
+                _isLoadingDetails && widget.appartement.imgUrl == null,
           ),
           const SizedBox(height: 14),
           Text(
@@ -105,14 +160,17 @@ class MapMarkerBottomSheet extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             _subLine(),
-            style: AppTextStyles.small.copyWith(fontSize: 12),
+            style: AppTextStyles.small.copyWith(
+              fontSize: 12,
+              color: AppColors.text3,
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 18),
           CustomButton(
             text: 'Voir détails',
-            onPressed: onViewDetails,
+            onPressed: () => widget.onViewDetails(_loadedDetails),
             size: ButtonSize.lg,
             block: true,
           ),

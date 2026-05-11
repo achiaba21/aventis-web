@@ -73,6 +73,10 @@ class _CustomButtonState extends State<CustomButton> {
     final button = AnimatedScale(
       scale: _pressed ? 0.97 : 1.0,
       duration: const Duration(milliseconds: 90),
+      // Pas d'alignment sur le Container : sous Flutter 3.35.2 + iOS 26.2,
+      // alignment + parent loose (ex: Scaffold.bottomNavigationBar) fait
+      // expand le Container à toute la hauteur dispo → CustomButton pleine
+      // page. Le centrage est déjà assuré par mainAxisAlignment du Row.
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: widget.size.paddingX,
@@ -84,7 +88,6 @@ class _CustomButtonState extends State<CustomButton> {
               : AppColors.accent,
           borderRadius: BorderRadius.circular(widget.size.radius),
         ),
-        alignment: Alignment.center,
         child: Row(
           mainAxisSize: widget.block ? MainAxisSize.max : MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,

@@ -5,52 +5,31 @@ abstract class MapEvent {
   const MapEvent();
 }
 
-class LoadMapResidences extends MapEvent {
-  final LatLng center;
-  final double radiusKm;
-
-  const LoadMapResidences({
-    required this.center,
-    this.radiusKm = 10.0,
-  });
-}
-
-class LoadFilteredMapResidences extends MapEvent {
+/// Charge les appartements visibles dans une zone, avec filtres optionnels.
+class LoadFilteredMapAppartements extends MapEvent {
   final LatLng center;
   final double radiusKm;
   final FilterCriteria? filter;
 
-  const LoadFilteredMapResidences({
+  const LoadFilteredMapAppartements({
     required this.center,
     this.radiusKm = 10.0,
     this.filter,
   });
 }
 
-class LoadClusteredMapResidences extends MapEvent {
-  final LatLng center;
-  final double radiusKm;
-  final double clusterRadiusKm;
-  final FilterCriteria? filter;
+/// Sélectionne un appartement dans le cache courant (préparation UI).
+class SelectMapAppartement extends MapEvent {
+  final int appartementId;
 
-  const LoadClusteredMapResidences({
-    required this.center,
-    this.radiusKm = 10.0,
-    this.clusterRadiusKm = 0.5,
-    this.filter,
-  });
+  const SelectMapAppartement(this.appartementId);
 }
 
-class SelectMapResidence extends MapEvent {
-  final int residenceId;
+/// Recharge l'appartement courant depuis le backend (refresh forcé).
+class LoadAppartementDetails extends MapEvent {
+  final int appartementId;
 
-  const SelectMapResidence(this.residenceId);
-}
-
-class LoadResidenceDetails extends MapEvent {
-  final int residenceId;
-
-  const LoadResidenceDetails(this.residenceId);
+  const LoadAppartementDetails(this.appartementId);
 }
 
 class UpdateMapCenter extends MapEvent {
@@ -73,22 +52,20 @@ class ClearMapSelection extends MapEvent {
   const ClearMapSelection();
 }
 
+/// Demande les coordonnées réelles d'un appartement (post-réservation).
+///
+/// Le backend vérifie la réservation côté serveur ; sans réservation valide
+/// la réponse est `null` (UI conserve les coords obfusquées).
 class RequestRealLocation extends MapEvent {
-  final int residenceId;
+  final int appartementId;
 
-  const RequestRealLocation(this.residenceId);
-}
-
-class ToggleClusterMode extends MapEvent {
-  final bool enableClustering;
-
-  const ToggleClusterMode(this.enableClustering);
+  const RequestRealLocation(this.appartementId);
 }
 
 // ==================== RÉINITIALISATION ====================
 
-/// Réinitialise le BLoC à son état Initial
-/// Utilisé lors de la déconnexion pour nettoyer les données
+/// Réinitialise le BLoC à son état Initial.
+/// Utilisé lors de la déconnexion pour nettoyer les données.
 class ResetMapState extends MapEvent {
   const ResetMapState();
 }

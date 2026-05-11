@@ -129,9 +129,13 @@ class LocataireDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 22),
-                    const Text('Emplacement', style: AppTextStyles.h3),
+                    const Text('Localisation', style: AppTextStyles.h3),
                     const SizedBox(height: 12),
-                    DetailMapSection(area: listing.area, city: listing.city),
+                    DetailMapSection(
+                      appartId: int.tryParse(listing.id),
+                      area: listing.area,
+                      city: listing.city,
+                    ),
                     const SizedBox(height: 22),
                     Row(
                       children: [
