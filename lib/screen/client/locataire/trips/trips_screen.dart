@@ -7,11 +7,14 @@ import 'package:asfar/screen/client/locataire/trips/widget/trip_card.dart';
 import 'package:asfar/screen/client/locataire/trips/widget/trips_filter_chips.dart';
 import 'package:asfar/screen/client/locataire/trips/widget/trips_loading_view.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/util/mapping/reservation_to_trip.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 
-/// Écran "Mes voyages" du Locataire — V8.5 branché sur `ReservationBloc`.
+/// Écran "Mes voyages" du Locataire — branché sur `ReservationBloc`.
+///
+/// Consomme directement la liste `Reservation` du BLoC. La logique
+/// « à venir / passé » est exposée par l'extension `TripDisplay` sur
+/// `Reservation` (voir `widget/trip_card.dart`).
 class LocataireTripsScreen extends StatefulWidget {
   const LocataireTripsScreen({super.key});
 
@@ -47,12 +50,11 @@ class _LocataireTripsScreenState extends State<LocataireTripsScreen> {
         top: false,
         child: BlocBuilder<ReservationBloc, ReservationState>(
           builder: (context, state) {
-            final trips =
-                ReservationToTripMapper.mapMany(state.reservations);
+            final reservations = state.reservations;
             final isInitialLoading =
-                state is ReservationLoading && trips.isEmpty;
+                state is ReservationLoading && reservations.isEmpty;
             final isErrorWithoutCache =
-                state is ReservationError && trips.isEmpty;
+                state is ReservationError && reservations.isEmpty;
 
             if (isInitialLoading) return const TripsLoadingView();
             if (isErrorWithoutCache) {
@@ -61,10 +63,12 @@ class _LocataireTripsScreenState extends State<LocataireTripsScreen> {
                 onRetry: _onRetry,
               );
             }
-            final upcomingCount = trips.where((t) => t.upcoming).length;
-            final pastCount = trips.length - upcomingCount;
-            final filtered =
-                trips.where((t) => t.upcoming == _upcoming).toList();
+            final upcomingCount =
+                reservations.where((r) => r.isUpcomingTrip).length;
+            final pastCount = reservations.length - upcomingCount;
+            final filtered = reservations
+                .where((r) => r.isUpcomingTrip == _upcoming)
+                .toList();
 
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(18, 0, 18, 80),
@@ -94,14 +98,8 @@ class _LocataireTripsScreenState extends State<LocataireTripsScreen> {
                       ),
                     )
                   else
-                    for (final t in filtered) ...[
-                      TripCard(
-                        listing: t.listing,
-                        status: t.status,
-                        dates: t.dates,
-                        code: t.code,
-                        upcoming: t.upcoming,
-                      ),
+                    for (final r in filtered) ...[
+                      TripCard(reservation: r),
                       const SizedBox(height: 14),
                     ],
                 ],

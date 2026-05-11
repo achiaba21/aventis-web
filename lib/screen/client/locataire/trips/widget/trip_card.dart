@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -6,19 +7,75 @@ import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/badge/badge_tone.dart';
 import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/plain_button.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
+
+const _kMonths = [
+  'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+  'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+];
+
+/// Extension de présentation pour `Reservation` — usage UI uniquement.
+extension TripDisplay on Reservation {
+  bool get isUpcomingTrip {
+    final s = statut;
+    if (s == ReservationStatus.refusee ||
+        s == ReservationStatus.annulee ||
+        s == ReservationStatus.terminee ||
+        s == ReservationStatus.finalisee) {
+      return false;
+    }
+    if (debut == null) return false;
+    return debut!.isAfter(DateTime.now()) ||
+        s == ReservationStatus.enAttente ||
+        s == ReservationStatus.confirmee ||
+        s == ReservationStatus.payee;
+  }
+
+  String get tripStatusLabel {
+    switch (statut) {
+      case ReservationStatus.enAttente:
+        return 'En attente';
+      case ReservationStatus.confirmee:
+        return 'Confirmée';
+      case ReservationStatus.payee:
+        return 'Payée';
+      case ReservationStatus.finalisee:
+      case ReservationStatus.terminee:
+        return 'Terminée';
+      case ReservationStatus.refusee:
+        return 'Refusée';
+      case ReservationStatus.annulee:
+        return 'Annulée';
+      case null:
+        return '—';
+    }
+  }
+
+  String get tripDatesLabel {
+    final d = debut;
+    final f = fin;
+    if (d == null || f == null) return '—';
+    final d1 = d.day;
+    final d2 = f.day;
+    final m1 = _kMonths[d.month - 1];
+    final m2 = _kMonths[f.month - 1];
+    if (d.month == f.month && d.year == f.year) return '$d1 - $d2 $m1';
+    return '$d1 $m1 - $d2 $m2';
+  }
+
+  String get tripCodeLabel {
+    return codeReservation?.secretKey ?? reference ?? 'RES-${id ?? 0}';
+  }
+}
 
 /// Card horizontale de réservation (à venir / passée) dans `Trips`.
 ///
-/// Image 110×110 gauche + content droite (badge statut, titre, dates,
-/// code mono). Footer 3 boutons ghost si [upcoming] = true.
+/// Consomme directement le modèle métier [Reservation]. Image 110×110
+/// gauche (gradient tonal depuis l'id de l'appart) + content droite
+/// (badge statut, titre, dates, code mono). Footer 3 boutons ghost si la
+/// réservation est à venir.
 class TripCard extends StatelessWidget {
-  final ListingPreview listing;
-  final String status;
-  final String dates;
-  final String code;
-  final bool upcoming;
+  final Reservation reservation;
   final VoidCallback? onTap;
   final VoidCallback? onContactHost;
   final VoidCallback? onItinerary;
@@ -26,19 +83,20 @@ class TripCard extends StatelessWidget {
 
   const TripCard({
     super.key,
-    required this.listing,
-    required this.status,
-    required this.dates,
-    required this.code,
-    this.upcoming = false,
+    required this.reservation,
     this.onTap,
     this.onContactHost,
     this.onItinerary,
     this.onReceipt,
   });
 
+  int get _tone => ((reservation.appart?.id ?? 0) % 4) + 1;
+
+  String get _title => reservation.appart?.titre ?? 'Logement supprimé';
+
   @override
   Widget build(BuildContext context) {
+    final upcoming = reservation.isUpcomingTrip;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -60,7 +118,7 @@ class TripCard extends StatelessWidget {
                     SizedBox(
                       width: 110,
                       height: 110,
-                      child: ImgPh(tone: listing.tone, radius: 0),
+                      child: ImgPh(tone: _tone, radius: 0),
                     ),
                     Expanded(
                       child: Padding(
@@ -69,14 +127,14 @@ class TripCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             BadgeStatus(
-                              text: status,
+                              text: reservation.tripStatusLabel,
                               tone: upcoming
                                   ? BadgeTone.success
                                   : BadgeTone.neutral,
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              listing.title,
+                              _title,
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -87,12 +145,12 @@ class TripCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              dates,
+                              reservation.tripDatesLabel,
                               style: AppTextStyles.small.copyWith(fontSize: 12),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              code,
+                              reservation.tripCodeLabel,
                               style: AppTextStyles.mono(
                                 AppTextStyles.small.copyWith(fontSize: 11),
                               ),
