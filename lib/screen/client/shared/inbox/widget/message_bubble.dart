@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/ui_only/chat_message.dart';
+import 'package:asfar/model/conversation/chat_message.dart';
+import 'package:asfar/screen/client/shared/inbox/widget/chat_message_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 
 /// Bubble texte du `MessagingThreadScreen`.
 ///
-/// Reproduit fidèlement le proto `extras.jsx::MessagingThread`
-/// (lignes 247-263) : maxWidth 78%, padding 10×14, accent or si `me` /
-/// bgElev2 sinon, radius 18 sur 3 coins + 6 sur le coin opposé à la queue
-/// (bottomRight 6 si `me`, bottomLeft 6 sinon), heure 10px en bas opacity 0.6.
+/// Consomme directement le modèle métier [ChatMessage]. Reproduit fidèlement
+/// le proto `extras.jsx::MessagingThread` (lignes 247-263) : maxWidth 78%,
+/// padding 10×14, accent or si `isMe` / bgElev2 sinon, radius 18 sur 3 coins
+/// + 6 sur le coin opposé à la queue (bottomRight 6 si `isMe`, bottomLeft 6
+/// sinon), heure 10px en bas opacity 0.6.
 class MessageBubble extends StatelessWidget {
   final ChatMessage message;
+  final bool isMe;
 
-  const MessageBubble({super.key, required this.message});
+  const MessageBubble({
+    super.key,
+    required this.message,
+    required this.isMe,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isMe = message.isMe;
     final maxWidth = MediaQuery.sizeOf(context).width * 0.78;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -37,7 +43,7 @@ class MessageBubble extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                message.text ?? '',
+                message.bubbleText ?? '',
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.4,
@@ -46,7 +52,7 @@ class MessageBubble extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                message.time,
+                message.timeLabel,
                 style: TextStyle(
                   fontSize: 10,
                   color: (isMe ? AppColors.onAccent : AppColors.text)

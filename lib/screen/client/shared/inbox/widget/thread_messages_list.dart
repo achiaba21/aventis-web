@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/conversation/chat_message.dart';
 import 'package:asfar/model/partenariat/demande_partenariat.dart';
 import 'package:asfar/model/reservation/reservation.dart';
-import 'package:asfar/model/ui_only/chat_message.dart';
+import 'package:asfar/model/user/user.dart';
+import 'package:asfar/screen/client/shared/inbox/widget/chat_message_display.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_date_separator.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_message_item.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
@@ -10,10 +12,11 @@ import 'package:asfar/widget/feedback/empty_state.dart';
 /// séparateur de date en tête. Renvoie un `EmptyState.inline` si la
 /// conversation est vide.
 ///
-/// V9.2 : callbacks cascade pour les cards système avec types loaded
-/// (`Reservation?` / `DemandePartenariat?`).
+/// Consomme directement le modèle métier [ChatMessage] + le `currentUser`
+/// pour déterminer le sens (me/them) sur chaque message.
 class ThreadMessagesList extends StatelessWidget {
   final List<ChatMessage> messages;
+  final User? currentUser;
   final ScrollController? scrollController;
   final void Function(Reservation? loaded)? onReservationTap;
   final void Function(DemandePartenariat? loaded)? onPartenariatTap;
@@ -21,6 +24,7 @@ class ThreadMessagesList extends StatelessWidget {
   const ThreadMessagesList({
     super.key,
     required this.messages,
+    required this.currentUser,
     this.scrollController,
     this.onReservationTap,
     this.onPartenariatTap,
@@ -45,8 +49,10 @@ class ThreadMessagesList extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 4),
       itemBuilder: (_, index) {
         if (index == 0) return const ThreadDateSeparator();
+        final m = messages[index - 1];
         return ThreadMessageItem(
-          message: messages[index - 1],
+          message: m,
+          isMe: m.isMineFor(currentUser),
           onReservationTap: onReservationTap,
           onPartenariatTap: onPartenariatTap,
         );

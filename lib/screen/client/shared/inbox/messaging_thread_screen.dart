@@ -5,7 +5,7 @@ import 'package:asfar/bloc/conversation_bloc/conversation_bloc.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
-import 'package:asfar/model/conversation/chat_message.dart' as model;
+import 'package:asfar/model/conversation/chat_message.dart';
 import 'package:asfar/model/conversation/conversation.dart';
 import 'package:asfar/model/partenariat/demande_partenariat.dart';
 import 'package:asfar/model/reservation/reservation.dart';
@@ -19,7 +19,6 @@ import 'package:asfar/screen/client/shared/inbox/widget/thread_loading_view.dart
 import 'package:asfar/screen/client/shared/inbox/widget/thread_messages_list.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/function.dart';
-import 'package:asfar/util/mapping/chat_message_to_ui.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 
@@ -162,17 +161,14 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
                               ),
                     );
                   }
-                  final raw = <model.ChatMessage>[];
+                  final messages = <ChatMessage>[];
                   if (state is MessagesLoaded &&
                       state.conversationId == _conversationId) {
-                    raw.addAll(state.messages);
+                    messages.addAll(state.messages);
                   }
-                  final messages = ChatMessageToUiMapper.mapMany(
-                    raw,
-                    currentUser: currentUser,
-                  );
                   return ThreadMessagesList(
                     messages: messages,
+                    currentUser: currentUser,
                     scrollController: _scrollController,
                     onReservationTap: _onReservationTap,
                     onPartenariatTap: _onPartenariatTap,
