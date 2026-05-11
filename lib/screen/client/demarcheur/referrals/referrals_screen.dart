@@ -4,14 +4,13 @@ import 'package:asfar/bloc/demarcheur_bloc/demarcheur_bloc.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_event.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_state.dart';
 import 'package:asfar/model/reservation/reservation.dart';
-import 'package:asfar/model/ui_only/referral_preview.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/new_referral_screen.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/referral_detail_screen.dart';
+import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_display.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_filter_chips.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referrals_list_card.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referrals_loading_view.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/util/mapping/reservation_to_referral.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/button_size.dart';
@@ -19,6 +18,10 @@ import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 
 /// Écran « Mes demandes » du Démarcheur — onglet Referrals.
+///
+/// Consomme directement la liste `Reservation` du `DemarcheurBloc`.
+/// La logique de présentation (status, client, commission, nights) est
+/// exposée par l'extension `ReferralDisplay` sur `Reservation`.
 class DemarcheurReferralsScreen extends StatefulWidget {
   const DemarcheurReferralsScreen({super.key});
 
@@ -64,10 +67,10 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
 
   void _onOpenNew() => pushScreen(context, const NewReferralScreen());
 
-  void _onOpenDetail(ReferralPreview referral, Reservation? source) {
+  void _onOpenDetail(Reservation reservation) {
     pushScreen(
       context,
-      ReferralDetailScreen(referral: referral, source: source),
+      ReferralDetailScreen(reservation: reservation),
     );
   }
 
@@ -115,16 +118,12 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
             final reservations = state is DemarcheurReservationsLoaded
                 ? state.reservations
                 : <Reservation>[];
-            final referrals =
-                ReservationToReferralMapper.mapMany(reservations);
-            final sourceById = <String, Reservation>{
-              for (var i = 0; i < referrals.length; i++)
-                referrals[i].id: reservations[i],
-            };
             final wanted = _statusForFilter(_filter);
             final visible = wanted == null
-                ? referrals
-                : referrals.where((r) => r.status == wanted).toList();
+                ? reservations
+                : reservations
+                    .where((r) => r.referralStatus == wanted)
+                    .toList();
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -148,8 +147,7 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
                           ),
                         )
                       : ReferralsListCard(
-                          referrals: visible,
-                          sourceById: sourceById,
+                          reservations: visible,
                           onTap: _onOpenDetail,
                         ),
                 ),

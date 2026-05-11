@@ -1,0 +1,59 @@
+import 'package:asfar/model/reservation/reservation.dart';
+
+/// Statuts d'une référence démarcheur — UI uniquement.
+///
+/// Aligne sur les 4 chips de filtre du proto (`app.jsx::ReferralsScreen`) :
+/// En attente / Acceptées / Terminées / Refusées.
+enum ReferralStatus { pending, accepted, completed, refused }
+
+/// Extension de présentation sur `Reservation` côté démarcheur — usage UI.
+///
+/// Une `Reservation` créée par un démarcheur pour son client est ce que les
+/// écrans démarcheur appellent une « référence ». Les getters ci-dessous
+/// dérivent les libellés/statuts/montants directement depuis la `Reservation`.
+extension ReferralDisplay on Reservation {
+  ReferralStatus get referralStatus {
+    switch (statut) {
+      case ReservationStatus.confirmee:
+      case ReservationStatus.payee:
+        return ReferralStatus.accepted;
+      case ReservationStatus.finalisee:
+      case ReservationStatus.terminee:
+        return ReferralStatus.completed;
+      case ReservationStatus.refusee:
+      case ReservationStatus.annulee:
+        return ReferralStatus.refused;
+      case ReservationStatus.enAttente:
+      case null:
+        return ReferralStatus.pending;
+    }
+  }
+
+  int get referralNights {
+    final d = debut;
+    final f = fin;
+    if (d == null || f == null) return 1;
+    final diff = f.difference(d).inDays;
+    return diff > 0 ? diff : 1;
+  }
+
+  int get referralCommissionAmount => (montantCommission ?? 0).round();
+
+  /// Sous-total séjour (prix de la résa, qui correspond à nuits × prixNuit).
+  int get referralSubtotal => (prix ?? 0).round();
+
+  String get referralClientName {
+    final base = clientNom?.trim().isNotEmpty == true
+        ? clientNom!
+        : 'Client #${id ?? 0}';
+    return base;
+  }
+
+  String get referralClientPhone =>
+      clientExterneTelephone ?? locataire?.telephone ?? '';
+
+  /// Identifiant affiché (codeReservation > reference > REF-id).
+  String get referralIdLabel {
+    return codeReservation?.secretKey ?? reference ?? 'REF-${id ?? 0}';
+  }
+}

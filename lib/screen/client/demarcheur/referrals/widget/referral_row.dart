@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/ui_only/referral_preview.dart';
+import 'package:asfar/model/reservation/reservation.dart';
+import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_display.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_status_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -9,23 +10,29 @@ import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Ligne d'une référence client référée — Dashboard + Referrals screen.
 ///
-/// Reproduit le proto `demarcheur.jsx::DemarcheurDashboard` (mock
-/// `ReferralRow`) : ImgPh tone 36 px à gauche + nom client + badge statut +
-/// info logement/nuits + commission accent or à droite + chevron.
+/// Consomme directement le modèle métier [Reservation]. Reproduit le proto
+/// `demarcheur.jsx::DemarcheurDashboard` (mock `ReferralRow`) : ImgPh tone
+/// 36 px à gauche + nom client + badge statut + info logement/nuits +
+/// commission accent or à droite + chevron.
 class ReferralRow extends StatelessWidget {
-  final ReferralPreview referral;
+  final Reservation reservation;
   final VoidCallback? onTap;
   final bool isLast;
 
   const ReferralRow({
     super.key,
-    required this.referral,
+    required this.reservation,
     this.onTap,
     this.isLast = false,
   });
 
+  int get _tone => ((reservation.appart?.id ?? 0) % 4) + 1;
+
+  String get _appartTitle => reservation.appart?.titre ?? 'Logement';
+
   @override
   Widget build(BuildContext context) {
+    final status = reservation.referralStatus;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -44,7 +51,7 @@ class ReferralRow extends StatelessWidget {
               SizedBox(
                 width: 36,
                 height: 36,
-                child: ImgPh(tone: referral.listing.tone, radius: 10),
+                child: ImgPh(tone: _tone, radius: 10),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -55,7 +62,7 @@ class ReferralRow extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            referral.clientName,
+                            reservation.referralClientName,
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -67,14 +74,14 @@ class ReferralRow extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         BadgeStatus(
-                          text: ReferralStatusDisplay.labelOf(referral.status),
-                          tone: ReferralStatusDisplay.toneOf(referral.status),
+                          text: ReferralStatusDisplay.labelOf(status),
+                          tone: ReferralStatusDisplay.toneOf(status),
                         ),
                       ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${referral.listing.title} · ${referral.nights} nuits',
+                      '$_appartTitle · ${reservation.referralNights} nuits',
                       style: AppTextStyles.small.copyWith(fontSize: 11),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -84,7 +91,7 @@ class ReferralRow extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                FcfaFormatter.compact(referral.commission),
+                FcfaFormatter.compact(reservation.referralCommissionAmount),
                 style: AppTextStyles.mono(const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

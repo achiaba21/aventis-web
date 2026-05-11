@@ -11,7 +11,6 @@ import 'package:asfar/bloc/demarcheur_bloc/demarcheur_event.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_state.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/residence/appart.dart';
-import 'package:asfar/model/ui_only/referral_preview.dart';
 import 'package:asfar/screen/client/demarcheur/home/widget/demarcheur_listings_to_push_section.dart';
 import 'package:asfar/screen/client/demarcheur/home/widget/demarcheur_referrals_section.dart';
 import 'package:asfar/screen/client/demarcheur/home/widget/send_referral_cta_card.dart';
@@ -24,7 +23,6 @@ import 'package:asfar/screen/client/shared/notifications/notifications_screen.da
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/calc/demarcheur_stats_calculator.dart';
-import 'package:asfar/util/mapping/reservation_to_referral.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
@@ -58,8 +56,8 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
     pushScreen(context, NewReferralScreen(initialAppartement: appart));
   }
 
-  void _onOpenReferralDetail(ReferralPreview r, Reservation? source) {
-    pushScreen(context, ReferralDetailScreen(referral: r, source: source));
+  void _onOpenReferralDetail(Reservation reservation) {
+    pushScreen(context, ReferralDetailScreen(reservation: reservation));
   }
 
   void _onOpenAllReferrals() =>
@@ -124,15 +122,7 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
                     final acceptanceRate =
                         DemarcheurStatsCalculator.acceptanceRate(reservations);
 
-                    final allReferrals =
-                        ReservationToReferralMapper.mapMany(reservations);
-                    final referrals = allReferrals.take(3).toList();
-                    final sourceById = <String, Reservation>{
-                      for (var i = 0;
-                          i < allReferrals.length && i < reservations.length;
-                          i++)
-                        allReferrals[i].id: reservations[i],
-                    };
+                    final referrals = reservations.take(3).toList();
                     final pushApparts =
                         _topAppartsToPush(appState.appartements);
 
@@ -171,8 +161,7 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
                           ),
                           const SizedBox(height: 6),
                           DemarcheurReferralsSection(
-                            referrals: referrals,
-                            sourceById: sourceById,
+                            reservations: referrals,
                             onSeeAll: _onOpenAllReferrals,
                             onAddReferral: _onOpenNew,
                             onReferralTap: _onOpenReferralDetail,

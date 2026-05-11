@@ -1,11 +1,10 @@
-import 'package:asfar/model/ui_only/referral_preview.dart';
+import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_display.dart';
 import 'package:asfar/widget/badge/badge_tone.dart';
 
 /// Mapping `ReferralStatus` → libellé court + ton de [BadgeStatus] à afficher.
 ///
 /// Source : proto `demarcheur.jsx::DemarcheurDashboard` (badges statut sur les
-/// `ReferralRow`). Helper dédié pour respecter la règle « pas de logique
-/// dispersée dans les widgets ».
+/// `ReferralRow`).
 class ReferralStatusDisplay {
   ReferralStatusDisplay._();
 
