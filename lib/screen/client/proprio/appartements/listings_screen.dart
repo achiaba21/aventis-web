@@ -8,6 +8,7 @@ import 'package:asfar/screen/client/proprio/appartements/widget/listing_full_car
 import 'package:asfar/screen/client/proprio/appartements/widget/listings_filter_chips.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/new_listing_card.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/proprio_listings_loading_view.dart';
+import 'package:asfar/screen/client/proprio/appartements/wizard/proprio_new_listing_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
@@ -74,8 +75,10 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
             : null,
         trailing: IconBoutton(
           icon: Icons.add,
-          onPressed: () =>
-              _stub('Création d\'annonce disponible prochainement (F2)'),
+          onPressed: () => pushScreen(
+            context,
+            const ProprioNewListingScreen(),
+          ),
         ),
       ),
       body: SafeArea(
@@ -154,8 +157,10 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
                                 const SizedBox(height: 14),
                               ],
                               NewListingCard(
-                                onTap: () => _stub(
-                                    'Création d\'annonce disponible prochainement (F2)'),
+                                onTap: () => pushScreen(
+                                  context,
+                                  const ProprioNewListingScreen(),
+                                ),
                               ),
                             ],
                           ),

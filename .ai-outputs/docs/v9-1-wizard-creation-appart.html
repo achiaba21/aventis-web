@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V9.1 — Wizard création appartement · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-11">
+    <meta name="updated" content="2026-05-11">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header { border-bottom: 1px solid var(--line); padding-bottom: 2rem; margin-bottom: 2rem; }
+        .eyebrow { color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 12px; }
+        h1 { font-size: 38px; letter-spacing: -1px; font-weight: 700; line-height: 1.05; margin-bottom: 0.75rem; }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin: 2.5rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; margin: 1.5rem 0 0.75rem; color: var(--text); }
+        p, li { color: var(--text-2); font-size: 15px; line-height: 1.6; }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta { color: var(--text-3); font-size: 13px; display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem; }
+        nav ul { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; padding: 1rem 0; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
+        nav a { color: var(--accent); text-decoration: none; font-size: 13px; font-weight: 500; }
+        nav a:hover { text-decoration: underline; }
+        .card { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 20px; padding: 1.25rem 1.5rem; margin: 1rem 0; }
+        .card-hero { background: linear-gradient(135deg, #2A1F0E 0%, #1A1206 60%, #0F0A04 100%); border-color: rgba(232,184,107,0.25); position: relative; overflow: hidden; }
+        .card-hero::before { content: ""; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(232,184,107,0.18), transparent 70%); }
+        .card-hero h2 { margin-top: 0; color: var(--accent); }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        .badge-updated { background: rgba(96,165,250,0.18); color: var(--info); border: 1px solid rgba(96,165,250,0.3); }
+        .badge-removed { background: rgba(248,113,113,0.14); color: var(--danger); }
+        .badge-new { background: rgba(74,222,128,0.14); color: var(--success); }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 14px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+        th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-3); background: var(--bg-elev-2); }
+        td { color: var(--text-2); }
+        td code, p code, li code { background: var(--bg-elev-2); padding: 2px 6px; border-radius: 6px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; color: var(--text); }
+        pre { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 14px; padding: 1rem; overflow-x: auto; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; margin: 1rem 0; }
+        pre code { background: none; padding: 0; font-size: inherit; color: var(--text); }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .stat-cell { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.25rem; text-align: center; }
+        .stat-cell .num { font-size: 28px; font-weight: 700; color: var(--accent); font-feature-settings: "tnum"; }
+        .stat-cell .lab { font-size: 12px; color: var(--text-3); margin-top: 0.25rem; letter-spacing: 0.4px; }
+        .quote { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--text-2); font-style: italic; margin: 1rem 0; }
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { counter-increment: step; padding-left: 36px; position: relative; margin-bottom: 12px; }
+        .step-list li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--line); color: var(--text-3); font-size: 12px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="eyebrow">V9.1 · F2 · Asfar Mobile</div>
+        <h1>Création d'annonce <em>tunnel guidé 5 étapes</em></h1>
+        <p>Wizard de création d'appartement côté propriétaire — proto-fidèle, brouillon Hive auto-save, upload multipart, géolocalisation GPS du téléphone. 16 fichiers UI livrés sur 100% d'infrastructure backend/Bloc/storage déjà en place.</p>
+        <div class="meta">
+            <span>Version : <strong>1.0</strong></span>
+            <span>Créée : 2026-05-11</span>
+            <span>Audit : <strong style="color:var(--accent)">89/100</strong></span>
+            <span>Pipeline : <strong>/feature full</strong></span>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#decouverte">Découverte structurante</a></li>
+            <li><a href="#vue">Vue d'ensemble</a></li>
+            <li><a href="#perimetre">Périmètre 5 étapes</a></li>
+            <li><a href="#parcours">Parcours utilisateur</a></li>
+            <li><a href="#decisions">Décisions techniques</a></li>
+            <li><a href="#fichiers">Fichiers livrés</a></li>
+            <li><a href="#qualite">Qualité</a></li>
+            <li><a href="index.html">← Index</a></li>
+        </ul>
+    </nav>
+
+    <section class="card card-hero">
+        <h2>🏗️ Création d'annonce proprio — tunnel guidé</h2>
+        <p>Avant V9.1, le bouton "Nouvelle annonce" côté proprio était un <strong>stub</strong> <code>'Création d'annonce disponible prochainement (F2)'</code>. V9.1 livre le tunnel complet 5 étapes <strong>proto-fidèle</strong> avec brouillon local Hive (reprise possible), capture GPS depuis le téléphone, upload multipart photos+JSON, et publication finale via le repository existant.</p>
+        <div class="badges">
+            <span class="badge badge-success">✅ 5 étapes tunnel</span>
+            <span class="badge badge-success">✅ Draft Hive auto-save</span>
+            <span class="badge badge-accent">★ Infrastructure 100% existante</span>
+            <span class="badge badge-info">/feature full pipeline</span>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="decouverte">🎁 Découverte structurante</h2>
+        <p>L'audit du code projet pendant la phase Architecture a révélé que <strong>toute la couche backend/Bloc/storage/géoloc/validation est déjà implémentée</strong> côté Flutter. V9.1 a donc été ramenée à un chantier <strong>UI pur</strong> + branchement minimal sur l'existant.</p>
+
+        <table>
+            <thead><tr><th>Composant existant</th><th>Localisation</th><th>Statut</th></tr></thead>
+            <tbody>
+                <tr><td><code>AppartementWizardBloc</code></td><td><code>lib/bloc/appartement_wizard_bloc/</code></td><td>✅ 258 lignes, 9 events</td></tr>
+                <tr><td><code>AppartementWizardState</code></td><td>idem</td><td>✅ 12 flags (currentStep, hasResumableDraft, canPublish, published, isPublishing, isEditing...)</td></tr>
+                <tr><td><code>AppartementDraftStorage</code></td><td><code>lib/service/storage/</code></td><td>✅ singleton, Hive box <code>appartementDraftBox</code></td></tr>
+                <tr><td><code>GeoLocationService</code></td><td><code>lib/service/geo/</code></td><td>✅ permission + getCurrentLocation + reverseGeocode</td></tr>
+                <tr><td><code>AppartementPublicationValidator</code></td><td><code>lib/util/</code></td><td>✅ validation par champs</td></tr>
+                <tr><td><code>AppartementBackendMapper.toCreatePayload</code></td><td><code>lib/service/model/appartement/</code></td><td>✅ transforme Appartement → JSON</td></tr>
+                <tr><td><code>AppartementService.saveAppartementWithImages</code></td><td>idem</td><td>✅ multipart upload</td></tr>
+                <tr><td><code>AppartementRepository.createAppartementWithImages</code></td><td><code>lib/service/repository/</code></td><td>✅ factory singleton avec cache</td></tr>
+            </tbody>
+        </table>
+
+        <div class="quote">
+            « V9.1 n'a demandé <strong>aucune duplication d'infrastructure</strong>. Le travail s'est concentré exclusivement sur 16 fichiers UI (12 atomes + 5 étapes + 1 orchestrateur) qui consomment l'existant. »
+        </div>
+    </section>
+
+    <section>
+        <h2 id="vue">Vue d'ensemble</h2>
+        <p>V9.1 introduit l'écran <code>ProprioNewListingScreen</code> accessible depuis <code>ProprioListingsScreen</code> via le bouton <code>NewListingCard</code> en bas de la liste des annonces. L'écran orchestre :</p>
+        <ul>
+            <li>Un <code>BlocProvider&lt;AppartementWizardBloc&gt;</code> local au screen — le draft Hive n'est pas partagé entre instances</li>
+            <li>Un <code>BlocListener</code> qui réagit à 3 signaux du state : <code>hasResumableDraft</code> (modal reprise), <code>published</code> (déclenche upload async), <code>validationErrors</code> (SnackBar)</li>
+            <li>5 sous-widgets d'étape switching selon <code>state.currentStep</code></li>
+            <li>Auto-save debouncé (Timer 500ms) qui dispatch <code>TriggerAutoSave</code> après chaque <code>UpdateField</code></li>
+            <li>Capture GPS via <code>GeoLocationService</code> (réutilise le service existant) avec preview <code>MiniMapPreview</code> V9.7c</li>
+            <li><code>image_picker.pickMultiImage(limit: 8)</code> pour les photos, conversion en <code>UploadedImage</code> au publish</li>
+            <li>Publication finale via <code>AppartementRepository().createAppartementWithImages</code> (couplage faible Bloc/Service documenté dans le Bloc)</li>
+        </ul>
+        <div class="stat-grid">
+            <div class="stat-cell"><div class="num">16</div><div class="lab">FICHIERS CRÉÉS</div></div>
+            <div class="stat-cell"><div class="num">1</div><div class="lab">MODIFIÉ</div></div>
+            <div class="stat-cell"><div class="num">5</div><div class="lab">ÉTAPES TUNNEL</div></div>
+            <div class="stat-cell"><div class="num">89</div><div class="lab">SCORE AUDIT</div></div>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="perimetre">Périmètre — 5 étapes proto-fidèle</h2>
+        <p>Strictement aligné sur <code>proprietaire-extras.jsx::ProprietaireAddListing</code> (proto JSX, 285 lignes).</p>
+        <table>
+            <thead><tr><th>Étape</th><th>Contenu</th><th>Validation <code>canNext</code></th></tr></thead>
+            <tbody>
+                <tr><td><strong>1 — Pièces</strong></td><td>5 cards grille 2 col : Studio · 2 pièces · 3 pièces · 4 pièces · 5+ pièces. Card info accent or "On compte le séjour + chambres".</td><td><code>typeLocation.isNotEmpty</code></td></tr>
+                <tr><td><strong>2 — Localisation + Capacité</strong></td><td>Titre input · Ville (SearchableSelect 10 villes CI) · Commune (adaptatif Abidjan/Yamoussoukro/...) · Quartier libre · <strong>GpsCaptureCard</strong> · WizardStepperRow Chambres + SdB · Description multilignes optionnelle</td><td><code>titre + commune + area</code> renseignés</td></tr>
+                <tr><td><strong>3 — Photos</strong></td><td>PhotosUploadCard (dashed border) → image_picker multi-select · GridView 3 col avec badge "Couverture" sur 1ère · compteur "X photos / min 3"</td><td><code>photos.length &gt;= 3</code></td></tr>
+                <tr><td><strong>4 — Équipements</strong></td><td>2 grids 2 col : <strong>Essentiels</strong> (WiFi · WiFi fibre · Clim · Eau chaude · Cuisine équipée · Lave-linge · Frigo · TV) + <strong>Confort</strong> (Parking · Sécurité 24/7 · Piscine · Salle de sport · Ascenseur · Vue mer · Vue lagune · Balcon)</td><td><code>amenities.length &gt;= 1</code></td></tr>
+                <tr><td><strong>5 — Prix &amp; Conditions</strong></td><td>TextField mono 22 prix/nuit · <strong>PricingCommissionPreview</strong> calcul auto 8% Asfar ("Vous recevez X FCFA sur 5 nuits") · Frais ménage optionnel · 3 toggles AsfarToggle : Démarcheurs · Caution · Animaux</td><td><code>prix &gt; 0</code></td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2 id="parcours">Parcours utilisateur</h2>
+
+        <h3>Flow nominal — création annonce</h3>
+        <ol class="step-list">
+            <li>Proprio ouvre <code>ProprioListingsScreen</code> (onglet Annonces de son shell)</li>
+            <li>Tap sur la <code>NewListingCard</code> en bas de la liste → <code>pushScreen(ProprioNewListingScreen)</code></li>
+            <li><code>BlocProvider</code> instancie <code>AppartementWizardBloc</code>, dispatch <code>InitWizard()</code></li>
+            <li>Si <code>hasResumableDraft == true</code> → <strong>ResumeDraftDialog</strong> apparait → user choisit Reprendre ou Recommencer</li>
+            <li>Sinon → <code>FetchInitialLocation</code> dispatché automatiquement (préremplit l'adresse depuis la position téléphone)</li>
+            <li>Étape 1 → user sélectionne une RoomsTypeCard → <code>UpdateField('typeLocation', value)</code> → Continuer</li>
+            <li>Étape 2 → titre/ville/commune/quartier saisis, GPS capturé via bouton "Activer GPS" → coords stockées dans <code>draft.address.lat/longi</code> → Continuer</li>
+            <li>Étape 3 → tap PhotosUploadCard → <code>image_picker.pickMultiImage(limit: 8)</code> → photos converties en <code>PhotoAppart(path: xfile.path)</code> → grille avec badge "Couverture" sur la 1ère → Continuer (gating min 3)</li>
+            <li>Étape 4 → toggle équipements → <code>List&lt;Offre&gt;(Commodite(nom: label))</code> → Continuer</li>
+            <li>Étape 5 → saisit prix → preview commission auto → toggles règles → <strong>Publier mon annonce</strong></li>
+            <li>Bloc dispatch <code>PublishAppartement</code> → validator → si OK <code>state.published = true</code></li>
+            <li>BlocListener déclenche <code>_publish()</code> async → <code>List&lt;UploadedImage&gt;</code> depuis paths → <code>AppartementRepository().createAppartementWithImages(draft, images)</code></li>
+            <li>Sur succès : <code>DiscardDraft</code> + <code>AppartementBloc.RefreshAppartements</code> + <code>back(context)</code> + SnackBar "Annonce publiée"</li>
+        </ol>
+
+        <h3>Flow auto-save brouillon</h3>
+        <ol class="step-list">
+            <li>User modifie un champ → <code>UpdateField(field, value)</code> dispatché au Bloc</li>
+            <li>Bloc met à jour <code>state.draft</code> + recalcule <code>canPublish</code> via validator</li>
+            <li>Screen <code>Timer 500ms</code> debounce démarré (chaque modif reset le timer)</li>
+            <li>Au timeout → dispatch <code>TriggerAutoSave</code> → Bloc → <code>AppartementDraftStorage.save(draft)</code> en Hive</li>
+            <li>Si user quitte app/écran → draft persisté → reprise à la prochaine ouverture du tunnel</li>
+        </ol>
+
+        <h3>Flow géolocalisation</h3>
+        <ol class="step-list">
+            <li>Tap <strong>"Activer GPS"</strong> dans <code>GpsCaptureCard</code> → dispatch <code>FetchInitialLocation</code></li>
+            <li>Bloc → <code>GeoLocationService.requestPermission()</code></li>
+            <li>Si refusée → <code>state.isLoadingGeo = false</code> sans coords (acceptable, backend fera fallback géocoding)</li>
+            <li>Si accordée → <code>GeoLocationService.getCurrentLocation()</code> + <code>reverseGeocode</code></li>
+            <li>Coords stockées dans <code>draft.address.lat/longi</code> + nom adresse reverse → preview <code>MiniMapPreview</code> V9.7c affichée en dessous</li>
+            <li>User peut <strong>"Recapturer"</strong> à tout moment</li>
+        </ol>
+
+        <h3>Flow erreur publication</h3>
+        <ol class="step-list">
+            <li>Tap "Publier mon annonce" → Bloc emit <code>published = true</code>, <code>isPublishing = true</code></li>
+            <li>BlocListener déclenche <code>_publish</code> async</li>
+            <li>Erreur réseau / 400 / 401 → catch dans <code>_publish</code> → SnackBar "Échec de la publication: ..." → <code>_publishStarted = false</code> (retry possible)</li>
+            <li>Draft Hive <strong>intact</strong> (purge uniquement après succès 200) → retry sans perte de données</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2 id="decisions">Décisions techniques actées</h2>
+
+        <h3>1. Réutilisation 100% infrastructure existante</h3>
+        <p>L'audit code a révélé que <code>AppartementWizardBloc</code> + <code>AppartementDraftStorage</code> + <code>GeoLocationService</code> + <code>AppartementPublicationValidator</code> + <code>AppartementBackendMapper</code> + <code>AppartementRepository</code> existent déjà. <strong>Aucune duplication</strong>. V9.1 ne crée que des widgets UI qui dispatchent <code>UpdateField/NextStep/PublishAppartement/...</code> au Bloc existant.</p>
+
+        <h3>2. Hive draft auto-save Timer 500ms debounce</h3>
+        <p>Pendant la saisie, l'écran maintient un <code>Timer?</code> dispose-safe :</p>
+        <pre><code>void _scheduleAutoSave() {
+  _autoSaveDebouncer?.cancel();
+  _autoSaveDebouncer = Timer(const Duration(milliseconds: 500), () {
+    if (!mounted) return;
+    context.read&lt;AppartementWizardBloc&gt;().add(TriggerAutoSave());
+  });
+}</code></pre>
+        <p>Cohérent : pas de spinner pendant la frappe, save invisible une fois la frappe stabilisée. Le Bloc gère le <code>_draftStorage.save(draft)</code> Hive sync.</p>
+
+        <h3>3. Cross-feature reuse — MiniMapPreview V9.7c dans GpsCaptureCard</h3>
+        <p>Le <code>MiniMapPreview</code> créé en V9.7c (mini-carte position post-réservation) est <strong>réutilisé tel quel</strong> dans le <code>GpsCaptureCard</code> de V9.1 pour afficher la position téléphone capturée. Démontre la valeur du factor commun extrait en V9.7c (<code>osmDarkMatrix</code> partagé).</p>
+
+        <h3>4. Cross-feature reuse — DashedBorderContainer V7 dans PhotosUploadCard</h3>
+        <p>Le <code>DashedBorderContainer</code> (atome CustomPainter créé en V7 pour la <code>NewListingCard</code>) est réutilisé pour la card "Téléverser depuis l'appareil" du wizard. Cohérence visuelle Asfar sur les CTA dashed (pattern card "à ajouter").</p>
+
+        <h3>5. AsfarToggle custom proto-fidèle</h3>
+        <p>Au lieu d'utiliser <code>SwitchListTile</code> Material/Cupertino, V9.1 introduit un <code>AsfarToggle</code> custom — <code>AnimatedContainer</code> 200ms ease-out avec bullet blanc 22×22 et fond accent/bgElev3. Fidèle exact au proto <code>proprietaire-extras.jsx::Toggle</code> lignes 474-488 et identitaire Asfar. Réutilisable autres écrans (Profile settings, etc.).</p>
+
+        <h3>6. Couplage faible Bloc / Service de publication</h3>
+        <p>Le <code>AppartementWizardBloc</code> est explicitement décrit comme <em>"NE FAIT PAS d'appel API"</em> (cf. docstring). Quand la validation passe, il emit juste <code>published = true</code>. Le screen écoute ce flag via <code>BlocListener</code> et déclenche lui-même l'appel <code>AppartementRepository().createAppartementWithImages</code>. Avantage : le Bloc reste indépendant de l'infrastructure réseau, testable unitairement sans mock service.</p>
+
+        <h3>7. Règles toggles sérialisées en string opaque</h3>
+        <p>Les 3 toggles step 5 (Démarcheurs · Caution · Animaux) n'ont pas de champs dédiés dans le modèle <code>Appartement</code>. Solution MVP : sérialisation simple dans le champ <code>regles</code> existant :</p>
+        <pre><code>final rulesJson = 'demarcheurs=true;caution=true;animaux=false';
+final updated = state.draft.copyWith(regles: rulesJson);</code></pre>
+        <p><strong>TODO V10</strong> : aligner backend pour exposer des champs typés (<code>acceptsAgents: bool</code>, <code>requiresDeposit: bool</code>, <code>petsAllowed: bool</code>).</p>
+
+        <h3>8. Frais de ménage = visuel-only MVP</h3>
+        <p>Le proto inclut un input "Frais de ménage (optionnel)" en étape 5. Le modèle <code>Appartement</code> côté Flutter <strong>n'a pas de champ dédié</strong>. V9.1 affiche un <code>_CleaningFeePlaceholder</code> visuel-only (fidélité proto) mais ne persiste pas la valeur. <strong>TODO V10</strong> : ajouter <code>cleaningFee: int?</code> au modèle Appartement quand le backend l'expose.</p>
+    </section>
+
+    <section>
+        <h2 id="fichiers">Fichiers livrés</h2>
+
+        <h3>16 fichiers créés (12 atomes + 5 étapes + 1 orchestrateur)</h3>
+        <table>
+            <thead><tr><th>Action</th><th>Fichier</th><th>Rôle</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/proprio_new_listing_screen.dart</code></td><td>Orchestrateur (BlocProvider + BlocListener + 5 steps)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/wizard_step_indicator.dart</code></td><td>TopNav back + sub "Étape X / 5" + progress bar 300ms</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/wizard_cta_bar.dart</code></td><td>BottomBar avec CustomButton lg block "Continuer"/"Publier"</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/resume_draft_dialog.dart</code></td><td>AlertDialog "Reprendre"/"Recommencer" static helper</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/rooms_type_card.dart</code></td><td>Card sélectionnable étape 1 (border accent/line, bg accentSoft/bgElev1)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/searchable_select.dart</code></td><td>Dropdown searchable Ville/Commune (showModalBottomSheet)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/gps_capture_card.dart</code></td><td>Card capture GPS + preview MiniMapPreview V9.7c</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/wizard_stepper_row.dart</code></td><td>Stepper -/+ pour Chambres/SdB</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/photos_upload_card.dart</code></td><td>DashedBorderContainer + cercle accent CTA upload</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/photo_grid_item.dart</code></td><td>Stack ImgPh + badge "Couverture" + bouton supprimer</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/amenity_chip_grid.dart</code></td><td>GridView 2 col + chips check/add multi-sélection</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/pricing_commission_preview.dart</code></td><td>Container bgElev2 avec calcul commission 8% Asfar</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/asfar_toggle.dart</code></td><td>Toggle custom 44×26 pill, AnimatedContainer 200ms</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/step_rooms_type.dart</code></td><td>Étape 1 : assemblage 5 RoomsTypeCard + info hint</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/step_location_capacity.dart</code></td><td>Étape 2 : titre + SearchableSelect ville/commune + GpsCapture + Stepper</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/step_photos.dart</code></td><td>Étape 3 : PhotosUploadCard + compteur + GridView 3 col</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/step_amenities.dart</code></td><td>Étape 4 : 2 AmenityChipGrid (Essentiels + Confort)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>wizard/widget/step_pricing.dart</code></td><td>Étape 5 : prix mono + PricingPreview + 3 toggles règles</td></tr>
+                <tr><td><span class="badge badge-accent">ADAPTÉ</span></td><td><code>appartements/listings_screen.dart</code></td><td>NewListingCard.onTap push ProprioNewListingScreen (3 lignes modifiées)</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Surprise : zéro modification d'infrastructure</h3>
+        <p>Lors du scan architecture, découverte que <strong>tous</strong> les composants backend/Bloc/storage/géoloc/validator nécessaires existaient déjà dans le projet (probablement préparés lors d'une vague précédente). V9.1 n'a touché ni <code>pubspec.yaml</code>, ni un seul fichier de service, ni un seul fichier de Bloc — uniquement de l'UI.</p>
+    </section>
+
+    <section>
+        <h2 id="qualite">Qualité — Audit 89/100</h2>
+        <table>
+            <thead><tr><th>Dimension</th><th>Score</th><th>Statut</th></tr></thead>
+            <tbody>
+                <tr><td>Complexité</td><td><strong>80</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Lisibilité</td><td><strong>90</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>DRY</td><td><strong>90</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Documentation</td><td><strong>90</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>SOLID</td><td><strong>92</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Dette technique</td><td><strong>92</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td><strong>GLOBAL</strong></td><td><strong>89</strong>/100</td><td><span class="badge badge-success">✅ VALIDÉ</span></td></tr>
+            </tbody>
+        </table>
+
+        <h3>Règles Flutter projet respectées (10/10)</h3>
+        <ul>
+            <li>✅ <strong>Règle n°1</strong> : zéro fonction privée renvoyant Widget — <code>grep -rn "Widget _" lib/screen/client/proprio/appartements/wizard/</code> → vide. 15+ sous-widgets extraits en classes privées (<code>_StepperButton</code>, <code>_PreviewRow</code>, <code>_LeadingIcon</code>, <code>_LabelBlock</code>, <code>_CaptureButton</code>, <code>_PhotoBackground</code>, <code>_CoverBadge</code>, <code>_RemoveButton</code>, <code>_AmenityChipItem</code>, <code>_SearchablePickerSheet</code>, <code>_RoomsHint</code>, <code>_LabeledTextField</code>, <code>_CountAndStatusRow</code>, <code>_PriceCard</code>, <code>_CleaningFeePlaceholder</code>, <code>_RulesCard</code>, <code>_RuleRow</code>, <code>_ProprioNewListingView</code>, <code>_StepContent</code>).</li>
+            <li>✅ Un widget = un fichier (16 widgets dédiés)</li>
+            <li>✅ Une classe = un fichier (sauf StatefulWidget + State + sous-widgets privés strictement utilisés au sein du fichier)</li>
+            <li>✅ Réutilisation maximale : AppartementWizardBloc / DraftStorage / GeoService / Validator / Mapper / Repository / Service / MiniMapPreview V9.7c / DashedBorderContainer V7 / BottomBar / BlurContainer / CustomButton / OutlinedCustomButton / IconBoutton / ImgPh / FcfaFormatter</li>
+            <li>✅ Style 100% AppColors / AppTextStyles / AppRadii tokens</li>
+            <li>✅ <code>mounted</code> checks systématiques avant <code>setState</code>/<code>Navigator</code> post-await</li>
+            <li>✅ <code>Timer.cancel()</code> + <code>TextEditingController.dispose()</code> propres</li>
+        </ul>
+
+        <div class="quote">
+            « <strong>flutter analyze</strong> : 39 issues legacy inchangées, 0 nouvelle erreur. <strong>Règle n°1</strong> : <code>grep "Widget _" lib/screen/client/proprio/appartements/wizard/</code> → vide. »
+        </div>
+    </section>
+
+    <section>
+        <h2>Limites V9.1 actées</h2>
+        <ul>
+            <li><strong>Frais de ménage</strong> non persisté (champ absent du modèle Appartement) — affichage proto-fidèle uniquement</li>
+            <li><strong>Règles toggles</strong> sérialisées en string opaque dans <code>Appartement.regles</code> — TODO V10 champs typés backend</li>
+            <li><strong>Pas de "Autre — saisir manuellement"</strong> dans SearchableSelect (option proto avancée hors scope MVP)</li>
+            <li><strong>Mode édition</strong> reste sur <code>ProprioListingEditScreen</code> 4-tabs séparé — pas d'unification avec le wizard</li>
+            <li><strong>Limite photos</strong> client-side à 8 (image_picker <code>limit: 8</code>), pas de gestion taille &gt; 10 MB par photo côté Flutter (laissé au backend de refuser)</li>
+            <li><strong>Géolocalisation refusée OS</strong> : pas de fallback geocoding côté Flutter (le backend fait fallback depuis adresse texte)</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Pipeline /feature full</h2>
+        <p>Cette feature a été livrée via le pipeline complet multi-agents :</p>
+        <table>
+            <thead><tr><th>Étape</th><th>Agent</th><th>Output</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td>Business Analyst</td><td><code>business-spec.md</code> validé en 4 questions de cadrage (étapes, save, édition vs création, géoloc)</td></tr>
+                <tr><td>2</td><td>Architecture</td><td><code>architecture.md</code> avec découverte AppartementWizardBloc existant (énorme gain de scope) + diagrammes Mermaid + CONTRAT d'implémentation 16 widgets</td></tr>
+                <tr><td>3</td><td>UI/UX</td><td><code>ui-proposal.md</code> — 3 décisions tranchées (badge couverture chip corner, DashedBorderContainer, AsfarToggle custom)</td></tr>
+                <tr><td>4</td><td>Flutter Dev</td><td>16 fichiers créés + 1 modifié dans l'ordre du contrat — réutilisation 100% infra existante</td></tr>
+                <tr><td>5</td><td>Audit</td><td>Score 89/100 — 2 ⚠️ majeurs non bloquants (orchestrateur 380 lignes, InputDecoration verbose Flutter standard)</td></tr>
+                <tr><td>6</td><td>Documentation</td><td>Ce fichier HTML</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>🔮 Hors scope V9.1 (tracker V10)</h2>
+        <ul>
+            <li><strong>Champs typés règles backend</strong> : remplacer string opaque <code>regles</code> par 3 champs bool <code>acceptsAgents</code> / <code>requiresDeposit</code> / <code>petsAllowed</code></li>
+            <li><strong>Champ <code>cleaningFee</code></strong> exposé par le backend + persistance Flutter</li>
+            <li><strong>Mode édition unifié</strong> (ProprioListingFormScreen avec param Appartement? initial) si feedback proprio</li>
+            <li><strong>"Autre — saisir manuellement"</strong> dans SearchableSelect pour ville/commune custom (proto option avancée)</li>
+            <li><strong>Picker map drag pin</strong> alternatif à GpsCapture pour précision sub-quartier</li>
+            <li><strong>Persistance bouton "Quitter le tunnel"</strong> : prompt "Sauvegarder en brouillon ?" au lieu de save silencieux</li>
+            <li><strong>Validation photo côté Flutter</strong> (taille &gt; 10 MB, format invalide) avant upload</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Historique</h2>
+        <table>
+            <thead><tr><th>Version</th><th>Date</th><th>Changement</th></tr></thead>
+            <tbody>
+                <tr><td><strong>1.0</strong></td><td>2026-05-11</td><td>Création initiale — V9.1 (F2 Wizard création appartement) livrée via pipeline <code>/feature full</code>. 16 fichiers UI + 1 modif. Infrastructure backend/Bloc/storage 100% réutilisée (AppartementWizardBloc existant). Audit 89/100.</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <footer>
+        Asfar Mobile · V9.1 Wizard Création Appartement · Documentation générée le 2026-05-11
+    </footer>
+</div>
+</body>
+</html>
