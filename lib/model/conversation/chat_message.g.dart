@@ -26,13 +26,14 @@ class ChatMessageAdapter extends TypeAdapter<ChatMessage> {
       isSending: fields[6] as bool?,
       hasFailed: fields[7] as bool?,
       tempId: fields[8] as String?,
+      isSystem: fields[9] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ChatMessage obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class ChatMessageAdapter extends TypeAdapter<ChatMessage> {
       ..writeByte(7)
       ..write(obj.hasFailed)
       ..writeByte(8)
-      ..write(obj.tempId);
+      ..write(obj.tempId)
+      ..writeByte(9)
+      ..write(obj.isSystem);
   }
 
   @override

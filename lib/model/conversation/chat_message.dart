@@ -32,6 +32,13 @@ class ChatMessage extends HiveObject {
   @HiveField(8)
   String? tempId;
 
+  /// V9.2 : message émis automatiquement par le backend (paiement résa
+  /// validé, demande de partenariat acceptée, etc.). Identifie une card
+  /// système — `contenu` commence alors par `[ASFAR_CARD:type]{...}` et
+  /// `expediteur`/`clientId`/`clientNom`/`clientType` peuvent être null.
+  @HiveField(9)
+  bool? isSystem;
+
   ChatMessage({
     this.id,
     this.expediteur,
@@ -42,6 +49,7 @@ class ChatMessage extends HiveObject {
     this.isSending,
     this.hasFailed,
     this.tempId,
+    this.isSystem,
   });
 
   static ChatMessage fromJsonAll(Map<String, dynamic> json) {
@@ -66,6 +74,7 @@ class ChatMessage extends HiveObject {
     isSending = json['isSending'] ?? false;
     hasFailed = json['hasFailed'] ?? false;
     tempId = json['tempId'];
+    isSystem = json['isSystem'] ?? false;
   }
 
   Map<String, dynamic> toJson() {
@@ -85,6 +94,7 @@ class ChatMessage extends HiveObject {
     data['isSending'] = isSending;
     data['hasFailed'] = hasFailed;
     data['tempId'] = tempId;
+    data['isSystem'] = isSystem ?? false;
 
     return data;
   }
@@ -123,6 +133,7 @@ class ChatMessage extends HiveObject {
     bool? isSending,
     bool? hasFailed,
     String? tempId,
+    bool? isSystem,
   }) {
     return ChatMessage(
       id: id ?? this.id,
@@ -134,6 +145,7 @@ class ChatMessage extends HiveObject {
       isSending: isSending ?? this.isSending,
       hasFailed: hasFailed ?? this.hasFailed,
       tempId: tempId ?? this.tempId,
+      isSystem: isSystem ?? this.isSystem,
     );
   }
 

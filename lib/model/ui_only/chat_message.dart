@@ -1,4 +1,4 @@
-import 'package:asfar/model/ui_only/accepted_referral_card_payload.dart';
+import 'package:asfar/model/ui_only/accepted_partenariat_card_payload.dart';
 import 'package:asfar/model/ui_only/reservation_card_payload.dart';
 
 /// Origine d'un message dans le `MessagingThreadScreen`.
@@ -18,15 +18,16 @@ enum MessageKind {
   /// Card spéciale « Réservation » (proto `extras.jsx:223-232`).
   reservationCard,
 
-  /// Card spéciale « Demande acceptée » (proto `extras.jsx:233-246`).
-  acceptedReferralCard,
+  /// Card spéciale « Demande de partenariat acceptée » — V9.2 (renommé
+  /// depuis `acceptedReferralCard` pour aligner sur le nommage backend
+  /// `partenariat`).
+  acceptedPartenariatCard,
 }
 
 /// Message du `MessagingThreadScreen`.
 ///
-/// Reproduit les entrées `messages` du proto `extras.jsx::MessagingThread`
-/// (lignes 162-188). Selon `kind`, soit `text` est rempli, soit le payload
-/// correspondant (`reservation` ou `acceptedReferral`).
+/// V9.2 : les payloads sont désormais minimaux (juste référence/id) et le
+/// détail est récupéré lazy au mount des widgets cards.
 class ChatMessage {
   final String id;
   final MessageSender sender;
@@ -34,7 +35,7 @@ class ChatMessage {
   final String time;
   final MessageKind kind;
   final ReservationCardPayload? reservation;
-  final AcceptedReferralCardPayload? acceptedReferral;
+  final AcceptedPartenariatCardPayload? acceptedPartenariat;
 
   const ChatMessage({
     required this.id,
@@ -43,7 +44,7 @@ class ChatMessage {
     this.text,
     this.kind = MessageKind.text,
     this.reservation,
-    this.acceptedReferral,
+    this.acceptedPartenariat,
   });
 
   bool get isMe => sender == MessageSender.me;

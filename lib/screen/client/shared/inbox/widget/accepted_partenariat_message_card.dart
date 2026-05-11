@@ -1,41 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/reservation/reservation.dart';
-import 'package:asfar/model/ui_only/reservation_card_payload.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/user_bloc/user_bloc.dart';
+import 'package:asfar/model/partenariat/demande_partenariat.dart';
+import 'package:asfar/model/ui_only/accepted_partenariat_card_payload.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/system_card_atoms.dart';
-import 'package:asfar/service/model/booking/reservation_service.dart';
+import 'package:asfar/service/model/partenariat/partenariat_service.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
-import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/util/function.dart';
 
-/// Card spéciale « Réservation » — `MessagingThreadScreen` — V9.2.
+/// Card spéciale « Demande de partenariat acceptée » — V9.2.
 ///
-/// Le payload ne porte que la référence (`ASF-XXX`) ; le détail est récupéré
-/// lazy via `ReservationService.getByReference(reference)` au mount du
-/// widget. Pendant le fetch : skeleton 3 zones bgElev2. En cas d'erreur :
-/// fallback contenu basique (`Réservation {ref}`) + chip "Indisponible".
+/// Renommé depuis `AcceptedReferralMessageCard` pour aligner sur le nommage
+/// backend (`partenariat` au lieu de `referral`).
 ///
-/// Tap : invoque `onTap(loaded)` avec la `Reservation` complète si chargée,
-/// ou `null` si fetch échoué. Le parent décide quoi pousser.
-class ReservationMessageCard extends StatefulWidget {
-  final ReservationCardPayload payload;
-  final void Function(Reservation? loaded)? onTap;
+/// Le payload ne porte que l'id de la demande ; le détail est récupéré lazy
+/// via `PartenariatService.getDemandeById(id)`. Affiche le nom de la
+/// **partie opposée** (proprio si user démarcheur, démarcheur si user proprio).
+class AcceptedPartenariatMessageCard extends StatefulWidget {
+  final AcceptedPartenariatCardPayload payload;
+  final void Function(DemandePartenariat? loaded)? onTap;
 
-  const ReservationMessageCard({
+  const AcceptedPartenariatMessageCard({
     super.key,
     required this.payload,
     this.onTap,
   });
 
   @override
-  State<ReservationMessageCard> createState() =>
-      _ReservationMessageCardState();
+  State<AcceptedPartenariatMessageCard> createState() =>
+      _AcceptedPartenariatMessageCardState();
 }
 
-class _ReservationMessageCardState extends State<ReservationMessageCard> {
-  final ReservationService _service = ReservationService();
-  Reservation? _loaded;
+class _AcceptedPartenariatMessageCardState
+    extends State<AcceptedPartenariatMessageCard> {
+  DemandePartenariat? _loaded;
   bool _isLoading = true;
   bool _failed = false;
 
@@ -47,15 +47,16 @@ class _ReservationMessageCardState extends State<ReservationMessageCard> {
 
   Future<void> _load() async {
     try {
-      final reservation =
-          await _service.getByReference(widget.payload.reference);
+      final demande = await PartenariatService().getDemandeById(
+        widget.payload.demandeId,
+      );
       if (!mounted) return;
       setState(() {
-        _loaded = reservation;
+        _loaded = demande;
         _isLoading = false;
       });
     } catch (e) {
-      deboger('ReservationMessageCard.load: $e');
+      deboger('AcceptedPartenariatMessageCard.load: $e');
       if (!mounted) return;
       setState(() {
         _isLoading = false;
@@ -72,6 +73,8 @@ class _ReservationMessageCardState extends State<ReservationMessageCard> {
   @override
   Widget build(BuildContext context) {
     final maxWidth = MediaQuery.sizeOf(context).width * 0.82;
+    final currentUserType =
+        context.read<UserBloc>().state.user?.type?.toLowerCase();
     return Align(
       alignment: Alignment.centerLeft,
       child: ConstrainedBox(
@@ -91,14 +94,17 @@ class _ReservationMessageCardState extends State<ReservationMessageCard> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SystemCardLeadingIcon(icon: Icons.event_outlined),
+                  const SystemCardLeadingIcon(
+                    icon: Icons.handshake_outlined,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _ReservationCardBody(
+                    child: _PartenariatCardBody(
                       isLoading: _isLoading,
                       failed: _failed,
-                      reservation: _loaded,
-                      reference: widget.payload.reference,
+                      demande: _loaded,
+                      demandeId: widget.payload.demandeId,
+                      currentUserType: currentUserType,
                     ),
                   ),
                 ],
@@ -111,31 +117,44 @@ class _ReservationMessageCardState extends State<ReservationMessageCard> {
   }
 }
 
-class _ReservationCardBody extends StatelessWidget {
+class _PartenariatCardBody extends StatelessWidget {
   final bool isLoading;
   final bool failed;
-  final Reservation? reservation;
-  final String reference;
+  final DemandePartenariat? demande;
+  final int demandeId;
+  final String? currentUserType;
 
-  const _ReservationCardBody({
+  const _PartenariatCardBody({
     required this.isLoading,
     required this.failed,
-    required this.reservation,
-    required this.reference,
+    required this.demande,
+    required this.demandeId,
+    required this.currentUserType,
   });
 
-  String _formatDates() {
-    final r = reservation;
-    if (r == null || r.debut == null || r.fin == null) return '';
+  /// Calcule le nom à afficher = nom de la partie opposée.
+  String _otherPartyName() {
+    final d = demande;
+    if (d == null) return '';
+    // Si l'user courant est démarcheur → afficher nom proprio.
+    if (currentUserType == 'demarcheur') {
+      final prenom = d.proprietaire['prenom'] as String? ?? '';
+      final nom = d.proprietaire['nom'] as String? ?? '';
+      final full = '$prenom $nom'.trim();
+      return full.isNotEmpty ? full : 'Propriétaire';
+    }
+    // Si l'user courant est proprio → afficher nom démarcheur.
+    return d.nomDemarcheur;
+  }
+
+  String _formatRepondueAt() {
+    final dt = demande?.repondueAt;
+    if (dt == null) return '';
     const months = [
       'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
       'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'
     ];
-    final start = r.debut!;
-    final end = r.fin!;
-    final nights = end.difference(start).inDays;
-    final monthName = months[start.month - 1];
-    return '${start.day} – ${end.day} $monthName · $nights nuit${nights > 1 ? 's' : ''}';
+    return 'Accepté le ${dt.day} ${months[dt.month - 1]}';
   }
 
   @override
@@ -145,40 +164,34 @@ class _ReservationCardBody extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'RÉSERVATION',
+          'DEMANDE ACCEPTÉE',
           style: AppTextStyles.eyebrow.copyWith(
             fontSize: 9,
-            color: AppColors.accent,
+            color: AppColors.success,
           ),
         ),
         const SizedBox(height: 6),
         if (isLoading)
-          const SystemCardSkeletonRows(rowWidths: [160, 110, 80])
-        else if (failed || reservation == null)
-          _CardFailedFallback(title: 'Réservation $reference')
+          const SystemCardSkeletonRows(rowWidths: [140, 100])
+        else if (failed || demande == null)
+          _CardFailedFallback(title: 'Partenariat #$demandeId')
         else
-          _CardLoadedReservation(
-            title: reservation!.appart?.titre ?? 'Réservation',
-            dates: _formatDates(),
-            reference: reference,
-            total: reservation!.prix?.toInt(),
+          _CardLoadedPartenariat(
+            partyName: _otherPartyName(),
+            subtitle: _formatRepondueAt(),
           ),
       ],
     );
   }
 }
 
-class _CardLoadedReservation extends StatelessWidget {
-  final String title;
-  final String dates;
-  final String reference;
-  final int? total;
+class _CardLoadedPartenariat extends StatelessWidget {
+  final String partyName;
+  final String subtitle;
 
-  const _CardLoadedReservation({
-    required this.title,
-    required this.dates,
-    required this.reference,
-    required this.total,
+  const _CardLoadedPartenariat({
+    required this.partyName,
+    required this.subtitle,
   });
 
   @override
@@ -188,7 +201,7 @@ class _CardLoadedReservation extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          title,
+          partyName,
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -197,24 +210,13 @@ class _CardLoadedReservation extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        if (dates.isNotEmpty) ...[
+        if (subtitle.isNotEmpty) ...[
           const SizedBox(height: 2),
           Text(
-            dates,
+            subtitle,
             style: AppTextStyles.small.copyWith(fontSize: 11),
           ),
         ],
-        const SizedBox(height: 4),
-        Text(
-          total != null
-              ? '$reference · ${FcfaFormatter.full(total!)}'
-              : reference,
-          style: AppTextStyles.mono(const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.accent,
-          )),
-        ),
       ],
     );
   }

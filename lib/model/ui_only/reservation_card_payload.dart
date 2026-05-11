@@ -1,18 +1,12 @@
-import 'package:asfar/widget/card/listing_preview.dart';
-
-/// Payload d'un message `MessageKind.reservationCard` — Card « Réservation »
-/// dans le `MessagingThreadScreen`.
+/// Payload minimal d'un message `MessageKind.reservationCard` — V9.2.
 ///
-/// Reproduit le mock du proto `extras.jsx::MessagingThread` (lignes 224-232) :
-/// img listing 56×56 + eyebrow RÉSERVATION + titre + dates + code mono.
+/// Aligné sur le brief backend 2026-05-11 : le contenu du message émis par
+/// le serveur est `[ASFAR_CARD:reservation]{"ref":"ASF-XXX"}`. Le payload
+/// ne porte que la **référence** ; le détail (titre appart, dates, prix)
+/// est récupéré lazy via `ReservationService.getByReference()` dans le
+/// `ReservationMessageCard` au mount.
 class ReservationCardPayload {
-  final ListingPreview listing;
-  final String dates;
-  final String bookingCode;
+  final String reference;
 
-  const ReservationCardPayload({
-    required this.listing,
-    required this.dates,
-    required this.bookingCode,
-  });
+  const ReservationCardPayload({required this.reference});
 }

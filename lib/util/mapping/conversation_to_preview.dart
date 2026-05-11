@@ -59,8 +59,20 @@ class ConversationToPreviewMapper {
   static ConversationRole _roleFor(Conversation c, User? me) {
     if (me == null) return ConversationRole.host;
     final myType = (me.type ?? '').toLowerCase();
-    if (myType == 'proprietaire') return ConversationRole.tenant;
-    if (myType == 'demarcheur') return ConversationRole.host;
+    final other = _otherParty(c, me);
+    final otherType = (other?.type ?? '').toLowerCase();
+
+    // V9.2 : conv mixte proprio↔démarcheur supportée. Le rôle affiché est
+    // celui de l'INTERLOCUTEUR, calculé selon les types des 2 parties.
+    if (myType == 'proprietaire') {
+      if (otherType == 'demarcheur') return ConversationRole.demarcheur;
+      return ConversationRole.tenant;
+    }
+    if (myType == 'demarcheur') {
+      // Démarcheur voit proprio (= host) ou client final (referred locataire).
+      return ConversationRole.host;
+    }
+    // Locataire (ou rôle inconnu) : interlocuteur = proprio.
     return ConversationRole.host;
   }
 

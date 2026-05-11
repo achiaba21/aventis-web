@@ -16,6 +16,31 @@ class ReservationService {
   static const String urlCancelReservation = "${api}user/reservations";
   static const String urlConfirmReservation = "${api}user/reservations";
 
+  /// V9.2 — Récupère une réservation par sa référence (ex: `ASF-7K2N9`).
+  ///
+  /// Utilisé par les cards système du chat (`ReservationMessageCard`) pour
+  /// fetch les détails au mount. Route `GET /api/user/reservations/{ref}`.
+  Future<Reservation> getByReference(String reference) async {
+    try {
+      final dio = DioRequest.instance;
+      final response = await dio.get("${api}user/reservations/$reference");
+      if (response.data is Map<String, dynamic>) {
+        final data = response.data as Map<String, dynamic>;
+        final body = data['body'];
+        if (body is Map<String, dynamic>) {
+          return Reservation.fromJson(body);
+        }
+        if (data.containsKey('id')) {
+          return Reservation.fromJson(data);
+        }
+      }
+      throw Exception('Format de réponse invalide pour getByReference');
+    } catch (e) {
+      deboger('ReservationService.getByReference: $e');
+      rethrow;
+    }
+  }
+
   /// Crée une nouvelle réservation
   Future<Reservation> createReservation(ReservationReq reservationReq) async {
     try {

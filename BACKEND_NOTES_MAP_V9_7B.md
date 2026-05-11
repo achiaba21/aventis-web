@@ -1,6 +1,6 @@
 # 🛰️ Notes Backend — V9.7b Map Appartement
 
-> **Date :** 2026-05-11
+> **Date :** 2026-05-11 · **Mise à jour V9.2 (2026-05-11)** : voir §7 (devise FCFA dans `/filtered`) et §8 (`geoLat/geoLongi` désormais calculés automatiquement par le backend — strippés côté Flutter).
 > **Contexte :** clarifications reçues du dev backend après livraison Flutter V9.7b. Les specs internes BA/Architecture mentionnaient des conventions inexactes — ce fichier consigne les bonnes valeurs pour ne pas refaire l'erreur.
 
 ---
@@ -104,3 +104,54 @@ Les documents suivants contiennent des informations **désormais obsolètes** su
 ## 6. Référence enum complet
 
 `lib/model/reservation/reservation.dart:11-29` — `ReservationStatus`. Toujours utiliser `.value` pour matcher la chaîne backend (ex: `ReservationStatus.payee.value` → `'PAYER'`).
+
+---
+
+## 7. Devise FCFA / XOF dans le payload `/filtered` (mise à jour V9.2 — 2026-05-11)
+
+Le brief backend 2026-05-11 confirme que la devise des prix retournés par `GET /api/map/appartements/filtered` est **FCFA / XOF** (Franc CFA Ouest-Africain, ISO 4217 : `XOF`). Aucun champ `currency` n'est sérialisé dans la réponse (la devise est implicite), mais elle correspond à la même que les autres endpoints prix de l'app.
+
+**Côté Flutter** : le formatteur `FcfaFormatter` (déjà utilisé partout dans l'app) est compatible tel quel — les prix sont déjà supposés en FCFA dans tous les payloads `prixNuit/prixMois/prixSemaine`. **Aucun changement requis côté carte** — déjà aligné.
+
+**Pas d'usage international prévu** : tant qu'Asfar reste Côte d'Ivoire / Afrique de l'Ouest, l'hypothèse FCFA est invariante. Si jamais une extension géo arrive, ajouter alors un champ `currency` au DTO `MapAppartement` et au formatteur (hors scope actuel).
+
+---
+
+## 8. `geoLat` / `geoLongi` côté création — calculés automatiquement (mise à jour V9.2 — 2026-05-11)
+
+Le brief backend 2026-05-11 confirme que **le backend calcule automatiquement `geoLat` et `geoLongi`** lors de la création d'une adresse (via geocoding serveur). Conséquence pour Flutter :
+
+### Avant V9.2
+
+L'`AddressReq` côté Flutter envoyait `geoLat` et `geoLongi` capturés via `GpsCapture` (téléphone du proprio) dans le payload de création — pas systématiquement, mais souvent. Le backend acceptait les valeurs et les utilisait telles quelles.
+
+### V9.2 — strip côté Flutter
+
+`AppartementBackendMapper._buildLegacyResidenceShape` (`lib/service/model/appartement/appartement_backend_mapper.dart`) **strippe désormais** `geoLat` et `geoLongi` du payload `address` avant envoi :
+
+```dart
+final addressMap = appart.address!.toJson();
+addressMap.remove('geoLat');
+addressMap.remove('geoLongi');
+shape['address'] = addressMap;
+```
+
+L'utilisateur continue de **capturer** sa position via `GpsCapture` (utile pour pré-remplir le champ `pays/ville/commune` via reverse geocoding offline, et pour potentiellement vérifier la cohérence). Mais ces coordonnées **ne partent plus au backend** — le backend les recalcule via son geocoding à partir de l'adresse texte saisie. Source de vérité unique.
+
+### Conséquence pour l'obfuscation §3
+
+La logique §3 reste valide : `realLat/realLongi` calculés à partir du geocoding backend → décalage stocké → markers stables → confidentialité garantie.
+
+Si dans le futur on souhaite réautoriser l'envoi des coords téléphone (cas où le proprio veut imposer la position exacte du building parce que le geocoding tombe sur la mauvaise adresse), il suffira de retirer le strip et le backend continuera de fonctionner (le code accepte toujours `geoLat/geoLongi` en entrée selon §3 cas 1). C'est un comportement de fallback conservé côté backend pour robustesse.
+
+---
+
+## 9. Référence — Brief backend 2026-05-11
+
+Le brief complet ayant motivé les §7 et §8 a été reçu le **2026-05-11** et porte sur :
+- Cards système chat (voir `BACKEND_NOTES_RICH_CARDS_V8.md` §10)
+- Devise FCFA confirmée (§7 ci-dessus)
+- `geoLat/geoLongi` calculés auto backend (§8 ci-dessus)
+- Conversations Proprio↔Démarcheur supportées
+
+Tous les points ci-dessus sont **livrés côté Flutter en V9.2**. Voir doc HTML : `.ai-outputs/docs/v9-2-cards-systeme-map-align.html`.

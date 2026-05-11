@@ -91,7 +91,13 @@ class AppartementBackendMapper {
       shape['id'] = existingId;
     }
     if (appart.address != null) {
-      shape['address'] = appart.address!.toJson();
+      final addressMap = appart.address!.toJson();
+      // V9.2 : le backend calcule `geoLat`/`geoLongi` automatiquement via
+      // geocoding lors de la création — ne plus les envoyer côté Flutter
+      // (cf. BACKEND_NOTES_MAP_V9_7B.md).
+      addressMap.remove('geoLat');
+      addressMap.remove('geoLongi');
+      shape['address'] = addressMap;
     }
     return shape;
   }

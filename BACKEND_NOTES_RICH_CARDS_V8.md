@@ -1,7 +1,9 @@
 # 🛰️ Notes Backend — Cards riches dans les messages V8
 
-> **Date :** 2026-05-11
-> **Contexte :** finalisation V8.3 — les `MessagingThreadScreen` côté Flutter savent rendre deux cards riches (`ReservationMessageCard` et `AcceptedReferralMessageCard`) qui doivent pouvoir être déclenchées par certains messages serveur. Aujourd'hui le mapper Flutter (`ChatMessageToUiMapper`) détecte le `MessageKind` via des **préfixes textuels** sur le champ `contenu`, mais le backend ne les émet jamais encore. Ce document propose 3 façons de transporter ces cards.
+> **🟢 STATUT : ACTIVÉ V9.2 (2026-05-11)** — Option C (URI+ID minimaliste) **confirmée par le backend** et **livrée côté Flutter**. Voir §10 ci-dessous pour le récap d'activation. Le reste du document conserve le contexte historique de l'analyse V8.3.
+
+> **Date initiale :** 2026-05-11
+> **Contexte :** finalisation V8.3 — les `MessagingThreadScreen` côté Flutter savent rendre deux cards riches (`ReservationMessageCard` et `AcceptedReferralMessageCard` → renommé `AcceptedPartenariatMessageCard` en V9.2) qui doivent pouvoir être déclenchées par certains messages serveur. Aujourd'hui le mapper Flutter (`ChatMessageToUiMapper`) détecte le `MessageKind` via des **préfixes textuels** sur le champ `contenu`, mais le backend ne les émet jamais encore. Ce document propose 3 façons de transporter ces cards.
 
 ---
 
@@ -276,7 +278,7 @@ Côté Flutter : `ChatMessageToUiMapper` parse `contenu.substring("[ASFAR_CARD:r
 
 ---
 
-## 9. Référence code
+## 9. Référence code (état V8.3 — avant activation V9.2)
 
 - Modèle backend : `lib/model/conversation/chat_message.dart`
 - Mapper détection : `lib/util/mapping/chat_message_to_ui.dart:51-59`
@@ -286,3 +288,93 @@ Côté Flutter : `ChatMessageToUiMapper` parse `contenu.substring("[ASFAR_CARD:r
 - Modèles de détail :
   - `Appartement` (push `LocataireDetailScreen(listing: payload.listing)`) — fonctionne déjà
   - `ReferralPreview` (push `ReferralDetailScreen(referral: payload.referral)`) — payload prêt à recevoir, mapper à enrichir
+
+---
+
+## 10. ✅ V9.2 — Activation effective (2026-05-11)
+
+> **Décision actée** : le backend a livré le brief 2026-05-11 confirmant **Option C minimaliste** + alignement renommage `referral → partenariat`. Flutter a intégré le tout via la feature V9.2.
+
+### 10.1 Préfixes finaux confirmés par le backend
+
+| Card | Préfixe + payload | Sens du champ |
+|---|---|---|
+| **Réservation** | `[ASFAR_CARD:reservation]{"ref":"ASF-XXX"}` | `ref` est une **string** = code court résa (ex. `ASF-7K2N9`), pas l'id numérique |
+| **Partenariat acceptée** | `[ASFAR_CARD:partenariat]{"id":12}` | `id` est un **int** = id de `demande_partenariat`. **Renommé** depuis `referral` côté backend |
+
+### 10.2 Endpoints concrets livrés
+
+| Endpoint | Verbe | Statut | Réponse |
+|---|---|---|---|
+| `/api/user/reservations/{reference}` | GET | ✅ Existait, branché V9.2 | `Reservation` complet (avec `appart`, dates, prix, statut) |
+| `/api/demande-partenariat/{id}` | GET | ✅ **Nouveau backend brief 2026-05-11** | `{id, statut, createdAt, repondueAt, demarcheur:{id,nom,telephone}, proprietaire:{id,nom,telephone}}` |
+
+### 10.3 Champ `isSystem` ajouté au modèle
+
+- Backend envoie `isSystem: true` pour les messages système (cards) et `clientId/clientNom/clientType = null`
+- Flutter : ajout `@HiveField(9) bool? isSystem` au modèle `ChatMessage` (typeId 1 **non modifié** — boxes Hive existantes restent compatibles car field nullable)
+- Mapper utilise désormais `isSystem` **ET** présence du préfixe pour détecter le kind card
+
+### 10.4 Renommage `referral` → `partenariat` côté Flutter
+
+Cascade complète V9.2 :
+- `_referralPrefix` → `_partenariatPrefix` (valeur `[ASFAR_CARD:partenariat]`)
+- `AcceptedReferralCardPayload` → `AcceptedPartenariatCardPayload` (`String referralCode` → `int demandeId`)
+- `accepted_referral_message_card.dart` → `accepted_partenariat_message_card.dart`
+- `MessageKind.acceptedReferralCard` → `MessageKind.acceptedPartenariatCard`
+- L'écran démarcheur `ReferralDetailScreen` (autre flow V9.6) reste inchangé
+
+### 10.5 Pattern card lazy fetch (StatefulWidget)
+
+```dart
+class ReservationMessageCard extends StatefulWidget {
+  final ReservationCardPayload payload; // {reference: "ASF-7K2N9"}
+  final void Function(Reservation? loaded)? onTap;
+  ...
+}
+
+class _ReservationMessageCardState extends State<ReservationMessageCard> {
+  Reservation? _loaded;
+  bool _isLoading = true;
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load(); // ReservationService().getByReference(payload.reference)
+  }
+  ...
+}
+```
+
+Le widget affiche :
+- **Loading** : skeleton 3 zones gris bgElev2 statiques (`SystemCardSkeletonRows`)
+- **Loaded** : titre appart + dates + code mono accent or
+- **Error** : titre fallback (`"Réservation ASF-XXX"`) + chip `"Indisponible"` text3 muted (`SystemCardUnavailableChip`)
+
+### 10.6 Conversations Proprio↔Démarcheur supportées
+
+Le backend supporte désormais des conv mixtes. Côté Flutter, `ConversationToPreviewMapper._roleFor` a été élargi pour gérer `ConversationRole.demarcheur` (proprio voit démarcheur).
+
+### 10.7 Idempotence + cards comptent dans badge unread
+
+- Backend garantit idempotence (pas de doublons cards)
+- Cards systèmes comptent dans `unreadCount` comme messages normaux
+- **Pas de WebSocket temps réel** : polling REST suffit (V9.2). WebSocket hors scope, tracker V10.
+
+### 10.8 Référence code V9.2 (état actuel)
+
+- Modèle : `lib/model/conversation/chat_message.dart:isSystem` (HiveField 9, nullable)
+- Mapper : `lib/util/mapping/chat_message_to_ui.dart` (parsing JSON via `jsonDecode`, try/catch, fallback `MessageKind.text`)
+- Payloads UI-only : `lib/model/ui_only/reservation_card_payload.dart` (refonte minimal `{reference}`) · `lib/model/ui_only/accepted_partenariat_card_payload.dart` (`{demandeId}`)
+- Service nouveau : `lib/service/model/partenariat/partenariat_service.dart` (singleton, `getDemandeById(int)`)
+- Service étendu : `lib/service/model/booking/reservation_service.dart` (+ `getByReference(String)`)
+- Cards : `lib/screen/client/shared/inbox/widget/reservation_message_card.dart` · `accepted_partenariat_message_card.dart`
+- Atomes partagés : `lib/screen/client/shared/inbox/widget/system_card_atoms.dart` (3 widgets DRY)
+- Écran détail partenariat (nouveau, transverse proprio + démarcheur) : `lib/screen/client/shared/partenariats/partenariat_detail_screen.dart`
+- Handlers push : `lib/screen/client/shared/inbox/messaging_thread_screen.dart` (`_onReservationTap`, `_onPartenariatTap`)
+- Conv mixte : `lib/util/mapping/conversation_to_preview.dart:_roleFor` élargi
+
+### 10.9 Doc complète V9.2
+
+→ `.ai-outputs/docs/v9-2-cards-systeme-map-align.html`

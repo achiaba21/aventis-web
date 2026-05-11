@@ -402,7 +402,7 @@
 | **`DynamicAppBar` slot `sub`** | Le proto utilise `sub` (sous le titre) mais V6/V7 utilisent `eyebrow` (au-dessus) pour cohérence projet | Vague de finition transverse : ajouter un paramètre `sub` à `DynamicAppBar` (alternative à `eyebrow`) et migrer les écrans qui le veulent |
 | **Édition calendrier propriétaire** (V7) | `MiniCalendarGrid` view-only, taps = SnackBar | Quand `CalendarPlageBloc` rebranché : permettre tap pour bloquer/débloquer un jour, navigation entre mois |
 | **Branchement `ConversationBloc` réel** (V8) | Mocks `SampleConversations` + `SampleThreads` actuellement | Vague de finition post-V9 : brancher `ConversationBloc` existant + `MessageBloc` + WebSocket pour messages temps réel |
-| **Cards spéciales tap navigation** (V8) | ✅ livré 2026-05-11 (Flutter) — mapper backend en attente | Card Réservation tap → `LocataireDetailScreen` (utilise `payload.listing`). Card Demande acceptée tap → `ReferralDetailScreen` si `payload.referral != null`, sinon SnackBar fallback. **Pré-requis backend** : `ChatMessageToUiMapper` doit savoir construire un `ReferralPreview` complet depuis le préfixe `[ASFAR_CARD:referral]` quand le serveur émettra le format final (id, clientName, listing, nights, sentAt, status, commission). |
+| **Cards spéciales tap navigation** (V8) | ✅ **livré V9.2** (2026-05-11) — chaîne backend↔Flutter activée | V9.2 : brief backend confirme Option C minimaliste (`[ASFAR_CARD:reservation]{"ref":"ASF-XXX"}` + `[ASFAR_CARD:partenariat]{"id":12}`) + nouveau endpoint `/api/demande-partenariat/{id}`. Cards refondues en `StatefulWidget` avec lazy fetch (skeleton 3 zones + fallback chip muted). Renommage cascade `referral → partenariat`. Card Résa tap → `LocataireDetailScreen` (focus appart) ; Card Partenariat tap → nouveau `PartenariatDetailScreen` transverse (proprio + démarcheur). Doc complète : `.ai-outputs/docs/v9-2-cards-systeme-map-align.html`. |
 | **Bouton phone header thread** (V8) | ✅ livré 2026-05-11 | `MessagingThreadScreen._onCall` branché sur `launchUrl(Uri(scheme: 'tel', path: phone))`. `ConversationPreview.phone` rempli depuis `User.telephone` du proprio/locataire via mapper. Fallback SnackBar si null. |
 | **Bouton plus input bar** (V8) | SnackBar stub | Pièce jointe (image/file picker) — V9 |
 
@@ -428,6 +428,39 @@
 - Plan de reconstruction validé en 9 vagues
 - Démarrage Vague 1 — Atomes
 - Vagues 1-4 livrées (21 widgets + 5 écrans)
+
+### 2026-05-11 (V9.2 — Intégration brief backend cards système chat + map align) ✅
+
+Pipeline `/feature full` complet (BA → Architecture → UI/UX → Dev → Audit 93.5/100 → Doc).
+
+**Brief backend reçu 2026-05-11** : confirmation Option C minimaliste pour les cards riches + ajout `isSystem: bool` au modèle `MessageResponse` + nouveau endpoint `GET /api/demande-partenariat/{id}` + renommage `referral → partenariat` côté backend + support conv mixte Proprio↔Démarcheur + cleanup `geoLat/geoLongi` (calculés auto par geocoding serveur).
+
+**4 lots livrés Flutter** :
+
+- **L1 — Cards système chat (Option C activée)** : ajout `@HiveField(9) bool? isSystem` au modèle `ChatMessage` (typeId 1 inchangé, boxes Hive compat). Refonte `ChatMessageToUiMapper` : parse JSON via `jsonDecode` après préfixe + détection via `isSystem` ET préfixe + fallback `MessageKind.text` si parse échoue (try/catch). Préfixes finaux `[ASFAR_CARD:reservation]{"ref":"ASF-XXX"}` (string code) et `[ASFAR_CARD:partenariat]{"id":12}` (int). Renommage cascade `_referralPrefix → _partenariatPrefix`, `AcceptedReferralCardPayload → AcceptedPartenariatCardPayload` (`String referralCode → int demandeId`), `MessageKind.acceptedReferralCard → acceptedPartenariatCard`. Cards refondues `StatefulWidget` avec lazy fetch (skeleton 3 zones bgElev2 statiques + fallback chip `Indisponible` text3 muted). Atomes partagés `system_card_atoms.dart` (DRY entre 2 cards). Nouveau service neutre `PartenariatService` singleton (`getDemandeById(int)` route `api/demande-partenariat/{id}`) — séparation responsabilités avec `PartenariatProprioService` V9.6 inchangé. `ReservationService` étendu (`getByReference(String)` route `api/user/reservations/{ref}`). Callback signature changée vers objet `loaded` (`void Function(Reservation? loaded)?` et `DemandePartenariat?`). Nouveau écran transverse `PartenariatDetailScreen` (dans `lib/screen/client/shared/partenariats/`) — `DynamicAppBar` + section statut (chip large success/warn/danger) + 2 `PartenariatDetailPartyCard` (avatar gradient or 48×48 initiales + nom + tél mono + bouton phone `tel:` via `url_launcher`). `MessagingThreadScreen._onPartenariatTap` push vers nouveau détail si `loaded != null` sinon SnackBar.
+
+- **L2 — Cleanup AddressReq** : `AppartementBackendMapper._buildLegacyResidenceShape` strippe désormais `geoLat` et `geoLongi` du payload `address` avant envoi (backend les calcule auto). Le `GpsCapture` côté Flutter reste utilisé pour pré-remplir `pays/ville/commune` via reverse geocoding offline, mais ses coords ne partent plus.
+
+- **L3 — Conv mixte proprio↔démarcheur** : `ConversationToPreviewMapper._roleFor` élargi pour gérer `ConversationRole.demarcheur` (proprio voit démarcheur). Plus de check rigide locataire.
+
+- **L4 — Docs** : mise à jour `BACKEND_NOTES_RICH_CARDS_V8.md` (passage en statut « ACTIVÉ V9.2 » + §10 récap activation), mise à jour `BACKEND_NOTES_MAP_V9_7B.md` (§7 devise FCFA + §8 `geoLat` strippé côté Flutter), TODO REBUILD V8 « Cards spéciales tap navigation » passe en ✅ effectif livré V9.2.
+
+**Décisions techniques notables** :
+- **Hive `isSystem` nullable sans bump typeId** : champ nullable → Hive tolère les boxes pré-V9.2 (field absent = null = traité comme false). `chat_message.g.dart` synced manuellement (numFields 9→10, readByte/writeByte 9 ajoutés pour `isSystem`).
+- **Atomes partagés** : 3 widgets (`SystemCardLeadingIcon`, `SystemCardSkeletonRows`, `SystemCardUnavailableChip`) extraits dans `system_card_atoms.dart` → zéro duplication entre les 2 cards système.
+- **Service neutre `PartenariatService`** : créé séparément de `PartenariatProprioService` (V9.6 — actions proprio : accepter/refuser/listDemandes) pour le lookup neutre par ID applicable aux 2 rôles → séparation responsabilités propre.
+- **Calcul nom partie opposée** : `AcceptedPartenariatMessageCard` lit `UserBloc.state.user.type` pour afficher le nom de l'**interlocuteur** (proprio si user démarcheur, démarcheur si user proprio).
+- **Parsing résilient** : `try/catch` sur `jsonDecode`, retour `null` si parse échoue → mapper fallback gracieux vers `MessageKind.text` (jamais de crash sur message mal formé).
+
+**Périmètre fichiers** : 7 créés + 9 modifiés + 2 supprimés (`accepted_referral_card_payload.dart` + `accepted_referral_message_card.dart`). `flutter analyze` : 39 issues legacy inchangées, 0 nouvelle erreur. `grep -rn "Widget _" lib/screen/client/shared/partenariats/ lib/screen/client/shared/inbox/` → vide (règle Flutter n°1 respectée).
+
+**Audit 93.5/100** (toutes dimensions ≥ 92).
+
+**Doc complète HTML** : `.ai-outputs/docs/v9-2-cards-systeme-map-align.html`.
+
+**Hors scope tracker V10** : WebSocket temps réel (actuellement polling), `ReservationDetailScreen` dédié si feedback demande (V9.2 push `LocataireDetailScreen` focus appart), cache local Hive cards (TTL court terme).
+
+---
 
 ### 2026-05-11 (Vague 9.5 — Carte réelle géocodée — F7) ✅
 

@@ -6,11 +6,12 @@ import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/model/conversation/chat_message.dart' as model;
-import 'package:asfar/model/ui_only/accepted_referral_card_payload.dart';
+import 'package:asfar/model/partenariat/demande_partenariat.dart';
+import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/ui_only/conversation_preview.dart';
-import 'package:asfar/model/ui_only/reservation_card_payload.dart';
-import 'package:asfar/screen/client/demarcheur/referrals/referral_detail_screen.dart';
 import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
+import 'package:asfar/screen/client/shared/partenariats/partenariat_detail_screen.dart';
+import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/chat_input_bar.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_custom_header.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_loading_view.dart';
@@ -99,20 +100,22 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
     }
   }
 
-  void _onReservationTap(ReservationCardPayload payload) {
-    pushScreen(context, LocataireDetailScreen(listing: payload.listing));
-  }
-
-  void _onReferralTap(AcceptedReferralCardPayload payload) {
-    final referral = payload.referral;
-    if (referral == null) {
-      // Le mapper actuel n'enrichit pas encore le payload avec un
-      // ReferralPreview complet (en attente du format backend des cards
-      // [ASFAR_CARD:referral]). Toast informatif en attendant.
-      _toast('Détail de la demande ${payload.referralCode} bientôt disponible');
+  void _onReservationTap(Reservation? loaded) {
+    final appart = loaded?.appart;
+    if (appart == null) {
+      _toast('Détail de la réservation indisponible');
       return;
     }
-    pushScreen(context, ReferralDetailScreen(referral: referral));
+    final listing = AppartementToListingMapper.mapOne(appart);
+    pushScreen(context, LocataireDetailScreen(listing: listing));
+  }
+
+  void _onPartenariatTap(DemandePartenariat? loaded) {
+    if (loaded == null) {
+      _toast('Détail du partenariat indisponible');
+      return;
+    }
+    pushScreen(context, PartenariatDetailScreen(demande: loaded));
   }
 
   @override
@@ -167,7 +170,7 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
                     messages: messages,
                     scrollController: _scrollController,
                     onReservationTap: _onReservationTap,
-                    onReferralTap: _onReferralTap,
+                    onPartenariatTap: _onPartenariatTap,
                   );
                 },
               ),

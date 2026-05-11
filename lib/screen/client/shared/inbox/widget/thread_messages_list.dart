@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/ui_only/accepted_referral_card_payload.dart';
+import 'package:asfar/model/partenariat/demande_partenariat.dart';
+import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/ui_only/chat_message.dart';
-import 'package:asfar/model/ui_only/reservation_card_payload.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_date_separator.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_message_item.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
@@ -9,18 +9,21 @@ import 'package:asfar/widget/feedback/empty_state.dart';
 /// Liste scrollable des messages du `MessagingThreadScreen` avec
 /// séparateur de date en tête. Renvoie un `EmptyState.inline` si la
 /// conversation est vide.
+///
+/// V9.2 : callbacks cascade pour les cards système avec types loaded
+/// (`Reservation?` / `DemandePartenariat?`).
 class ThreadMessagesList extends StatelessWidget {
   final List<ChatMessage> messages;
   final ScrollController? scrollController;
-  final void Function(ReservationCardPayload payload)? onReservationTap;
-  final void Function(AcceptedReferralCardPayload payload)? onReferralTap;
+  final void Function(Reservation? loaded)? onReservationTap;
+  final void Function(DemandePartenariat? loaded)? onPartenariatTap;
 
   const ThreadMessagesList({
     super.key,
     required this.messages,
     this.scrollController,
     this.onReservationTap,
-    this.onReferralTap,
+    this.onPartenariatTap,
   });
 
   @override
@@ -45,7 +48,7 @@ class ThreadMessagesList extends StatelessWidget {
         return ThreadMessageItem(
           message: messages[index - 1],
           onReservationTap: onReservationTap,
-          onReferralTap: onReferralTap,
+          onPartenariatTap: onPartenariatTap,
         );
       },
     );

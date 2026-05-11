@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V9.2 — Cards système chat · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-11">
+    <meta name="updated" content="2026-05-11">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header { border-bottom: 1px solid var(--line); padding-bottom: 2rem; margin-bottom: 2rem; }
+        .eyebrow { color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 12px; }
+        h1 { font-size: 38px; letter-spacing: -1px; font-weight: 700; line-height: 1.05; margin-bottom: 0.75rem; }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin: 2.5rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; margin: 1.5rem 0 0.75rem; color: var(--text); }
+        p, li { color: var(--text-2); font-size: 15px; line-height: 1.6; }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta { color: var(--text-3); font-size: 13px; display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem; }
+        nav ul { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; padding: 1rem 0; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
+        nav a { color: var(--accent); text-decoration: none; font-size: 13px; font-weight: 500; }
+        nav a:hover { text-decoration: underline; }
+        .card { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 20px; padding: 1.25rem 1.5rem; margin: 1rem 0; }
+        .card-hero { background: linear-gradient(135deg, #2A1F0E 0%, #1A1206 60%, #0F0A04 100%); border-color: rgba(232,184,107,0.25); position: relative; overflow: hidden; }
+        .card-hero::before { content: ""; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(232,184,107,0.18), transparent 70%); }
+        .card-hero h2 { margin-top: 0; color: var(--accent); }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        .badge-updated { background: rgba(96,165,250,0.18); color: var(--info); border: 1px solid rgba(96,165,250,0.3); }
+        .badge-removed { background: rgba(248,113,113,0.14); color: var(--danger); }
+        .badge-new { background: rgba(74,222,128,0.14); color: var(--success); }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 14px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+        th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-3); background: var(--bg-elev-2); }
+        td { color: var(--text-2); }
+        td code, p code, li code { background: var(--bg-elev-2); padding: 2px 6px; border-radius: 6px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; color: var(--text); }
+        pre { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 14px; padding: 1rem; overflow-x: auto; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; margin: 1rem 0; }
+        pre code { background: none; padding: 0; font-size: inherit; color: var(--text); }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .stat-cell { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.25rem; text-align: center; }
+        .stat-cell .num { font-size: 28px; font-weight: 700; color: var(--accent); font-feature-settings: "tnum"; }
+        .stat-cell .lab { font-size: 12px; color: var(--text-3); margin-top: 0.25rem; letter-spacing: 0.4px; }
+        .quote { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--text-2); font-style: italic; margin: 1rem 0; }
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { counter-increment: step; padding-left: 36px; position: relative; margin-bottom: 12px; }
+        .step-list li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--line); color: var(--text-3); font-size: 12px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="eyebrow">V9.2 · Asfar Mobile</div>
+        <h1>Cards système chat <em>chaîne backend↔Flutter activée</em></h1>
+        <p>Intégration du brief backend 2026-05-11 : activation des cards riches « Réservation » et « Demande de partenariat » dans le chat, avec lazy fetch détail + skeleton + fallback gracieux. Renommage <code>referral</code> → <code>partenariat</code>, cleanup AddressReq, support conv mixte proprio↔démarcheur.</p>
+        <div class="meta">
+            <span>Version : <strong>1.0</strong></span>
+            <span>Créée : 2026-05-11</span>
+            <span>Audit : <strong style="color:var(--accent)">93.5/100</strong></span>
+            <span>Pipeline : <strong>/feature full</strong></span>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#decouverte">Découverte</a></li>
+            <li><a href="#vue">Vue d'ensemble</a></li>
+            <li><a href="#parcours">Parcours utilisateur</a></li>
+            <li><a href="#decisions">Décisions techniques</a></li>
+            <li><a href="#fichiers">Fichiers livrés</a></li>
+            <li><a href="#qualite">Qualité</a></li>
+            <li><a href="index.html">← Index</a></li>
+        </ul>
+    </nav>
+
+    <section class="card card-hero">
+        <h2>💬 Cards système — chaîne complète</h2>
+        <p>Le mapper <code>ChatMessageToUiMapper</code> détectait les préfixes <code>[ASFAR_CARD:*]</code> depuis V8 mais retournait <code>payload: null</code> en attendant le backend. <strong>V9.2 active la chaîne</strong> : préfixes finaux <code>[ASFAR_CARD:reservation]{"ref":"ASF-XXX"}</code> + <code>[ASFAR_CARD:partenariat]{"id":12}</code> parsés, cards refondues StatefulWidget avec lazy fetch via <code>ReservationService.getByReference</code> + <code>PartenariatService.getDemandeById</code>, skeleton 3 zones gris + fallback chip « Indisponible » silencieux.</p>
+        <div class="badges">
+            <span class="badge badge-success">✅ Cards activées</span>
+            <span class="badge badge-accent">★ Lazy fetch + skeleton</span>
+            <span class="badge badge-info">Renommage referral → partenariat</span>
+            <span class="badge badge-info">/feature full pipeline</span>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="decouverte">🎁 Découverte structurante</h2>
+        <p>L'audit code Flutter a révélé que toute l'infra modèle/service côté partenariat existait déjà (V9.6 livrée précédemment) :</p>
+        <table>
+            <thead><tr><th>Composant existant</th><th>Localisation</th><th>Statut</th></tr></thead>
+            <tbody>
+                <tr><td><code>DemandePartenariat</code> model</td><td><code>lib/model/partenariat/</code></td><td>✅ Réutilisé tel quel — id, createdAt, repondueAt, demarcheur/proprietaire (Map), statut + helpers <code>nomDemarcheur</code>, <code>telephoneDemarcheur</code>, <code>initDemarcheur</code></td></tr>
+                <tr><td><code>StatutPartenariat</code> enum</td><td>idem</td><td>✅ Réutilisé (en_attente, acceptee, refusee)</td></tr>
+                <tr><td><code>PartenariatProprioService</code></td><td><code>lib/service/model/proprietaire/</code></td><td>✅ Inchangé — séparation responsabilités (actions proprio : accepter/refuser/getDemandes)</td></tr>
+                <tr><td><code>partenariats/</code> dossier UI</td><td><code>lib/screen/client/shared/partenariats/</code></td><td>✅ Étendu — ajout <code>PartenariatDetailScreen</code> transverse + 2 widgets internes</td></tr>
+                <tr><td><code>ReservationService</code></td><td><code>lib/service/model/booking/</code></td><td>⚠️ Étendu (+<code>getByReference</code>, route <code>api/user/reservations/{ref}</code>)</td></tr>
+                <tr><td><code>ChatMessage</code> Hive model</td><td><code>lib/model/conversation/</code></td><td>⚠️ + champ <code>isSystem</code> (field 9, nullable, sans bump <code>typeId: 1</code> = boxes compat)</td></tr>
+            </tbody>
+        </table>
+        <div class="quote">
+            « V9.2 a réutilisé 100% de l'infrastructure partenariat V9.6. Aucun service dupliqué, aucun model recréé. Le seul nouveau service (<code>PartenariatService</code> neutre) sert exclusivement au lookup par ID nécessaire au pattern card lazy. »
+        </div>
+    </section>
+
+    <section>
+        <h2 id="vue">Vue d'ensemble</h2>
+        <p>V9.2 intègre le brief backend reçu 2026-05-11 en 4 lots :</p>
+        <ul>
+            <li><strong>L1 — Cards système chat</strong> : <code>isSystem</code> field, parsing payloads, refonte cards en StatefulWidget lazy, renommage cascade <code>referral</code>→<code>partenariat</code>, écran transverse <code>PartenariatDetailScreen</code></li>
+            <li><strong>L2 — Cleanup AddressReq</strong> : <code>AppartementBackendMapper</code> strip <code>geoLat</code>/<code>geoLongi</code> (backend les calcule auto via geocoding)</li>
+            <li><strong>L3 — Conv mixte proprio↔démarcheur</strong> : <code>ConversationToPreviewMapper._roleFor</code> élargi pour gérer les conversations Proprio↔Démarcheur en plus de Proprio↔Locataire</li>
+            <li><strong>L4 — Docs</strong> : <code>BACKEND_NOTES_RICH_CARDS_V8.md</code> activé en V9.2, <code>BACKEND_NOTES_MAP_V9_7B.md</code> mis à jour (devise FCFA, geoLat backend auto), <code>RECONSTRUCTION_UI_ASFAR.md</code> TODO V8 ✅</li>
+        </ul>
+        <div class="stat-grid">
+            <div class="stat-cell"><div class="num">7</div><div class="lab">CRÉÉS</div></div>
+            <div class="stat-cell"><div class="num">9</div><div class="lab">MODIFIÉS</div></div>
+            <div class="stat-cell"><div class="num">2</div><div class="lab">SUPPRIMÉS</div></div>
+            <div class="stat-cell"><div class="num">93.5</div><div class="lab">SCORE AUDIT</div></div>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="parcours">Parcours utilisateur</h2>
+
+        <h3>Flow 1 — Locataire reçoit une card Réservation après paiement</h3>
+        <ol class="step-list">
+            <li>Locataire paie sa résa via <code>POST /api/user/reservations/{ref}/pay</code></li>
+            <li>Backend émet un <code>ChatMessage</code> avec <code>isSystem: true</code>, contenu <code>[ASFAR_CARD:reservation]{"ref":"ASF-7K2N9"}</code></li>
+            <li>Au prochain GET messages, Flutter reçoit le ChatMessage avec <code>isSystem: true</code></li>
+            <li><code>ChatMessageToUiMapper.detectKind</code> retourne <code>reservationCard</code> (isSystem ✓ + préfixe ✓)</li>
+            <li><code>_parseReservation</code> extrait <code>{ref: "ASF-7K2N9"}</code> → <code>ReservationCardPayload(reference: "ASF-7K2N9")</code></li>
+            <li><code>ThreadMessageItem</code> rend <code>ReservationMessageCard</code> qui démarre <code>initState</code> → skeleton 3 zones gris</li>
+            <li><code>ReservationService.getByReference("ASF-7K2N9")</code> → <code>GET /api/user/reservations/ASF-7K2N9</code></li>
+            <li>Backend retourne <code>Reservation</code> complète (avec <code>appart</code>, dates, prix)</li>
+            <li>setState → skeleton swap pour titre appart + dates + code mono accent or</li>
+            <li>Locataire tap → <code>onTap(loaded)</code> → <code>MessagingThreadScreen._onReservationTap</code> push <code>LocataireDetailScreen</code> (focus appart via <code>AppartementToListingMapper.mapOne</code>)</li>
+        </ol>
+
+        <h3>Flow 2 — Démarcheur reçoit une card Partenariat acceptée</h3>
+        <ol class="step-list">
+            <li>Proprio accepte via <code>POST /api/proprietaire/partenariat/demandes/{id}/accepter</code></li>
+            <li>Backend émet ChatMessage <code>isSystem: true</code> contenu <code>[ASFAR_CARD:partenariat]{"id":12}</code></li>
+            <li>Mapper détecte → <code>acceptedPartenariatCard</code>, parse <code>{id: 12}</code> → <code>AcceptedPartenariatCardPayload(demandeId: 12)</code></li>
+            <li><code>AcceptedPartenariatMessageCard.initState</code> → skeleton 2 zones + appel <code>PartenariatService.getDemandeById(12)</code></li>
+            <li><code>GET /api/demande-partenariat/12</code> → <code>DemandePartenariat</code> complet</li>
+            <li>Card calcule le nom à afficher = **partie opposée** (si user démarcheur → nom proprio, si user proprio → nom démarcheur) via <code>UserBloc.state.user.type</code></li>
+            <li>swap content : nom partie + "Accepté le 11 mai"</li>
+            <li>Tap → push <code>PartenariatDetailScreen(demande: loaded)</code> — écran transverse</li>
+            <li>PartenariatDetailScreen affiche : statut large chip success/warn/danger + dates + 2 cards parties (démarcheur + proprio avec avatar gradient or + bouton phone tel:)</li>
+        </ol>
+
+        <h3>Flow erreur fetch lazy</h3>
+        <ol class="step-list">
+            <li>Card mount → tentative fetch</li>
+            <li>Si fetch échoue (réseau, 403, 404) → <code>_failed = true</code></li>
+            <li>Card affiche : titre fallback (<code>"Réservation ASF-XXX"</code> ou <code>"Partenariat #12"</code>) + chip <code>"Indisponible"</code> text3 muted (couleur silencieuse, pas warn/danger)</li>
+            <li>Tap card avec <code>loaded = null</code> → SnackBar "Détail indisponible" (pas de push)</li>
+            <li>Comportement coherent UX V9.7c (fallback silencieux, expérience luxe)</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2 id="decisions">Décisions techniques actées</h2>
+
+        <h3>1. Hive <code>isSystem</code> sans bump <code>typeId</code></h3>
+        <p>Le modèle <code>ChatMessage</code> a <code>@HiveTypeId(1)</code> dans des boxes existantes en production. V9.2 ajoute <code>@HiveField(9) bool? isSystem</code> en <strong>nullable</strong>, ce qui permet à Hive de tolérer les boxes pré-V9.2 (champ absent → null → traité comme <code>false</code>). Le fichier <code>chat_message.g.dart</code> est mis à jour manuellement pour persister le nouveau champ (numFields 9→10, readByte/writeByte 9 ajoutés).</p>
+
+        <h3>2. Atomes partagés <code>system_card_atoms.dart</code></h3>
+        <p>Les 2 cards système partagent leur structure visuelle (icon leading + skeleton + chip indisponible). Extraction de 3 atomes communs :</p>
+        <pre><code>SystemCardLeadingIcon(icon: ...)        // 40×40 accentSoft + icon accent
+SystemCardSkeletonRows(rowWidths: [...]) // zones bgElev2 statiques
+SystemCardUnavailableChip()              // pill text3 muted + info_outline</code></pre>
+        <p>Zéro duplication entre <code>ReservationMessageCard</code> et <code>AcceptedPartenariatMessageCard</code>.</p>
+
+        <h3>3. Callback signature avec objet <code>loaded</code></h3>
+        <p>Avant V9.2 : <code>onTap: VoidCallback?</code> → parent ne savait pas si le fetch avait réussi. Après V9.2 : <code>onTap: void Function(Reservation? loaded)?</code> (et idem <code>DemandePartenariat?</code>). Le parent décide quoi pousser selon le résultat :</p>
+        <pre><code>void _onReservationTap(Reservation? loaded) {
+  if (loaded?.appart == null) {
+    _toast('Détail indisponible');
+    return;
+  }
+  pushScreen(context, LocataireDetailScreen(
+    listing: AppartementToListingMapper.mapOne(loaded!.appart!),
+  ));
+}</code></pre>
+
+        <h3>4. Parsing JSON résilient</h3>
+        <p>Le mapper wrappe chaque <code>jsonDecode</code> dans un <code>try/catch</code>. Si le JSON est malformé ou inattendu :</p>
+        <pre><code>static ReservationCardPayload? _parseReservation(String contenu) {
+  try {
+    final jsonStr = contenu.substring(_reservationPrefix.length);
+    final map = jsonDecode(jsonStr) as Map&lt;String, dynamic&gt;;
+    final ref = map['ref'] as String?;
+    if (ref == null || ref.isEmpty) return null;
+    return ReservationCardPayload(reference: ref);
+  } catch (e) {
+    deboger('parseReservation: $e');
+    return null;
+  }
+}</code></pre>
+        <p>Si retour <code>null</code> côté mapper → fallback <code>MessageKind.text</code>, le contenu brut s'affiche en bubble texte. Aucun crash possible sur message mal formé.</p>
+
+        <h3>5. Conversation mixte proprio↔démarcheur</h3>
+        <p>Le backend supporte désormais des seances entre Proprio et Démarcheur (pas que Proprio↔Locataire). <code>ConversationToPreviewMapper._roleFor</code> élargi :</p>
+        <pre><code>if (myType == 'proprietaire') {
+  if (otherType == 'demarcheur') return ConversationRole.demarcheur;
+  return ConversationRole.tenant;
+}</code></pre>
+        <p>Le badge rôle dans la liste de conversations s'adapte automatiquement.</p>
+
+        <h3>6. Cleanup AddressReq côté création appart</h3>
+        <p>Le brief backend confirme que <code>geoLat/geoLongi</code> sont calculés automatiquement par geocoding serveur lors de la création d'une adresse. Côté Flutter, <code>AppartementBackendMapper._buildLegacyResidenceShape</code> les strippe désormais du payload <code>address</code> avant envoi :</p>
+        <pre><code>final addressMap = appart.address!.toJson();
+addressMap.remove('geoLat');
+addressMap.remove('geoLongi');
+shape['address'] = addressMap;</code></pre>
+        <p>L'utilisateur continue de capturer <code>lat/longi</code> via <code>GpsCapture</code> (téléphone) — le backend prend le relais pour le geocoding.</p>
+
+        <h3>7. PartenariatService neutre vs PartenariatProprioService</h3>
+        <p>Le service existant <code>PartenariatProprioService</code> (V9.6) porte des actions liées au rôle proprio (<code>accepterDemande</code>, <code>refuserDemande</code>, <code>getDemandes</code>). Pour le lookup par ID utilisé par la card chat (besoin neutre, applicable proprio + démarcheur), V9.2 ajoute un nouveau <code>PartenariatService</code> singleton avec uniquement <code>getDemandeById</code> (route <code>api/demande-partenariat/{id}</code>). Séparation responsabilités propre.</p>
+
+        <h3>8. Suppression de <code>referral</code> côté chat (renommage cascade)</h3>
+        <p>Le terme <code>referral</code> côté Flutter chat est entièrement remplacé par <code>partenariat</code> pour aligner sur le backend :</p>
+        <ul>
+            <li>Préfixe : <code>[ASFAR_CARD:partenariat]</code></li>
+            <li>Payload : <code>AcceptedPartenariatCardPayload</code> (champ <code>demandeId: int</code>)</li>
+            <li>Widget : <code>AcceptedPartenariatMessageCard</code></li>
+            <li>Endpoint : <code>/api/demande-partenariat/{id}</code></li>
+            <li>Enum : <code>MessageKind.acceptedPartenariatCard</code></li>
+            <li>Callback : <code>onPartenariatTap</code></li>
+        </ul>
+        <p>L'écran démarcheur <code>ReferralDetailScreen</code> V9.6 (autre flow : liste référence client côté démarcheur) reste <strong>inchangé</strong>.</p>
+    </section>
+
+    <section>
+        <h2 id="fichiers">Fichiers livrés (18 touchés)</h2>
+
+        <h3>Créés (7)</h3>
+        <table>
+            <thead><tr><th>Action</th><th>Fichier</th><th>Rôle</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>model/ui_only/accepted_partenariat_card_payload.dart</code></td><td>Payload minimal <code>{demandeId: int}</code></td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>service/model/partenariat/partenariat_service.dart</code></td><td>Service neutre singleton (<code>getDemandeById</code>)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>screen/.../inbox/widget/system_card_atoms.dart</code></td><td>3 atomes partagés cards système (LeadingIcon, SkeletonRows, UnavailableChip)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>screen/.../inbox/widget/accepted_partenariat_message_card.dart</code></td><td>StatefulWidget lazy fetch demande partenariat</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>screen/.../partenariats/partenariat_detail_screen.dart</code></td><td>Écran détail transverse (démarcheur + proprio)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>screen/.../partenariats/widget/partenariat_detail_status_section.dart</code></td><td>Section statut + chip large success/warn/danger</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>screen/.../partenariats/widget/partenariat_detail_party_card.dart</code></td><td>Card partie (avatar gradient or + tel + bouton phone)</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Modifiés (9)</h3>
+        <table>
+            <thead><tr><th>Action</th><th>Fichier</th><th>Modification</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>model/conversation/chat_message.dart</code></td><td>+ <code>@HiveField(9) bool? isSystem</code> nullable</td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>model/conversation/chat_message.g.dart</code></td><td>Adapter synced manuellement (numFields 10)</td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>model/ui_only/reservation_card_payload.dart</code></td><td>Refonte minimal : juste <code>reference: String</code></td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>model/ui_only/chat_message.dart</code></td><td>Enum renommage <code>acceptedReferralCard</code>→<code>acceptedPartenariatCard</code></td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>util/mapping/chat_message_to_ui.dart</code></td><td>Parsing payloads JSON + détection <code>isSystem</code> + fallback résilient</td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>service/model/booking/reservation_service.dart</code></td><td>+ méthode <code>getByReference(String)</code></td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>service/model/appartement/appartement_backend_mapper.dart</code></td><td>Strip <code>geoLat</code>/<code>geoLongi</code> du payload create</td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>screen/.../inbox/widget/reservation_message_card.dart</code></td><td>StatefulWidget lazy fetch + skeleton 3 zones + fallback chip</td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>screen/.../inbox/widget/thread_message_item.dart</code></td><td>Signature callbacks cascade (<code>Reservation?</code>/<code>DemandePartenariat?</code>)</td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>screen/.../inbox/widget/thread_messages_list.dart</code></td><td>Idem cascade types</td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>screen/.../inbox/messaging_thread_screen.dart</code></td><td>Handlers <code>_onPartenariatTap</code> + push correct LocataireDetail/PartenariatDetail</td></tr>
+                <tr><td><span class="badge badge-updated">MODIFIÉ</span></td><td><code>util/mapping/conversation_to_preview.dart</code></td><td><code>_roleFor</code> élargi pour conv mixte proprio↔démarcheur</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Supprimés (2)</h3>
+        <table>
+            <thead><tr><th>Action</th><th>Fichier</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge badge-removed">SUPPRIMÉ</span></td><td><code>model/ui_only/accepted_referral_card_payload.dart</code></td></tr>
+                <tr><td><span class="badge badge-removed">SUPPRIMÉ</span></td><td><code>screen/.../inbox/widget/accepted_referral_message_card.dart</code></td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2 id="qualite">Qualité — Audit 93.5/100</h2>
+        <table>
+            <thead><tr><th>Dimension</th><th>Score</th><th>Statut</th></tr></thead>
+            <tbody>
+                <tr><td>Complexité</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Lisibilité</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>DRY</td><td><strong>92</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Documentation</td><td><strong>92</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>SOLID</td><td><strong>92</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Dette technique</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td><strong>GLOBAL</strong></td><td><strong>93.5</strong>/100</td><td><span class="badge badge-success">✅ VALIDÉ</span></td></tr>
+            </tbody>
+        </table>
+
+        <h3>Règles Flutter projet respectées (10/10)</h3>
+        <ul>
+            <li>✅ <strong>Règle n°1</strong> : <code>grep -rn "Widget _" lib/screen/client/shared/partenariats/ lib/screen/client/shared/inbox/</code> → vide. 9+ sous-widgets en classes privées dans les cards et le détail screen.</li>
+            <li>✅ Un widget = un fichier (atomes partagés extraits proprement)</li>
+            <li>✅ Réutilisations maximales (V9.6 partenariat infrastructure + V8 system_card pattern + V9.7c skeleton concept)</li>
+            <li>✅ Style 100% AppColors / AppTextStyles / AppRadii tokens</li>
+            <li>✅ <code>mounted</code> checks systématiques + try/catch + dispose propre</li>
+        </ul>
+
+        <div class="quote">
+            « <strong>flutter analyze</strong> : 39 issues legacy inchangées, 0 nouvelle erreur. <strong>Règle Flutter n°1</strong> : zéro fonction privée renvoyant Widget. »
+        </div>
+    </section>
+
+    <section>
+        <h2>🔮 Hors scope V9.2 (tracker V10)</h2>
+        <ul>
+            <li><strong>WebSocket temps réel</strong> : actuellement les cards apparaissent au prochain GET messages. Diffusion temps réel via WebSocket déjà préparée backend mais à activer côté Flutter (V10)</li>
+            <li><strong>ReservationDetailScreen dédié</strong> : actuellement tap card résa → <code>LocataireDetailScreen</code> (focus appart). Si feedback proprio/locataire demande un écran dédié (statut, dates, code, prix décomposé, devise), créer en V10</li>
+            <li><strong>Cache local Hive cards</strong> : chaque ouverture conv re-fetch tous les détails cards. Pour optim, cache court terme (TTL 5 min) à envisager V10 si UX lag perçu</li>
+            <li><strong>Alignement backend</strong> : si dans le futur le backend décide de pousser plus de données directement dans le payload (Option A JSON inline) plutôt que minimal, supporter les 2 formats dans le mapper</li>
+            <li><strong>Conversation auto-créée</strong> : géré par le backend selon brief. Tester runtime quand un locataire paie sans avoir contacté le proprio préalablement</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Pipeline /feature full</h2>
+        <table>
+            <thead><tr><th>Étape</th><th>Agent</th><th>Output</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td>Business Analyst</td><td><code>business-spec.md</code> — 3 questions cadrées (push réservation, push partenariat, loading skeleton + fallback)</td></tr>
+                <tr><td>2</td><td>Architecture</td><td><code>architecture.md</code> — 18 fichiers touchés + 8 décisions techniques + diagrammes Mermaid</td></tr>
+                <tr><td>3</td><td>UI/UX</td><td><code>ui-proposal.md</code> — option A (3 zones skeleton) + B (chip text3 muted) + C (2 cards empilées)</td></tr>
+                <tr><td>4</td><td>Flutter Dev</td><td>7 créés + 9 modifiés + 2 supprimés — 0 nouvelle erreur analyze</td></tr>
+                <tr><td>5</td><td>Audit</td><td>Score <strong>93.5/100</strong> — 0 critique, 0 majeur, 8 mineurs alignés standards projet</td></tr>
+                <tr><td>6</td><td>Documentation</td><td>Ce fichier HTML + update 3 docs MD (BACKEND_NOTES ×2 + RECONSTRUCTION)</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>Historique</h2>
+        <table>
+            <thead><tr><th>Version</th><th>Date</th><th>Changement</th></tr></thead>
+            <tbody>
+                <tr><td><strong>1.0</strong></td><td>2026-05-11</td><td>Création initiale — V9.2 livrée via pipeline <code>/feature full</code>. 18 fichiers touchés. Chaîne cards système activée. Audit 93.5/100.</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <footer>
+        Asfar Mobile · V9.2 Cards système chat · Documentation générée le 2026-05-11
+    </footer>
+</div>
+</body>
+</html>

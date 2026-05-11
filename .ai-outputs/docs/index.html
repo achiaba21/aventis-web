@@ -164,6 +164,45 @@
 
         <main>
             <div class="features-grid">
+                <a href="v9-1-wizard-creation-appart.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">V9.1 — Wizard creation appartement (F2)</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Tunnel guide 5 etapes pour creer une nouvelle annonce cote
+                        proprietaire (F2 hors-proto). Fidele au proto JSX
+                        proprietaire-extras.jsx : Pieces (Studio/2-5+) / Localisation +
+                        Capacite (titre, ville/commune searchable, GpsCapture telephone,
+                        chambres/SdB stepper, description) / Photos (image_picker multi,
+                        min 3 max 8, badge "Couverture" sur la 1ere) / Equipements
+                        (Essentiels + Confort grids chips) / Prix &amp; Conditions
+                        (commission Asfar 8% auto, 3 toggles AsfarToggle).
+                        <br><br>
+                        <strong>Decouverte structurante</strong> : tout l'ecosystem
+                        backend/Bloc/storage etait deja en place (AppartementWizardBloc
+                        258 lignes + AppartementDraftStorage Hive + GeoLocationService +
+                        AppartementPublicationValidator + AppartementBackendMapper +
+                        AppartementRepository). V9.1 = 16 fichiers UI purs + 1 modif
+                        listings_screen pour wire NewListingCard.
+                        <br><br>
+                        Auto-save Hive Timer 500ms debounce, capture GPS reutilise
+                        MiniMapPreview V9.7c (cross-feature reuse), DashedBorderContainer
+                        V7 reutilise pour PhotosUploadCard, AsfarToggle custom proto-fidele
+                        200ms. Publish via AppartementRepository.createAppartementWithImages
+                        (couplage faible Bloc/Service). Regles serialisees en string
+                        opaque + frais menage visuel-only MVP (TODO V10).
+                    </p>
+                    <div class="feature-meta">
+                        <span>16 fichiers crees, 1 modifie</span>
+                        <span>5 etapes tunnel proto-fidele</span>
+                        <span>Score: 89/100</span>
+                    </div>
+                </a>
+
                 <a href="v9-7-carte-interactive.html" class="feature-card">
                     <div class="feature-header">
                         <h2 class="feature-title">V9.7 — Carte interactive temps reel</h2>
