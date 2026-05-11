@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/ui_only/pending_request.dart';
+import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/screen/client/proprio/home/widget/pending_request_row.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
@@ -10,11 +10,12 @@ import 'package:asfar/widget/text/section_header.dart';
 /// Section « Demandes en attente » du dashboard propriétaire.
 ///
 /// SectionHeader + liste de `PendingRequestRow` (ou EmptyState si vide) +
-/// astuce de bas de section.
+/// astuce de bas de section. Consomme directement `List<Reservation>`
+/// filtrée (statut EN_ATTENTE) par le dashboard.
 class ProprioPendingSection extends StatelessWidget {
-  final List<PendingRequest> pending;
+  final List<Reservation> pending;
   final VoidCallback? onSeeAll;
-  final void Function(PendingRequest request)? onPendingTap;
+  final void Function(Reservation reservation)? onPendingTap;
 
   const ProprioPendingSection({
     super.key,
@@ -52,7 +53,7 @@ class ProprioPendingSection extends StatelessWidget {
               children: [
                 for (var i = 0; i < pending.length; i++)
                   PendingRequestRow(
-                    request: pending[i],
+                    reservation: pending[i],
                     isLast: i == pending.length - 1,
                     onTap: onPendingTap == null
                         ? null

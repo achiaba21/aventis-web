@@ -10,6 +10,7 @@ import 'package:asfar/bloc/reservation_bloc/reservation_bloc.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
 import 'package:asfar/model/comptabilite/charge.dart';
+import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/screen/client/proprio/appartements/listing_edit_screen.dart';
 import 'package:asfar/screen/client/proprio/appartements/listings_screen.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/finances_screen.dart';
@@ -25,7 +26,6 @@ import 'package:asfar/util/calc/cashflow_aggregator.dart';
 import 'package:asfar/util/calc/kpi_aggregator.dart';
 import 'package:asfar/util/calc/monthly_revenue_calculator.dart';
 import 'package:asfar/util/calc/property_perf_aggregator.dart';
-import 'package:asfar/util/mapping/reservation_to_pending_request.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
@@ -118,8 +118,9 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                       appartements: appartements,
                       reservations: reservations,
                     );
-                    final pending = ReservationToPendingRequestMapper
-                        .mapPending(reservations);
+                    final pending = reservations
+                        .where((r) => r.statut == ReservationStatus.enAttente)
+                        .toList(growable: false);
 
                     return SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(18, 8, 18, 100),
