@@ -8,6 +8,7 @@ import 'package:asfar/bloc/favorite_bloc/favorite_event.dart';
 import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
 import 'package:asfar/screen/client/locataire/home/search_screen.dart';
 import 'package:asfar/screen/client/locataire/home/widget/featured_listings_carousel.dart';
+import 'package:asfar/screen/client/locataire/map/locataire_map_screen.dart';
 import 'package:asfar/screen/client/locataire/home/widget/listing_filter_chips.dart';
 import 'package:asfar/screen/client/locataire/home/widget/locataire_home_header.dart';
 import 'package:asfar/screen/client/locataire/home/widget/locataire_home_loading_view.dart';
@@ -84,12 +85,7 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
   }
 
   void _onSeeMap() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Carte interactive bientôt'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    pushScreen(context, const LocataireMapScreen());
   }
 
   /// Génère 1 à 4 pins distribués sur le teaser à partir des listings réels.

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V9.7 — Carte Interactive · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-11">
+    <meta name="updated" content="2026-05-11">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header { border-bottom: 1px solid var(--line); padding-bottom: 2rem; margin-bottom: 2rem; }
+        .eyebrow { color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 12px; }
+        h1 { font-size: 38px; letter-spacing: -1px; font-weight: 700; line-height: 1.05; margin-bottom: 0.75rem; }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin: 2.5rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; margin: 1.5rem 0 0.75rem; color: var(--text); }
+        p, li { color: var(--text-2); font-size: 15px; line-height: 1.6; }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta { color: var(--text-3); font-size: 13px; display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem; }
+        nav ul { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; padding: 1rem 0; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
+        nav a { color: var(--accent); text-decoration: none; font-size: 13px; font-weight: 500; }
+        nav a:hover { text-decoration: underline; }
+        .card { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 20px; padding: 1.25rem 1.5rem; margin: 1rem 0; }
+        .card-hero { background: linear-gradient(135deg, #2A1F0E 0%, #1A1206 60%, #0F0A04 100%); border-color: rgba(232,184,107,0.25); position: relative; overflow: hidden; }
+        .card-hero::before { content: ""; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(232,184,107,0.18), transparent 70%); }
+        .card-hero h2 { margin-top: 0; color: var(--accent); }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 14px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+        th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-3); background: var(--bg-elev-2); }
+        td { color: var(--text-2); }
+        td code, p code, li code { background: var(--bg-elev-2); padding: 2px 6px; border-radius: 6px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; color: var(--text); }
+        pre { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 14px; padding: 1rem; overflow-x: auto; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; margin: 1rem 0; }
+        pre code { background: none; padding: 0; font-size: inherit; color: var(--text); }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .stat-cell { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.25rem; text-align: center; }
+        .stat-cell .num { font-size: 28px; font-weight: 700; color: var(--accent); font-feature-settings: "tnum"; }
+        .stat-cell .lab { font-size: 12px; color: var(--text-3); margin-top: 0.25rem; letter-spacing: 0.4px; }
+        .quote { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--text-2); font-style: italic; margin: 1rem 0; }
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { counter-increment: step; padding-left: 36px; position: relative; margin-bottom: 12px; }
+        .step-list li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--line); color: var(--text-3); font-size: 12px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="eyebrow">V9.7 · Asfar Mobile</div>
+        <h1>Carte interactive <em>temps réel</em></h1>
+        <p>Premier vrai écran cartographique d'Asfar — markers prix dynamiques sur tuiles OSM dark, géolocalisation utilisateur, bottom sheet preview au tap, et rechargement par zone.</p>
+        <div class="meta">
+            <span>Version : <strong>1.0</strong></span>
+            <span>Créée : 2026-05-11</span>
+            <span>Audit : <strong style="color:var(--accent)">98.3/100</strong></span>
+            <span>Pipeline : <strong>/feature full</strong></span>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#vue">Vue d'ensemble</a></li>
+            <li><a href="#perimetre">Périmètre</a></li>
+            <li><a href="#parcours">Parcours utilisateur</a></li>
+            <li><a href="#decisions">Décisions techniques</a></li>
+            <li><a href="#fichiers">Fichiers livrés</a></li>
+            <li><a href="#qualite">Qualité</a></li>
+            <li><a href="#index.html">← Index</a></li>
+        </ul>
+    </nav>
+
+    <section class="card card-hero">
+        <h2>🗺️ Carte interactive — la première d'Asfar</h2>
+        <p>Le proto V5-V8 ne reconstruisait qu'un <code>MapTeaser</code> figé (4 pins fake, image statique) sur le Home locataire. V9.7 livre la <strong>première vraie carte temps réel</strong> de l'app : le locataire peut désormais explorer visuellement les logements disponibles, taper un marker pour preview, voir ses propres positions GPS, et recharger la zone visible.</p>
+        <div class="badges">
+            <span class="badge badge-success">✅ Branché MapBloc</span>
+            <span class="badge badge-success">✅ Géoloc réelle</span>
+            <span class="badge badge-accent">★ Tuiles OSM dark filtered</span>
+            <span class="badge badge-info">/feature full pipeline</span>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="vue">Vue d'ensemble</h2>
+        <p>V9.7 introduit un nouvel écran <code>LocataireMapScreen</code> accessible via <code>MapTeaser.onSeeMap</code> du Home locataire (bouton « Voir carte »). L'écran consomme le <code>MapBloc</code> existant via <code>LoadFilteredMapResidences(center, radiusKm)</code> et orchestre :</p>
+        <ul>
+            <li>Une carte <code>flutter_map ^8.1.1</code> sur tuiles OSM filtrées en dark via <code>ColorFiltered</code></li>
+            <li>Des markers prix compact (<code>45k</code>, <code>1.2M</code>) accent or affichant les résidences disponibles</li>
+            <li>Un <code>FAB « Ma position »</code> qui demande la permission OS et recentre la carte sur le user (fallback Abidjan)</li>
+            <li>Un bouton « Rechercher dans cette zone » qui apparaît après pan/zoom et redispatche un load</li>
+            <li>Un <code>BottomSheet</code> au tap marker affichant un preview + bouton « Voir détails » → push <code>LocataireDetailScreen</code></li>
+            <li>Un bouton « Filtrer » top-right qui ouvre <code>LocataireSearchScreen</code> (filtres existants V5)</li>
+            <li>3 overlays partagés (Loading / Empty / Error) via <code>MapOverlayCard</code></li>
+        </ul>
+        <div class="stat-grid">
+            <div class="stat-cell"><div class="num">11</div><div class="lab">FICHIERS CRÉÉS</div></div>
+            <div class="stat-cell"><div class="num">1</div><div class="lab">MODIFIÉ</div></div>
+            <div class="stat-cell"><div class="num">783</div><div class="lab">LIGNES DART</div></div>
+            <div class="stat-cell"><div class="num">98.3</div><div class="lab">SCORE AUDIT</div></div>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="perimetre">Périmètre</h2>
+        <h3>1 écran + 9 widgets + 1 helper mapper</h3>
+        <table>
+            <thead><tr><th>Fichier</th><th>Rôle</th><th>Lignes</th></tr></thead>
+            <tbody>
+                <tr><td><code>locataire_map_screen.dart</code></td><td>Orchestrateur StatefulWidget avec MapController</td><td>222</td></tr>
+                <tr><td><code>map_view.dart</code></td><td>Wrapper <code>FlutterMap</code> + tuiles OSM filtrées dark + MarkerLayer</td><td>102</td></tr>
+                <tr><td><code>map_price_marker.dart</code></td><td>Pill marker prix compact accent or</td><td>53</td></tr>
+                <tr><td><code>map_marker_bottom_sheet.dart</code></td><td>BottomSheet preview au tap marker</td><td>123</td></tr>
+                <tr><td><code>my_location_fab.dart</code></td><td>FAB 56×56 accent or avec spinner intégré</td><td>58</td></tr>
+                <tr><td><code>search_in_area_button.dart</code></td><td>Chip animé fade 200ms top-center</td><td>68</td></tr>
+                <tr><td><code>map_overlay_card.dart</code></td><td>Card partagée des 3 overlays (refactor DRY audit)</td><td>45</td></tr>
+                <tr><td><code>map_loading_overlay.dart</code></td><td>Spinner non-bloquant pendant load</td><td>33</td></tr>
+                <tr><td><code>map_empty_overlay.dart</code></td><td>EmptyState.inline si aucun listing en zone</td><td>24</td></tr>
+                <tr><td><code>map_error_overlay.dart</code></td><td>EmptyState.error si erreur réseau</td><td>26</td></tr>
+                <tr><td><code>map_residence_to_listing.dart</code></td><td>Mapper MapResidence → ListingPreview pour push detail</td><td>28</td></tr>
+            </tbody>
+        </table>
+        <p><strong>Modifié :</strong> <code>home_screen.dart</code> — wirage <code>_onSeeMap → pushScreen(LocataireMapScreen)</code> en remplacement du SnackBar stub.</p>
+    </section>
+
+    <section>
+        <h2 id="parcours">Parcours utilisateur</h2>
+
+        <h3>Flow principal — exploration carte</h3>
+        <ol class="step-list">
+            <li>Locataire tape « Voir carte » dans le <code>MapTeaser</code> du Home (section « Près de vous »)</li>
+            <li>L'écran <code>LocataireMapScreen</code> push, dispatche <code>LoadFilteredMapResidences(center=Abidjan, radius=10km)</code> en initState</li>
+            <li>Tuiles OSM filtrées dark s'affichent, état <code>MapLoading</code> overlay petite card centrée</li>
+            <li>État <code>MapResidencesLoaded</code> → markers prix accent or apparaissent sur les positions <code>displayLat/displayLongi</code></li>
+            <li>Utilisateur tape un marker → <code>showModalBottomSheet(MapMarkerBottomSheet)</code> : image placeholder 16:9, titre, prix, communeName, bouton « Voir détails »</li>
+            <li>Tap « Voir détails » → mapping <code>MapResidence → ListingPreview</code> → <code>pushScreen(LocataireDetailScreen)</code></li>
+        </ol>
+
+        <h3>Flow géolocalisation</h3>
+        <ol class="step-list">
+            <li>Tap FAB « Ma position » → spinner intégré dans le FAB</li>
+            <li><code>LocationUtil.getCurrentLatLng()</code> demande la permission OS au premier tap</li>
+            <li><strong>Si accordée</strong> → <code>mapCtrl.move(userPosition, zoom=14)</code> + reload zone</li>
+            <li><strong>Si refusée</strong> → SnackBar « Activez la géolocalisation dans les paramètres pour utiliser cette fonction »</li>
+        </ol>
+
+        <h3>Flow recherche zone visible</h3>
+        <ol class="step-list">
+            <li>User pan/zoom la carte → <code>MapEventMoveEnd</code> émis</li>
+            <li><code>_currentCenter</code> mis à jour depuis <code>mapCtrl.camera.center</code></li>
+            <li>Bouton « Rechercher dans cette zone » apparaît via <code>AnimatedOpacity 200ms</code></li>
+            <li>Tap → <code>LoadFilteredMapResidences(newCenter, radius=10km)</code> + bouton disparaît</li>
+        </ol>
+
+        <h3>Flow filtres</h3>
+        <ol class="step-list">
+            <li>Tap icône « tune » top-right de l'AppBar</li>
+            <li><code>pushScreen(LocataireSearchScreen)</code> — l'écran de filtres existant V5</li>
+            <li>Au retour, le user peut taper « Rechercher dans cette zone » pour appliquer les nouveaux filtres</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2 id="decisions">Décisions techniques actées</h2>
+
+        <h3>1. Tuiles OSM dark via <code>tileBuilder</code></h3>
+        <p>Le défi : les tuiles OSM par défaut sont en thème light, contraste fort avec la palette Asfar dark. La solution retenue applique un <code>ColorFiltered</code> avec matrice invert+désaturation <strong>uniquement sur les tuiles</strong> (pas sur les markers) via le <code>tileBuilder</code> de <code>TileLayer</code> :</p>
+        <pre><code>TileLayer(
+  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  tileBuilder: (context, tileWidget, tile) {
+    return ColorFiltered(
+      colorFilter: const ColorFilter.matrix(_darkenMatrix),
+      child: tileWidget,
+    );
+  },
+)</code></pre>
+        <p>Conséquence : zéro dépendance externe, zéro clé API, markers accent or préservés en couleur native. Si les utilisateurs préfèrent un thème light plus tard, c'est trivialement désactivable.</p>
+
+        <h3>2. Pas de clustering en V9.7</h3>
+        <p>Markers individuels uniquement. L'event <code>LoadClusteredMapResidences</code> du <code>MapBloc</code> existe → activable en V10 sans refactor majeur si le besoin émerge (par exemple zones très denses).</p>
+
+        <h3>3. Géoloc via <code>LocationUtil</code> existant</h3>
+        <p>Découverte d'audit : <code>LocationUtil</code> existait déjà dans <code>lib/util/</code> avec exactement les helpers nécessaires (<code>getCurrentLatLng</code>, <code>checkAndRequestPermissions</code>). Aucun <code>LocationService</code> dupliqué n'a été créé — principe DRY appliqué.</p>
+
+        <h3>4. Pas de nouvel event MapBloc</h3>
+        <p>L'écran consomme uniquement <code>LoadFilteredMapResidences</code> (center, radiusKm, filter). Les états <code>MapLoading/ResidencesLoaded/Error/Empty/Selected</code> existent déjà. Zéro modification du BLoC = zéro régression possible sur l'infra.</p>
+
+        <h3>5. Pas d'onglet BottomNav « Map »</h3>
+        <p>Le <code>LocataireShell</code> a 5 onglets (Explorer/Voyages/Favoris/Messages/Profil). Ajouter un 6ème surchargerait la barre. L'écran est <strong>pushé</strong> depuis <code>MapTeaser.onSeeMap</code> du Home — point d'entrée unique cohérent avec le pattern proto.</p>
+
+        <h3>6. Refactor DRY pendant l'audit</h3>
+        <p>L'auditeur a détecté un pattern dupliqué (Container <code>bgElev1.95 + line + radius lg + shadow blur 12</code>) répété 3 fois dans les overlays Loading/Empty/Error. Extraction immédiate dans <code>MapOverlayCard</code> :</p>
+        <ul>
+            <li>Avant : 47+44+45 = 136 lignes pour les 3 overlays</li>
+            <li>Après : 33+24+26+45 = 128 lignes (-8 lignes nettes + 1 widget partagé)</li>
+            <li>Score DRY : 90 → <strong>100</strong> (+10)</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 id="fichiers">Fichiers livrés</h2>
+        <pre><code>lib/
+├── util/
+│   └── mapping/
+│       └── map_residence_to_listing.dart       🆕 28 lignes
+└── screen/client/locataire/
+    ├── home/
+    │   └── home_screen.dart                    ✏️ modifié (push)
+    └── map/                                    🆕 dossier
+        ├── locataire_map_screen.dart           🆕 222
+        └── widget/
+            ├── map_view.dart                   🆕 102
+            ├── map_price_marker.dart           🆕  53
+            ├── map_marker_bottom_sheet.dart    🆕 123
+            ├── my_location_fab.dart            🆕  58
+            ├── search_in_area_button.dart      🆕  68
+            ├── map_overlay_card.dart           🆕  45
+            ├── map_loading_overlay.dart        🆕  33
+            ├── map_empty_overlay.dart          🆕  24
+            └── map_error_overlay.dart          🆕  26</code></pre>
+
+        <h3>Surprise : zéro modification plateforme</h3>
+        <p>Lors de l'analyse architecture, découverte que <code>flutter_map ^8.1.1</code>, <code>geolocator ^14.0.1</code>, <code>latlong2 ^0.9.1</code> étaient déjà dans <code>pubspec.yaml</code> (vestiges de l'implémentation map supprimée pendant la reconstruction V5-V8). Permissions Android <code>ACCESS_FINE_LOCATION</code> et iOS <code>NSLocationWhenInUseUsageDescription</code> déjà déclarées également. <strong>Aucune modification de pubspec ni manifestes nécessaire.</strong></p>
+    </section>
+
+    <section>
+        <h2 id="qualite">Qualité — Audit 98.3/100</h2>
+        <table>
+            <thead><tr><th>Dimension</th><th>Score</th><th>Statut</th></tr></thead>
+            <tbody>
+                <tr><td>Complexité</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Lisibilité</td><td><strong>100</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>DRY (après refactor)</td><td><strong>100</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Documentation</td><td><strong>100</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>SOLID</td><td><strong>100</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Dette technique</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td><strong>GLOBAL</strong></td><td><strong>98.3</strong>/100</td><td><span class="badge badge-success">✅ VALIDÉ</span></td></tr>
+            </tbody>
+        </table>
+
+        <h3>Règles Flutter projet respectées (10/10)</h3>
+        <ul>
+            <li>✅ <strong>Règle n°1</strong> : zéro fonction privée renvoyant Widget (vérifié <code>grep "Widget _" lib/screen/client/locataire/map/</code>)</li>
+            <li>✅ Un widget = un fichier (9 widgets dédiés)</li>
+            <li>✅ Une classe = un fichier (sauf StatefulWidget + State)</li>
+            <li>✅ Helpers dans fichiers dédiés (<code>LocationUtil</code> réutilisé, <code>MapResidenceToListingMapper</code> créé)</li>
+            <li>✅ Réutilisation maximale (EmptyState, ImgPh, CustomButton, IconBoutton, DynamicAppBar, FcfaFormatter, LocationUtil, MapBloc, ListingPreview)</li>
+            <li>✅ Style 100 % AppColors / AppTextStyles / AppRadii tokens</li>
+            <li>✅ Cohérence visuelle Asfar Premium</li>
+        </ul>
+
+        <div class="quote">
+            « <strong>flutter analyze</strong> : 41 issues legacy inchangées, 0 nouvelle erreur. <strong>Règle n°1</strong> : <code>grep "Widget _"</code> → vide. »
+        </div>
+    </section>
+
+    <section>
+        <h2>Limites V9.7 actées</h2>
+        <ul>
+            <li>Pas de clustering markers — l'event <code>LoadClusteredMapResidences</code> est disponible mais non câblé. Activation V10 si besoin.</li>
+            <li>Pas de search-as-you-type — l'utilisateur doit explicitement taper « Rechercher dans cette zone » après pan/zoom.</li>
+            <li>Pas de retour automatique des filtres <code>LocataireSearchScreen</code> — au retour, le user doit redéclencher un load manuellement.</li>
+            <li>iOS Simulator sans GPS → fallback Abidjan systématique. Tester sur device réel.</li>
+            <li>Tile loading 2-3s sur 3G/4G — non-bloquant (markers attendent les tuiles).</li>
+            <li>Résidences sans coordonnées (<code>displayLat/Longi</code> null) — exclues silencieusement.</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Pipeline /feature full</h2>
+        <p>Cette feature a été livrée via le pipeline complet multi-agents :</p>
+        <table>
+            <thead><tr><th>Étape</th><th>Agent</th><th>Output</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td>Business Analyst</td><td><code>business-spec.md</code> validé en 4 questions de cadrage MVP</td></tr>
+                <tr><td>2</td><td>Architecture</td><td><code>architecture.md</code> avec diagramme classes Mermaid + diagramme séquence + CONTRAT d'implémentation</td></tr>
+                <tr><td>3</td><td>UI/UX</td><td><code>ui-proposal.md</code> — option ColorFiltered tuiles OSM choisie via preview ASCII</td></tr>
+                <tr><td>4</td><td>Flutter Dev</td><td>11 fichiers créés + 1 modifié dans l'ordre du contrat</td></tr>
+                <tr><td>5</td><td>Audit</td><td>Score 96.7 → 98.3/100 après refactor DRY (MapOverlayCard extrait)</td></tr>
+                <tr><td>6</td><td>Documentation</td><td>Ce fichier HTML + mise à jour de l'index</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>Historique</h2>
+        <table>
+            <thead><tr><th>Version</th><th>Date</th><th>Changement</th></tr></thead>
+            <tbody>
+                <tr><td><strong>1.0</strong></td><td>2026-05-11</td><td>Création initiale — V9.7 livrée via pipeline <code>/feature full</code></td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <footer>
+        Asfar Mobile · V9.7 Carte Interactive · Documentation générée le 2026-05-11
+    </footer>
+</div>
+</body>
+</html>
