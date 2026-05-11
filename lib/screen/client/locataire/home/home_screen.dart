@@ -200,7 +200,7 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
                     child: SectionHeader(
                       title: 'Près de vous',
                       actionLabel: 'Voir carte',
-                      onActionTap: () {},
+                      onActionTap: _onSeeMap,
                     ),
                   ),
                   SliverToBoxAdapter(
