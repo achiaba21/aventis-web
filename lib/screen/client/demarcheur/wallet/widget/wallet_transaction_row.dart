@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/ui_only/commission_transaction.dart';
+import 'package:asfar/model/compte/transaction.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 
 /// Ligne d'historique du Wallet démarcheur.
 ///
+/// Consomme directement le modèle métier [Transaction] (`lib/model/compte/`).
 /// Reproduit le proto `demarcheur.jsx::DemarcheurWallet` (lignes 518-538) :
 /// badge carré 36 px (accent or si entrée, info bleu si sortie) avec icon
 /// arrow up/down + label + sous-titre date · contexte + montant signé en
 /// mono à droite (entrée = accent or, sortie = info bleu).
 class WalletTransactionRow extends StatelessWidget {
-  final CommissionTransaction transaction;
+  final Transaction transaction;
   final bool isLast;
 
   const WalletTransactionRow({
@@ -20,19 +21,34 @@ class WalletTransactionRow extends StatelessWidget {
     this.isLast = false,
   });
 
-  bool get _isOut => transaction.type == TransactionType.withdrawalOut;
+  bool get _isOut => transaction.isDebit;
 
-  Color get _badgeBg =>
-      _isOut ? AppColors.infoLight : AppColors.accentSoft;
+  int get _amount => (transaction.montant ?? 0).abs().round();
+
+  String get _label => (transaction.description?.isNotEmpty ?? false)
+      ? transaction.description!
+      : 'Mouvement';
+
+  String get _subtitle {
+    if (transaction.isDebit) {
+      return transaction.isEnAttente ? 'Retrait en attente' : 'Versement OM';
+    }
+    if (transaction.isEnAttente) return 'En attente';
+    if (transaction.statut == 'ANNULE') return 'Annulée';
+    return 'Paiement confirmé';
+  }
+
+  DateTime get _date => transaction.dateTransaction ?? DateTime.now();
+
+  Color get _badgeBg => _isOut ? AppColors.infoLight : AppColors.accentSoft;
 
   Color get _badgeFg => _isOut ? AppColors.info : AppColors.accent;
 
-  IconData get _icon =>
-      _isOut ? Icons.arrow_upward : Icons.arrow_downward;
+  IconData get _icon => _isOut ? Icons.arrow_upward : Icons.arrow_downward;
 
   String get _formattedAmount {
     final sign = _isOut ? '−' : '+';
-    return '$sign${FcfaFormatter.compact(transaction.amount)}';
+    return '$sign${FcfaFormatter.compact(_amount)}';
   }
 
   String get _formattedDate {
@@ -50,8 +66,8 @@ class WalletTransactionRow extends StatelessWidget {
       'nov.',
       'déc.',
     ];
-    final m = months[transaction.date.month - 1];
-    return '${transaction.date.day} $m';
+    final m = months[_date.month - 1];
+    return '${_date.day} $m';
   }
 
   @override
@@ -82,7 +98,7 @@ class WalletTransactionRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.label,
+                  _label,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -93,7 +109,7 @@ class WalletTransactionRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$_formattedDate · ${transaction.subtitle}',
+                  '$_formattedDate · $_subtitle',
                   style: AppTextStyles.small.copyWith(fontSize: 11),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

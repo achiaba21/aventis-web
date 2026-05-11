@@ -8,15 +8,14 @@ import 'package:asfar/screen/client/demarcheur/wallet/widget/wallet_loading_view
 import 'package:asfar/screen/client/demarcheur/wallet/widget/wallet_solde_card.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
-import 'package:asfar/util/mapping/transaction_to_commission.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 
 /// Écran « Mes commissions » du Démarcheur — onglet Wallet.
 ///
-/// V8.5 Lot 8c : branché sur `CompteBloc`. Le solde provient de
-/// `state.compte.solde` et l'historique de `state.transactions` mappé via
-/// `TransactionToCommissionMapper`.
+/// Branché sur `CompteBloc`. Le solde provient de `state.compte.solde` et
+/// l'historique de `state.transactions` (modèle métier `Transaction`)
+/// consommé directement par `WalletHistoryCard`.
 class DemarcheurWalletScreen extends StatefulWidget {
   const DemarcheurWalletScreen({super.key});
 
@@ -69,8 +68,6 @@ class _DemarcheurWalletScreenState extends State<DemarcheurWalletScreen> {
             final loaded = _extractLoaded(state);
             final solde = (loaded?.compte.solde ?? 0).round();
             final transactions = loaded?.transactions ?? const [];
-            final commissions =
-                TransactionToCommissionMapper.mapMany(transactions);
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(18, 8, 18, 100),
               child: Column(
@@ -83,14 +80,14 @@ class _DemarcheurWalletScreenState extends State<DemarcheurWalletScreen> {
                   const SizedBox(height: 22),
                   const Text('Historique', style: AppTextStyles.h3),
                   const SizedBox(height: 12),
-                  if (commissions.isEmpty)
+                  if (transactions.isEmpty)
                     EmptyState.inline(
                       icon: Icons.history_outlined,
                       title: 'Pas encore de mouvement',
                       body: 'Vos commissions et retraits apparaîtront ici.',
                     )
                   else
-                    WalletHistoryCard(transactions: commissions),
+                    WalletHistoryCard(transactions: transactions),
                 ],
               ),
             );

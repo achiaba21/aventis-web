@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/ui_only/commission_transaction.dart';
+import 'package:asfar/model/compte/transaction.dart';
 import 'package:asfar/screen/client/demarcheur/wallet/widget/wallet_transaction_row.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 
 /// Card historique des transactions du wallet démarcheur (encadré liste).
 class WalletHistoryCard extends StatelessWidget {
-  final List<CommissionTransaction> transactions;
+  final List<Transaction> transactions;
 
   const WalletHistoryCard({super.key, required this.transactions});
 

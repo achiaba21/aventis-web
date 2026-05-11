@@ -59,13 +59,18 @@ class _OutlinedCustomButtonState extends State<OutlinedCustomButton> {
         ));
         children.add(const SizedBox(width: 8));
       }
-      children.add(Text(
-        widget.text,
-        style: TextStyle(
-          color: color,
-          fontSize: widget.size.fontSize,
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.1,
+      children.add(Flexible(
+        child: Text(
+          widget.text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
+          style: TextStyle(
+            color: color,
+            fontSize: widget.size.fontSize,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.1,
+          ),
         ),
       ));
     }
