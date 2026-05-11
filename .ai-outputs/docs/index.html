@@ -169,25 +169,42 @@
                         <h2 class="feature-title">V9.7 — Carte interactive temps reel</h2>
                         <div class="feature-badges">
                             <span class="badge badge-success">Livree</span>
-                            <span class="badge badge-primary">v1.0</span>
+                            <span class="badge badge-primary">v1.2</span>
                         </div>
                     </div>
                     <p class="feature-description">
                         Premier ecran cartographique reel d'Asfar (le proto V5-V8 n'avait
                         qu'un MapTeaser fige). Tuiles OSM filtrees dark via tileBuilder +
-                        ColorFiltered (zero dependance externe), markers prix accent or
-                        pour les residences disponibles, geolocalisation OS reelle via
-                        LocationUtil, BottomSheet preview au tap marker, FAB Ma position,
-                        bouton "Rechercher dans cette zone" apres pan/zoom, filtres
-                        delegues a LocataireSearchScreen existant. Livree via le pipeline
-                        /feature full complet (BA -> Architecture -> UI/UX -> Dev ->
-                        Audit -> Doc).
+                        ColorFiltered (zero dependance externe), markers prix accent or,
+                        geolocalisation OS reelle via LocationUtil, BottomSheet preview
+                        au tap marker, FAB Ma position, bouton "Rechercher dans cette
+                        zone" apres pan/zoom, filtres delegues a LocataireSearchScreen
+                        existant.
+                        <br><br>
+                        <strong>V9.7b (2026-05-11)</strong> — Refonte du modele :
+                        MapResidence supprime, remplace par MapAppartement (1 marker = 1
+                        appartement). Dual coordonnees display/real avec obfuscation
+                        backend (+/-200m random deterministe seed=appartId), realLocation
+                        privee via endpoint guard reservation confirmee. BottomSheet
+                        StatefulWidget avec photo lazy + shimmer or anime 1200ms (option
+                        A "Pristine luxe"). Suppression du clustering. Mapper fallback
+                        partial cree.
+                        <br><br>
+                        <strong>V9.7c (2026-05-11)</strong> — Chaine dual-coords finalisee :
+                        section "Localisation" sur LocataireDetailScreen avec mini-carte
+                        180px non-interactive. Double fetch parallele
+                        Address.displayLocation + MapService.getRealCoordinates. Mode
+                        EXACT post-resa (PAYER/FINALISER) → chip success + bouton
+                        Itineraire OutlinedCustomButton qui ouvre Apple Maps (iOS) ou
+                        Google Maps (Android) via url_launcher ^6.3.0. Mode APPROXIMATIF
+                        sinon → chip muted, pas de bouton. Factorisation osmDarkMatrix
+                        dans util commun (partagee MapView + MiniMapPreview). Aucun
+                        dispatch MapBloc (preserve etat carte arriere-plan).
                     </p>
                     <div class="feature-meta">
-                        <span>11 fichiers crees</span>
-                        <span>1 modifie</span>
-                        <span>~783 lignes Dart</span>
-                        <span>Score: 98.3/100</span>
+                        <span>V9.7 : 11 crees, 1 modifie (98.3/100)</span>
+                        <span>V9.7b : 3 crees, 5 refondus, 4 adaptes, 2 supprimes (92.5/100)</span>
+                        <span>V9.7c : 5 crees, 1 refondu, 3 adaptes (93.7/100)</span>
                     </div>
                 </a>
 

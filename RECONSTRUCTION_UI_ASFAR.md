@@ -380,7 +380,7 @@
 | 9.2 | F3 — Scanner QR | option A overlay accent | ⬜ |
 | 9.3 | F4 — Comptabilité étendue | option A extension P&L | ⬜ |
 | 9.4 | F5 — Démarcheurs côté proprio | option A symétrique | ⬜ |
-| 9.5 | F7 — Carte réelle géocodée | option A tiles dark | ⬜ |
+| 9.5 | F7 — Carte réelle géocodée | option A tiles dark | ✅ (3 sous-versions a/b/c — voir journal 2026-05-11) |
 | 9.6 | F9 — Banque / Cartes / Compte | option A wallet récepteur | ⬜ |
 | 9.7 | F10 — Calendrier global réservations | option A matrix | ⬜ |
 
@@ -402,8 +402,8 @@
 | **`DynamicAppBar` slot `sub`** | Le proto utilise `sub` (sous le titre) mais V6/V7 utilisent `eyebrow` (au-dessus) pour cohérence projet | Vague de finition transverse : ajouter un paramètre `sub` à `DynamicAppBar` (alternative à `eyebrow`) et migrer les écrans qui le veulent |
 | **Édition calendrier propriétaire** (V7) | `MiniCalendarGrid` view-only, taps = SnackBar | Quand `CalendarPlageBloc` rebranché : permettre tap pour bloquer/débloquer un jour, navigation entre mois |
 | **Branchement `ConversationBloc` réel** (V8) | Mocks `SampleConversations` + `SampleThreads` actuellement | Vague de finition post-V9 : brancher `ConversationBloc` existant + `MessageBloc` + WebSocket pour messages temps réel |
-| **Cards spéciales tap navigation** (V8) | SnackBar stub sur `ReservationMessageCard` et `AcceptedReferralMessageCard` | Quand BLoCs branchés : Card Réservation tap → `LocataireDetailScreen` V5 ; Card Demande acceptée tap → `ReferralDetailScreen` V6 |
-| **Bouton phone header thread** (V8) | SnackBar stub | Brancher sur `url_launcher` `tel:` quand téléphone réel disponible (V9) |
+| **Cards spéciales tap navigation** (V8) | ✅ livré 2026-05-11 (Flutter) — mapper backend en attente | Card Réservation tap → `LocataireDetailScreen` (utilise `payload.listing`). Card Demande acceptée tap → `ReferralDetailScreen` si `payload.referral != null`, sinon SnackBar fallback. **Pré-requis backend** : `ChatMessageToUiMapper` doit savoir construire un `ReferralPreview` complet depuis le préfixe `[ASFAR_CARD:referral]` quand le serveur émettra le format final (id, clientName, listing, nights, sentAt, status, commission). |
+| **Bouton phone header thread** (V8) | ✅ livré 2026-05-11 | `MessagingThreadScreen._onCall` branché sur `launchUrl(Uri(scheme: 'tel', path: phone))`. `ConversationPreview.phone` rempli depuis `User.telephone` du proprio/locataire via mapper. Fallback SnackBar si null. |
 | **Bouton plus input bar** (V8) | SnackBar stub | Pièce jointe (image/file picker) — V9 |
 
 ---
@@ -428,6 +428,25 @@
 - Plan de reconstruction validé en 9 vagues
 - Démarrage Vague 1 — Atomes
 - Vagues 1-4 livrées (21 widgets + 5 écrans)
+
+### 2026-05-11 (Vague 9.5 — Carte réelle géocodée — F7) ✅
+
+3 sous-versions livrées dans la journée via pipelines `/feature full` successifs :
+
+- **V9.5a (audit 98.3/100)** — première carte interactive temps réel d'Asfar. `LocataireMapScreen` avec `flutter_map ^8.1.1`, tuiles OSM filtrées dark via `tileBuilder` + `ColorFiltered` matrice (zéro dépendance externe), markers prix accent or, géoloc OS réelle via `LocationUtil`, `BottomSheet` preview au tap marker, `FAB` Ma position, bouton "Rechercher dans cette zone" après pan/zoom, filtres délégués à `LocataireSearchScreen` existant. 11 fichiers créés + 1 modifié, ~783 lignes Dart.
+
+- **V9.5b (audit 92.5/100)** — refonte modèle suite à pivot métier (suppression notion "résidence" agrégée) : `MapResidence` → `MapAppartement` (1 marker = 1 appart). Dual coordonnées `displayLat/displayLongi` (obfusqué backend ±200m) + `realLat/realLongi` (privé via `/real-location` guard `PAYER`/`FINALISER`). `BottomSheet` refondu `StatefulWidget` avec photo lazy + shimmer or animé 1200ms (option A « Pristine luxe »). Clustering supprimé du périmètre (jamais branché à l'UI). Mapper fallback partiel créé pour échec lazy load. 3 créés + 5 refondus + 4 adaptés + 2 supprimés.
+
+- **V9.5c (audit 93.7/100)** — finalisation chaîne dual-coords : section "Localisation" sur `LocataireDetailScreen` avec mini-carte 180px non-interactive. Double fetch parallèle `AppartementService.getAppartementById` + `MapService.getRealCoordinates` via `Future.wait`. Mode **EXACT** post-résa → chip success + bouton **Itinéraire** `OutlinedCustomButton` qui ouvre Apple Maps (iOS) ou Google Maps (Android) via `url_launcher ^6.3.0` (**ajouté au pubspec**). Mode **APPROXIMATIF** sinon → chip muted, pas de bouton. Factorisation `osmDarkMatrix` dans `lib/util/` (partagée `MapView` + `MiniMapPreview`). Aucun dispatch `MapBloc` (préserve état carte arrière-plan). 5 créés + 1 refondu + 3 adaptés.
+
+**Décisions techniques notables :**
+- Backend obfuscation : décalage calculé **une fois à la création** de l'appart (stable entre appels), pas de seed déterministe nécessaire côté client. Voir `BACKEND_NOTES_MAP_V9_7B.md` pour les contraintes Asfar (statuts PAYER/FINALISER, préfixe `api/` vs `auth/`, support `geoLat/geoLongi` dans `AddressReq` à la création).
+- Bug iOS 26.2 + Flutter 3.35.2 fixé : `Container.alignment: Alignment.center` du `CustomButton` causait l'expansion infinie du bouton accent en plein écran sur `Scaffold.bottomNavigationBar` (parent loose). Fix : retirer l'alignment (centrage déjà géré par `Row.mainAxisAlignment.center`).
+- Bug aliasing backend fixed : champs JSON `lat`/`lng`/`titre`/`prix`/`typeLocation` mappés en aliases côté `MapAppartement.fromJson` (avec fallback sur les noms du contrat `displayLat/displayLongi/title/price/typeAppart` pour résilience future).
+
+**Cleanup specs** : business-spec et architecture V9.5b corrigées pour ne plus mentionner `CONFIRMER` parmi les statuts qui débloquent `/real-location` (seuls `PAYER` et `FINALISER`).
+
+---
 
 ### 2026-05-10 (Vague 8 — Messaging)
 - **Vague 8 livrée** — 21 items cochés, 3 phases (8A → 8C), `flutter analyze` 41 issues legacy inchangées

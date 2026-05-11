@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>V9.7 — Carte Interactive · Documentation</title>
-    <meta name="version" content="1.0">
+    <meta name="version" content="1.2">
     <meta name="created" content="2026-05-11">
     <meta name="updated" content="2026-05-11">
     <style>
@@ -57,6 +57,9 @@
         .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
         .badge-accent { background: var(--accent-soft); color: var(--accent); }
         .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        .badge-updated { background: rgba(96,165,250,0.18); color: var(--info); border: 1px solid rgba(96,165,250,0.3); }
+        .badge-removed { background: rgba(248,113,113,0.14); color: var(--danger); }
+        .badge-new { background: rgba(74,222,128,0.14); color: var(--success); }
         table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 14px; }
         th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
         th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-3); background: var(--bg-elev-2); }
@@ -81,10 +84,15 @@
         <div class="eyebrow">V9.7 · Asfar Mobile</div>
         <h1>Carte interactive <em>temps réel</em></h1>
         <p>Premier vrai écran cartographique d'Asfar — markers prix dynamiques sur tuiles OSM dark, géolocalisation utilisateur, bottom sheet preview au tap, et rechargement par zone.</p>
+        <p style="margin-top:0.75rem;"><span class="badge badge-updated">🆕 V9.7b · 2026-05-11</span> Refonte modèle : 1 marker = 1 appartement (suppression résidence) + dual coordonnées display/real + photo lazy shimmer or animé.</p>
+        <p style="margin-top:0.5rem;"><span class="badge badge-updated">🆕 V9.7c · 2026-05-11</span> Chaîne dual-coords finalisée : mini-carte sur DetailScreen avec position exacte post-résa (PAYER/FINALISER) + bouton Itinéraire Apple/Google Maps.</p>
         <div class="meta">
-            <span>Version : <strong>1.0</strong></span>
+            <span>Version : <strong>1.2</strong></span>
             <span>Créée : 2026-05-11</span>
-            <span>Audit : <strong style="color:var(--accent)">98.3/100</strong></span>
+            <span>Mise à jour : 2026-05-11</span>
+            <span>Audit V9.7 : <strong style="color:var(--accent)">98.3/100</strong></span>
+            <span>Audit V9.7b : <strong style="color:var(--accent)">92.5/100</strong></span>
+            <span>Audit V9.7c : <strong style="color:var(--accent)">93.7/100</strong></span>
             <span>Pipeline : <strong>/feature full</strong></span>
         </div>
     </header>
@@ -97,6 +105,8 @@
             <li><a href="#decisions">Décisions techniques</a></li>
             <li><a href="#fichiers">Fichiers livrés</a></li>
             <li><a href="#qualite">Qualité</a></li>
+            <li><a href="#v97b">V9.7b refonte</a></li>
+            <li><a href="#v97c">V9.7c mini-carte</a></li>
             <li><a href="#index.html">← Index</a></li>
         </ul>
     </nav>
@@ -314,17 +324,213 @@
     </section>
 
     <section>
+        <h2 id="v97b">🆕 V9.7b — Refonte modèle Map (mise à jour majeure)</h2>
+        <p>Quelques heures après la livraison V9.7, le métier a confirmé que la <strong>notion de « résidence »</strong> (groupe d'appartements partageant le même immeuble) n'existe plus dans le domaine Asfar. Conséquence : refonte du modèle carte pour passer du <code>MapResidence</code> agrégé au <code>MapAppartement</code> individuel, livrée via un second pipeline <code>/feature full</code>.</p>
+
+        <div class="badges">
+            <span class="badge badge-updated">♻️ Modèle refondu</span>
+            <span class="badge badge-success">✅ Dual coordonnées (display/real)</span>
+            <span class="badge badge-accent">★ Photo lazy + shimmer or animé</span>
+            <span class="badge badge-removed">❌ Clustering supprimé</span>
+        </div>
+
+        <h3>Ce qui change métier</h3>
+        <ul>
+            <li>1 marker = 1 appartement (avant : 1 marker = 1 résidence avec X apparts dedans)</li>
+            <li>Le marker affiche le prix <strong>unitaire</strong> de l'appart (avant : range min-max de la résidence)</li>
+            <li>Tap marker → BottomSheet preview avec photo de l'appart spécifique, push direct sur <code>LocataireDetailScreen</code> (avant : écran intermédiaire « liste des apparts de la résidence »)</li>
+            <li>Suppression de l'écran intermédiaire « Liste des appartements d'une résidence »</li>
+        </ul>
+
+        <h3>🔐 Confidentialité — Dual coordonnées display/real</h3>
+        <p>Le modèle <code>MapAppartement</code> distingue deux jeux de coordonnées :</p>
+        <table>
+            <thead><tr><th>Champ</th><th>Source</th><th>Exposition</th></tr></thead>
+            <tbody>
+                <tr><td><code>displayLat / displayLongi</code></td><td>Backend : random déterministe ±200m, seed = <code>appartId</code></td><td>Toujours retourné — utilisé pour <strong>tous</strong> les markers en browse</td></tr>
+                <tr><td><code>realLat / realLongi</code></td><td>Coordonnées exactes en DB</td><td>Toujours <code>null</code> sur <code>/filtered</code> · uniquement via <code>/real-location</code> avec guard réservation confirmée</td></tr>
+            </tbody>
+        </table>
+        <p>Conséquence : impossible pour le locataire de récupérer la position exacte d'un appartement avant d'avoir réservé. La seed déterministe garantit que le marker d'un appartement reste à la même position obfusquée d'un appel à l'autre (stabilité visuelle).</p>
+
+        <pre><code>// MapAppartement.dart
+LatLng get displayPosition =&gt; LatLng(displayLat ?? 0, displayLongi ?? 0);
+LatLng? get realPosition =&gt; (realLat != null &amp;&amp; realLongi != null)
+    ? LatLng(realLat!, realLongi!) : null;</code></pre>
+
+        <h3>📸 BottomSheet — Option A « Pristine luxe »</h3>
+        <p>Le BottomSheet devient <code>StatefulWidget</code> et charge l'<code>Appartement</code> complet en lazy au tap marker (via <code>AppartementService.getAppartementById</code>). Pendant le chargement, un <strong>shimmer or animé 1200ms</strong> glisse sur le placeholder <code>ImgPh</code> tone — esthétique identitaire Asfar Premium.</p>
+        <pre><code>// MapMarkerPreviewImage 3 états :
+loading → ImgPh(tone) + _ShimmerOverlay (gradient accentSoft, 1200ms repeat)
+loaded  → Image.network(imgUrl, fit: cover, errorBuilder → ImgPh fallback)
+error   → ImgPh(tone) silencieux (pas d'icône broken_image)</code></pre>
+        <p>Sub-line : <code>"40 000 FCFA / nuit · Plateau · STUDIO · 2 chambres"</code> (séparateur middle-dot, parts vides ignorées).</p>
+
+        <h3>🗑️ Code mort éliminé</h3>
+        <p>Le clustering <code>MapCluster</code> + 9 méthodes/classes obsolètes ont été supprimées du codebase (jamais branchés à l'UI V9.7) :</p>
+        <ul>
+            <li><code>MapCluster</code>, <code>MapClustersLoaded</code>, <code>LoadClusteredMapResidences</code>, <code>ToggleClusterMode</code></li>
+            <li><code>getClusteredResidences</code>, <code>_performClustering</code>, <code>_calculateDistance</code>, <code>_calculateClusterCenter</code></li>
+            <li><code>getResidencesByIds</code>, <code>getResidenceDetails</code>, <code>getMapResidences</code></li>
+        </ul>
+        <p>Réintroductibles V10 si la densité visuelle gêne — mais MVP : 1 marker = 1 appart, point.</p>
+
+        <h3>📁 Fichiers V9.7b</h3>
+        <table>
+            <thead><tr><th>Action</th><th>Fichier</th><th>Rôle</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>model/map/map_appartement.dart</code></td><td>Nouveau modèle 1 marker = 1 appart, dual coords</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>util/mapping/map_appartement_to_listing.dart</code></td><td>Mapper fallback partiel (si lazy load échoue)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>screen/.../widget/map_marker_preview_image.dart</code></td><td>Widget photo lazy + <code>_ShimmerOverlay</code> animé</td></tr>
+                <tr><td><span class="badge badge-updated">REFONDU</span></td><td><code>service/model/map/map_service.dart</code></td><td>Endpoints <code>/api/map/appartements/filtered</code> + <code>/real-location</code></td></tr>
+                <tr><td><span class="badge badge-updated">REFONDU</span></td><td><code>bloc/map_bloc/map_event.dart</code></td><td>Events renommés <code>*MapAppartements*</code>, cluster supprimé</td></tr>
+                <tr><td><span class="badge badge-updated">REFONDU</span></td><td><code>bloc/map_bloc/map_state.dart</code></td><td>States renommés, <code>MapAppartementsLoaded</code> porte <code>List&lt;MapAppartement&gt;</code></td></tr>
+                <tr><td><span class="badge badge-updated">REFONDU</span></td><td><code>bloc/map_bloc/map_bloc.dart</code></td><td>Handlers adaptés, suppression cache clusters</td></tr>
+                <tr><td><span class="badge badge-updated">REFONDU</span></td><td><code>screen/.../widget/map_marker_bottom_sheet.dart</code></td><td>StatefulWidget lazy + photo + sub-line + push direct détail</td></tr>
+                <tr><td><span class="badge badge-accent">ADAPTÉ</span></td><td><code>screen/.../widget/map_view.dart</code></td><td>Types renommés, marker = <code>price</code> unitaire</td></tr>
+                <tr><td><span class="badge badge-accent">ADAPTÉ</span></td><td><code>screen/.../locataire_map_screen.dart</code></td><td>Push direct via callback recevant <code>Appartement?</code> chargé</td></tr>
+                <tr><td><span class="badge badge-accent">ADAPTÉ</span></td><td><code>service/realtime/realtime_action_handler.dart</code></td><td>Méthode <code>_handleRefreshMapAppartements</code> renommée</td></tr>
+                <tr><td><span class="badge badge-accent">ADAPTÉ</span></td><td><code>model/websocket/websocket_state.dart</code></td><td>Identifier <code>refreshMapAppartements</code> (chaîne JSON conservée V10)</td></tr>
+                <tr><td><span class="badge badge-removed">SUPPRIMÉ</span></td><td><code>model/map/map_residence.dart</code></td><td>Modèle agrégé obsolète + <code>MapCluster</code></td></tr>
+                <tr><td><span class="badge badge-removed">SUPPRIMÉ</span></td><td><code>util/mapping/map_residence_to_listing.dart</code></td><td>Remplacé par <code>map_appartement_to_listing.dart</code></td></tr>
+            </tbody>
+        </table>
+
+        <h3>📊 Audit V9.7b — 92.5/100</h3>
+        <table>
+            <thead><tr><th>Dimension</th><th>Score</th><th>Statut</th></tr></thead>
+            <tbody>
+                <tr><td>Complexité</td><td><strong>85</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Lisibilité</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>DRY</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Documentation</td><td><strong>90</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>SOLID</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Dette technique</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td><strong>GLOBAL</strong></td><td><strong>92.5</strong>/100</td><td><span class="badge badge-success">✅ VALIDÉ</span></td></tr>
+            </tbody>
+        </table>
+
+        <div class="quote">
+            « <code>flutter analyze</code> : <strong>39 issues</strong> legacy (-2 vs V9.7 grâce au cleanup <code>use_super_parameters</code> sur <code>MapError</code> subclasses). Zéro nouvelle erreur introduite. Règle Flutter n°1 : <code>grep "Widget _" lib/screen/client/locataire/map/</code> → vide. »
+        </div>
+
+        <h3>🔮 Hors scope V9.7b (tracker V9.7c / V10)</h3>
+        <ul>
+            <li>Mini-carte position réelle sur <code>LocataireDetailScreen</code> après réservation confirmée — décidé hors scope</li>
+            <li>Marker highlight quand sélectionné</li>
+            <li>Clustering visuel (ré-introductible si densité gêne)</li>
+            <li>Alignement backend de la chaîne websocket <code>REFRESH_MAP_RESIDENCES</code> → <code>REFRESH_MAP_APPARTEMENTS</code></li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 id="v97c">🆕 V9.7c — Mini-carte position réelle post-réservation</h2>
+        <p>V9.7b avait préparé le terrain : modèle <code>MapAppartement</code> avec dual-coords, endpoint backend <code>/real-location</code> guard <code>PAYER/FINALISER</code>, event <code>MapBloc.RequestRealLocation</code>. Mais cet event n'était branché à aucune UI. <strong>V9.7c finalise la chaîne</strong> : sur <code>LocataireDetailScreen</code>, une section "Localisation" avec mini-carte affiche désormais soit la position approximative (par défaut), soit la position exacte (post-paiement), avec un bouton pour ouvrir un itinéraire dans l'app maps native.</p>
+
+        <div class="badges">
+            <span class="badge badge-new">✨ Section Localisation</span>
+            <span class="badge badge-success">✅ Chaîne dual-coords finalisée</span>
+            <span class="badge badge-accent">★ Itinéraire Apple/Google Maps</span>
+            <span class="badge badge-info">url_launcher ^6.3.0</span>
+        </div>
+
+        <h3>🚪 Parcours utilisateur</h3>
+        <ol class="step-list">
+            <li>Locataire push <code>LocataireDetailScreen</code> depuis Home, Carte, Favoris ou Trips</li>
+            <li>La section "Localisation" affiche un <strong>skeleton 180px bgElev2 + spinner accent</strong></li>
+            <li>En parallèle (<code>Future.wait</code>) Flutter lance 2 appels : <code>AppartementService.getAppartementById</code> + <code>MapService.getRealCoordinates(appartId)</code></li>
+            <li><strong>Cas A — Réservation PAYER ou FINALISER</strong> : backend renvoie 200 + coords réelles → mini-carte recentre sur position exacte + chip <code style="color:var(--success)">⊙ Localisation exacte</code> + bouton <strong>Itinéraire</strong> (outlined accent or)</li>
+            <li><strong>Cas B — Pas de résa valide (403, ou erreur)</strong> : fallback silencieux sur <code>Address.displayLocation</code> (obfusquée) + chip <code>⊘ Localisation approximative</code> muted, pas de bouton</li>
+            <li>Tap "Itinéraire" → <code>url_launcher</code> ouvre Apple Maps (iOS/macOS) ou Google Maps (Android), URL avec param destination</li>
+            <li>Si aucune app maps installée (cas extrême) → SnackBar discret "Aucune application carte installée"</li>
+        </ol>
+
+        <h3>🎨 UI/UX validée — Option A « Discret post-résa »</h3>
+        <ul>
+            <li><strong>MiniMapPreview</strong> 180px non-interactive (<code>InteractiveFlag.none</code>), tuiles OSM dark filtrées via la matrice <code>osmDarkMatrix</code> partagée avec <code>MapView</code> V9.7</li>
+            <li>Marker accent or 18px avec halo radial (réutilise tone V9.7)</li>
+            <li><strong>LocationLabelChip</strong> pill compact : exact → border <code>successLight</code> + icône <code>gps_fixed</code> success ; approximatif → border <code>line</code> + icône <code>gps_off</code> text3</li>
+            <li><strong>ItineraryButton</strong> = <code>OutlinedCustomButton</code> avec leading icon <code>Icons.directions_outlined</code>, textColor accent — <strong>secondaire</strong> pour ne pas concurrencer le CTA primary "Réserver" en bottom bar</li>
+            <li>Layout Row : <code>chip à gauche</code> + <code>Spacer</code> + <code>bouton à droite</code> en mode exact ; chip seul ligne complète en mode approximatif</li>
+        </ul>
+
+        <h3>🧠 Décisions techniques notables</h3>
+        <table>
+            <thead><tr><th>Décision</th><th>Choix</th><th>Raison</th></tr></thead>
+            <tbody>
+                <tr><td>Pattern d'appel</td><td>Direct <code>MapService.getRealCoordinates</code> (pas dispatch MapBloc)</td><td>Évite pollution global state. Le <code>MapRealLocationLoaded</code> émis par MapBloc casserait l'état carte en arrière-plan si DetailScreen pushé depuis carte.</td></tr>
+                <tr><td>Parallélisation</td><td><code>Future.wait([_loadApprox, _loadReal])</code></td><td>1 RTT au lieu de 2 séquentiels. Skeleton apparaît immédiatement, swap après le plus long des 2.</td></tr>
+                <tr><td>Factorisation DRY</td><td>Extraction <code>osmDarkMatrix</code> dans <code>lib/util/</code></td><td>Matrice utilisée par <code>MapView</code> V9.7 + <code>MiniMapPreview</code> V9.7c. Un seul endroit de vérité.</td></tr>
+                <tr><td>Style bouton</td><td><code>OutlinedCustomButton</code> (pas primary)</td><td>Le CTA principal du DetailScreen reste "Réserver" (accent primary block). Le bouton Itinéraire ne doit pas voler la priorité visuelle.</td></tr>
+                <tr><td>Source coords approx</td><td><code>Address.displayLocation</code> getter existant</td><td>Pattern <code>exactLocation ?? geocodedLocation</code> déjà disponible. Pas de duplication.</td></tr>
+                <tr><td>Aucune validation côté Flutter</td><td>Backend = juge unique</td><td>Le 200/403 du backend tranche tout. Pas de logique local de check statut résa.</td></tr>
+            </tbody>
+        </table>
+
+        <h3>🔐 Sécurité (rappel V9.7b)</h3>
+        <ul>
+            <li><code>realLat/realLongi</code> ne sont jamais utilisés sans avoir reçu une réponse 200 de <code>/real-location</code></li>
+            <li>Statuts qui débloquent : <code>PAYER</code>, <code>FINALISER</code> (PAS <code>CONFIRMER</code> — accepté mais pas payé, voir <code>BACKEND_NOTES_MAP_V9_7B.md</code>)</li>
+            <li>L'utilisateur ne reçoit aucun message d'erreur explicite si <code>/real-location</code> retourne 403 — fallback obfusqué silencieux pour UX fluide</li>
+        </ul>
+
+        <h3>📁 Fichiers V9.7c</h3>
+        <table>
+            <thead><tr><th>Action</th><th>Fichier</th><th>Rôle</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>util/osm_dark_matrix.dart</code></td><td>Matrice ColorFilter extraite (factorisation DRY)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>util/launch_external_maps_helper.dart</code></td><td>Helper Apple/Google Maps URL via url_launcher</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>screen/.../widget/mini_map_preview.dart</code></td><td>Mini-carte 180px non-interactive + <code>_MiniPinMarker</code></td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>screen/.../widget/location_label_chip.dart</code></td><td>Pill chip 2 variants (exact/approximatif)</td></tr>
+                <tr><td><span class="badge badge-new">CRÉÉ</span></td><td><code>screen/.../widget/itinerary_button.dart</code></td><td>CTA <code>OutlinedCustomButton</code> qui appelle <code>LaunchExternalMapsHelper</code></td></tr>
+                <tr><td><span class="badge badge-updated">REFONDU</span></td><td><code>screen/.../widget/detail_map_section.dart</code></td><td>StatefulWidget avec <code>Future.wait</code> double fetch + <code>_DetailMapSkeleton</code></td></tr>
+                <tr><td><span class="badge badge-accent">ADAPTÉ</span></td><td><code>screen/.../detail_screen.dart</code></td><td>Passe <code>appartId = int.tryParse(listing.id)</code> à DetailMapSection</td></tr>
+                <tr><td><span class="badge badge-accent">ADAPTÉ</span></td><td><code>screen/.../map/widget/map_view.dart</code></td><td>Utilise <code>osmDarkMatrix</code> factorisée</td></tr>
+                <tr><td><span class="badge badge-accent">ADAPTÉ</span></td><td><code>pubspec.yaml</code></td><td>+ <code>url_launcher: ^6.3.0</code></td></tr>
+            </tbody>
+        </table>
+
+        <h3>📊 Audit V9.7c — 93.7/100</h3>
+        <table>
+            <thead><tr><th>Dimension</th><th>Score</th><th>Statut</th></tr></thead>
+            <tbody>
+                <tr><td>Complexité</td><td><strong>90</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Lisibilité</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>DRY</td><td><strong>95</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Documentation</td><td><strong>92</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>SOLID</td><td><strong>92</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td>Dette technique</td><td><strong>98</strong>/100</td><td><span class="badge badge-success">✅</span></td></tr>
+                <tr><td><strong>GLOBAL</strong></td><td><strong>93.7</strong>/100</td><td><span class="badge badge-success">✅ VALIDÉ</span></td></tr>
+            </tbody>
+        </table>
+
+        <div class="quote">
+            « <code>flutter analyze</code> : 39 issues legacy inchangées, 0 nouvelle erreur. Règle Flutter n°1 : <code>grep "Widget _" lib/screen/client/locataire/booking/</code> → vide. <code>_DetailMapSkeleton</code> et <code>_MiniPinMarker</code> extraits en CLASSES privées. »
+        </div>
+
+        <h3>🔮 Hors scope V9.7c (tracker V10)</h3>
+        <ul>
+            <li>Tracking utilisateur des itinéraires lancés (analytics)</li>
+            <li>Historique des itinéraires consultés par le locataire</li>
+            <li>Marker highlight sur la carte principale pour les apparts déjà réservés par l'utilisateur (corrélation MapAppartementsLoaded ↔ ReservationBloc)</li>
+            <li>Alignement backend chaîne websocket <code>REFRESH_MAP_RESIDENCES</code> → <code>REFRESH_MAP_APPARTEMENTS</code> (toujours en attente depuis V9.7b)</li>
+        </ul>
+    </section>
+
+    <section>
         <h2>Historique</h2>
         <table>
             <thead><tr><th>Version</th><th>Date</th><th>Changement</th></tr></thead>
             <tbody>
+                <tr><td><strong>1.2</strong></td><td>2026-05-11</td><td>V9.7c — Mini-carte position réelle finalisée sur <code>LocataireDetailScreen</code> · double fetch parallèle <code>Address.displayLocation</code> + <code>MapService.getRealCoordinates</code> · bouton Itinéraire <code>OutlinedCustomButton</code> ouvre Apple/Google Maps via <code>url_launcher ^6.3.0</code> · factorisation <code>osmDarkMatrix</code> dans util commun · pas de dispatch MapBloc (préserve état carte arrière-plan) · audit 93.7/100</td></tr>
+                <tr><td><strong>1.1</strong></td><td>2026-05-11</td><td>V9.7b — Refonte modèle <code>MapResidence</code> → <code>MapAppartement</code> (1 marker = 1 appart) · dual coordonnées display/real avec obfuscation backend ±200m · BottomSheet refondu en <code>StatefulWidget</code> avec photo lazy + shimmer or animé (option A « Pristine luxe ») · clustering supprimé · audit 92.5/100</td></tr>
                 <tr><td><strong>1.0</strong></td><td>2026-05-11</td><td>Création initiale — V9.7 livrée via pipeline <code>/feature full</code></td></tr>
             </tbody>
         </table>
     </section>
 
     <footer>
-        Asfar Mobile · V9.7 Carte Interactive · Documentation générée le 2026-05-11
+        Asfar Mobile · V9.7 Carte Interactive · Documentation générée le 2026-05-11 · Mise à jour V9.7b + V9.7c 2026-05-11
     </footer>
 </div>
 </body>
