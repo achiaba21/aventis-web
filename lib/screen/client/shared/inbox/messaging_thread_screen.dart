@@ -6,10 +6,11 @@ import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/model/conversation/chat_message.dart' as model;
+import 'package:asfar/model/conversation/conversation.dart';
 import 'package:asfar/model/partenariat/demande_partenariat.dart';
 import 'package:asfar/model/reservation/reservation.dart';
-import 'package:asfar/model/ui_only/conversation_preview.dart';
 import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
+import 'package:asfar/screen/client/shared/inbox/widget/conversation_display.dart';
 import 'package:asfar/screen/client/shared/partenariats/partenariat_detail_screen.dart';
 import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/chat_input_bar.dart';
@@ -24,9 +25,11 @@ import 'package:asfar/widget/feedback/empty_state.dart';
 
 /// Écran de conversation 1-to-1 — `MessagingThreadScreen`.
 ///
-/// V8.5 Lot 9 : branché sur `ConversationBloc`.
+/// Consomme directement le modèle métier [Conversation]. La logique de
+/// présentation (nom interlocuteur, sub, phone) provient de l'extension
+/// `ConversationDisplay` sur `Conversation`.
 class MessagingThreadScreen extends StatefulWidget {
-  final ConversationPreview conversation;
+  final Conversation conversation;
 
   const MessagingThreadScreen({super.key, required this.conversation});
 
@@ -41,7 +44,7 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
   @override
   void initState() {
     super.initState();
-    _conversationId = int.tryParse(widget.conversation.id) ?? 0;
+    _conversationId = widget.conversation.id ?? 0;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _conversationId <= 0) return;
       context.read<ConversationBloc>().add(
@@ -85,7 +88,8 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
   }
 
   Future<void> _onCall() async {
-    final phone = widget.conversation.phone?.trim();
+    final me = context.read<UserBloc>().state.user;
+    final phone = widget.conversation.phoneFor(me)?.trim();
     if (phone == null || phone.isEmpty) {
       _toast('Numéro indisponible');
       return;
@@ -120,7 +124,9 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = widget.conversation;
+    final currentUser = context.read<UserBloc>().state.user;
+    final who = widget.conversation.whoFor(currentUser);
+    final sub = widget.conversation.subLabel;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -128,9 +134,9 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
         child: Column(
           children: [
             ThreadCustomHeader(
-              who: c.who,
-              sub: c.sub,
-              certified: c.certified,
+              who: who,
+              sub: sub,
+              certified: false,
               onCall: _onCall,
             ),
             Expanded(
@@ -156,7 +162,6 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
                               ),
                     );
                   }
-                  final currentUser = context.read<UserBloc>().state.user;
                   final raw = <model.ChatMessage>[];
                   if (state is MessagesLoaded &&
                       state.conversationId == _conversationId) {

@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/ui_only/conversation_preview.dart';
+import 'package:asfar/model/conversation/conversation.dart';
+import 'package:asfar/model/user/user.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/conversation_row.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 
 /// Card list verticale des `ConversationRow` du `MessagingListScreen`.
 class ConversationsListCard extends StatelessWidget {
-  final List<ConversationPreview> conversations;
-  final void Function(ConversationPreview conversation)? onTap;
+  final List<Conversation> conversations;
+  final User? currentUser;
+  final void Function(Conversation conversation)? onTap;
 
   const ConversationsListCard({
     super.key,
     required this.conversations,
+    required this.currentUser,
     this.onTap,
   });
 
@@ -31,6 +34,7 @@ class ConversationsListCard extends StatelessWidget {
             for (var i = 0; i < conversations.length; i++)
               ConversationRow(
                 conversation: conversations[i],
+                currentUser: currentUser,
                 isLast: i == conversations.length - 1,
                 onTap: onTap == null
                     ? null

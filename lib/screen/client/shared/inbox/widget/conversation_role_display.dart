@@ -1,14 +1,10 @@
-import 'package:asfar/model/ui_only/conversation_preview.dart';
+import 'package:asfar/screen/client/shared/inbox/widget/conversation_display.dart';
 import 'package:asfar/widget/badge/badge_tone.dart';
 
 /// Mapping `ConversationRole` → libellé texte + ton de [BadgeStatus].
 ///
 /// Source : proto `extras.jsx::MessagingList` (lignes 126-127) :
 ///   `c.role === "Démarcheur" ? "info" : c.role === "Asfar" ? "neutral" : "accent"`
-///
-/// Helper dédié pour respecter la règle 3 du projet (helpers dédiés) — évite
-/// la dispersion de la logique dans `ConversationRow`, `MessagingThreadScreen`,
-/// etc.
 class ConversationRoleDisplay {
   ConversationRoleDisplay._();
 

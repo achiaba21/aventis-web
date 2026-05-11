@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/ui_only/conversation_preview.dart';
+import 'package:asfar/screen/client/shared/inbox/widget/conversation_display.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/conversation_role_display.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/widget/badge/badge_status.dart';

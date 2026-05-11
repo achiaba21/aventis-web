@@ -6,19 +6,23 @@ import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
 import 'package:asfar/model/conversation/conversation.dart';
-import 'package:asfar/model/ui_only/conversation_preview.dart';
 import 'package:asfar/screen/client/shared/inbox/messaging_thread_screen.dart';
+import 'package:asfar/screen/client/shared/inbox/widget/conversation_display.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/conversations_list_card.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/messaging_loading_view.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/messaging_search_bar.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/util/mapping/conversation_to_preview.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
+import 'package:asfar/model/user/user.dart';
 
 /// Écran de liste des conversations — `MessagingListScreen`.
+///
+/// Consomme directement la liste `Conversation` du `ConversationBloc`. La
+/// logique de présentation (rôle, nom interlocuteur, time, sub) est exposée
+/// par l'extension `ConversationDisplay` sur `Conversation`.
 class MessagingListScreen extends StatefulWidget {
   const MessagingListScreen({super.key});
 
@@ -47,13 +51,14 @@ class _MessagingListScreenState extends State<MessagingListScreen> {
     );
   }
 
-  List<ConversationPreview> _filtered(List<ConversationPreview> all) {
+  List<Conversation> _filtered(List<Conversation> all, User? me) {
     final q = _searchQuery.trim().toLowerCase();
     if (q.isEmpty) return all;
     return all.where((c) {
-      return c.who.toLowerCase().contains(q) ||
-          c.sub.toLowerCase().contains(q) ||
-          c.lastMessage.toLowerCase().contains(q);
+      final who = c.whoFor(me).toLowerCase();
+      final sub = c.subLabel.toLowerCase();
+      final last = c.lastMessagePreviewText.toLowerCase();
+      return who.contains(q) || sub.contains(q) || last.contains(q);
     }).toList();
   }
 
@@ -91,11 +96,7 @@ class _MessagingListScreenState extends State<MessagingListScreen> {
                 );
               }
               final conversations = _extractConversations(convState);
-              final previews = ConversationToPreviewMapper.mapMany(
-                conversations,
-                currentUser: currentUser,
-              );
-              final visible = _filtered(previews);
+              final visible = _filtered(conversations, currentUser);
               return SafeArea(
                 top: false,
                 child: Column(
@@ -105,7 +106,7 @@ class _MessagingListScreenState extends State<MessagingListScreen> {
                       onChanged: (q) => setState(() => _searchQuery = q),
                     ),
                     Expanded(
-                      child: previews.isEmpty
+                      child: conversations.isEmpty
                           ? Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 18),
@@ -128,6 +129,7 @@ class _MessagingListScreenState extends State<MessagingListScreen> {
                                 )
                               : ConversationsListCard(
                                   conversations: visible,
+                                  currentUser: currentUser,
                                   onTap: (c) => pushScreen(
                                     context,
                                     MessagingThreadScreen(conversation: c),
