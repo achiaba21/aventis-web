@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/booking_code_card.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/booking_recap_card.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/listing_summary_card.dart';
@@ -12,7 +14,6 @@ import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/button/plain_button.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/feedback/info_banner.dart';
 import 'package:asfar/widget/feedback/success_circle.dart';
 import 'package:asfar/widget/item/field_row.dart';
@@ -25,12 +26,12 @@ import 'package:asfar/widget/list/payment_method_tile.dart';
 /// 2. **Paiement** — choix méthode mobile money + total + CTA.
 /// 3. **Confirmation** — succès animé, code de réservation, récap.
 class LocataireReserveScreen extends StatefulWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final int nights;
 
   const LocataireReserveScreen({
     super.key,
-    required this.listing,
+    required this.appartement,
     this.nights = 3,
   });
 
@@ -44,7 +45,7 @@ class _LocataireReserveScreenState extends State<LocataireReserveScreen> {
 
   static const _bookingCode = 'ASF-7K2N9';
 
-  int get _subtotal => widget.listing.price * widget.nights;
+  int get _subtotal => widget.appartement.priceAmount * widget.nights;
   int get _fees => (_subtotal * 0.08).round();
   int get _total => _subtotal + _fees;
 
@@ -86,7 +87,7 @@ class _LocataireReserveScreenState extends State<LocataireReserveScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (_step != 3) ...[
-                ListingSummaryCard(listing: widget.listing),
+                ListingSummaryCard(appartement: widget.appartement),
                 const SizedBox(height: 16),
               ],
               if (_step == 1) ..._step1Content(),
@@ -131,7 +132,7 @@ class _LocataireReserveScreenState extends State<LocataireReserveScreen> {
           lines: [
             PriceLine(
               label:
-                  '${FcfaFormatter.compact(widget.listing.price)} × ${widget.nights} nuits',
+                  '${FcfaFormatter.compact(widget.appartement.priceAmount)} × ${widget.nights} nuits',
               amount: _subtotal,
             ),
             PriceLine(label: 'Frais de service', amount: _fees),
@@ -264,7 +265,7 @@ class _LocataireReserveScreenState extends State<LocataireReserveScreen> {
         const SizedBox(height: 16),
         BookingRecapCard(
           lines: [
-            RecapLine(label: 'Logement', value: widget.listing.title),
+            RecapLine(label: 'Logement', value: widget.appartement.titleSafe),
             const RecapLine(label: 'Dates', value: '12 - 15 nov'),
             RecapLine(
               label: 'Total payé',

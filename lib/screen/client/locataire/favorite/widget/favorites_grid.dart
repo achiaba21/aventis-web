@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
+import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/widget/card/saved_listing_card.dart';
 
 /// Grid 2 colonnes de `SavedListingCard` pour `LocataireFavoriteScreen`.
 class FavoritesGrid extends StatelessWidget {
-  final List<ListingPreview> favorites;
-  final void Function(ListingPreview listing)? onTap;
+  final List<Appartement> favorites;
+  final void Function(Appartement appartement)? onTap;
 
   const FavoritesGrid({
     super.key,
@@ -25,7 +25,7 @@ class FavoritesGrid extends StatelessWidget {
       ),
       itemCount: favorites.length,
       itemBuilder: (_, i) => SavedListingCard(
-        listing: favorites[i],
+        appartement: favorites[i],
         onTap: onTap == null ? null : () => onTap!(favorites[i]),
       ),
     );

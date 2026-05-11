@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/model/reservation/reservation.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/proprio/reservations/widget/reservation_status_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
@@ -44,10 +44,9 @@ class ProprioReservationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tone = reservation.appart != null
-        ? AppartementToListingMapper.mapOne(reservation.appart!).tone
-        : 1;
-    final apartTitle = reservation.appart?.titre ?? 'Logement';
+    final appart = reservation.appart;
+    final tone = appart?.tone ?? 1;
+    final apartTitle = appart?.titre ?? 'Logement';
     final dates = _formatDates();
     final amount = (reservation.prix ?? 0).round();
 

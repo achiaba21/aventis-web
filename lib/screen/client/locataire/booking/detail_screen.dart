@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/locataire/booking/reserve_screen.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/amenities_grid.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/amenity_item.dart';
@@ -13,20 +15,20 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 
 /// Écran Detail logement — fiche complète.
 ///
-/// Reproduit `LocataireDetail` du proto : galerie hero 1:1 + actions
-/// flottantes (back, share, heart) + title block + quick specs + host
-/// card + description + amenities + emplacement + reviews + bottom bar.
+/// Consomme directement [Appartement]. Reproduit `LocataireDetail` du proto :
+/// galerie hero 1:1 + actions flottantes (back, share, heart) + title block +
+/// quick specs + host card + description + amenities + emplacement + reviews
+/// + bottom bar.
 class LocataireDetailScreen extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final String dates;
 
   const LocataireDetailScreen({
     super.key,
-    required this.listing,
+    required this.appartement,
     this.dates = '12-15 nov',
   });
 
@@ -59,7 +61,7 @@ class LocataireDetailScreen extends StatelessWidget {
   ];
 
   void _onReserve(BuildContext context) {
-    pushScreen(context, LocataireReserveScreen(listing: listing));
+    pushScreen(context, LocataireReserveScreen(appartement: appartement));
   }
 
   @override
@@ -71,7 +73,7 @@ class LocataireDetailScreen extends StatelessWidget {
           ListView(
             padding: const EdgeInsets.only(bottom: 120),
             children: [
-              DetailHeroGallery(tone: listing.tone),
+              DetailHeroGallery(tone: appartement.tone),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 20, 18, 0),
                 child: Column(
@@ -79,24 +81,24 @@ class LocataireDetailScreen extends StatelessWidget {
                   children: [
                     DetailTitleBlock(
                       type: 'Loft entier',
-                      title: listing.title,
-                      rating: listing.rating,
-                      reviews: listing.reviews,
-                      area: listing.area,
-                      city: listing.city,
+                      title: appartement.titleSafe,
+                      rating: appartement.rating,
+                      reviews: appartement.reviewsCount,
+                      area: appartement.areaName,
+                      city: appartement.cityName,
                     ),
                     const SizedBox(height: 18),
                     QuickSpecsCard(
-                      beds: listing.beds,
-                      baths: listing.baths,
-                      surface: listing.surface,
-                      travelers: listing.beds * 2,
+                      beds: appartement.bedsCount,
+                      baths: appartement.bathsCount,
+                      surface: appartement.surfaceM2,
+                      travelers: appartement.bedsCount * 2,
                     ),
                     const SizedBox(height: 18),
                     HostCard(
                       hostName: 'Aminata K.',
                       memberSince: '2023',
-                      certified: listing.superhost,
+                      certified: appartement.isSuperhost,
                       onContactTap: () {},
                     ),
                     const SizedBox(height: 22),
@@ -104,7 +106,7 @@ class LocataireDetailScreen extends StatelessWidget {
                         style: AppTextStyles.h3),
                     const SizedBox(height: 8),
                     Text(
-                      "Espace lumineux et calme au cœur de ${listing.area}. "
+                      "Espace lumineux et calme au cœur de ${appartement.areaName}. "
                       "Décoration soignée, équipements modernes, balcon avec "
                       "vue dégagée. Idéal pour séjours d'affaires ou tourisme.",
                       style: AppTextStyles.body,
@@ -132,9 +134,9 @@ class LocataireDetailScreen extends StatelessWidget {
                     const Text('Localisation', style: AppTextStyles.h3),
                     const SizedBox(height: 12),
                     DetailMapSection(
-                      appartId: int.tryParse(listing.id),
-                      area: listing.area,
-                      city: listing.city,
+                      appartId: appartement.id,
+                      area: appartement.areaName,
+                      city: appartement.cityName,
                     ),
                     const SizedBox(height: 22),
                     Row(
@@ -146,7 +148,7 @@ class LocataireDetailScreen extends StatelessWidget {
                                   size: 16, color: AppColors.accent),
                               const SizedBox(width: 6),
                               Text(
-                                '${listing.rating.toStringAsFixed(2)} · ${listing.reviews} avis',
+                                '${appartement.rating.toStringAsFixed(2)} · ${appartement.reviewsCount} avis',
                                 style: AppTextStyles.h3,
                               ),
                             ],
@@ -223,7 +225,7 @@ class LocataireDetailScreen extends StatelessWidget {
             left: 0,
             right: 0,
             child: DetailBottomBar(
-              pricePerNight: listing.price,
+              pricePerNight: appartement.priceAmount,
               dates: dates,
               onReserve: () => _onReserve(context),
             ),

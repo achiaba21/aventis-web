@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/demarcheur/home/widget/listing_push_card.dart';
 import 'package:asfar/util/calc/demarcheur_stats_calculator.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 import 'package:asfar/widget/text/section_header.dart';
 
@@ -46,11 +46,10 @@ class DemarcheurListingsToPushSection extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (_, i) {
                 final a = appartements[i];
-                final l = AppartementToListingMapper.mapOne(a);
                 return ListingPushCard(
-                  listing: l,
+                  appartement: a,
                   estimatedCommission: ReferralCommissionHelper.estimate(
-                      pricePerNight: l.price),
+                      pricePerNight: a.priceAmount),
                   onTap: onListingTap == null
                       ? null
                       : () => onListingTap!(a),

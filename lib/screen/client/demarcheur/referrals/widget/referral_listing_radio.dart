@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/listing_radio_indicator.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Card radio de sélection d'un logement — étape 1 du tunnel
-/// `NewReferralScreen`.
+/// `NewReferralScreen`. Consomme directement [Appartement].
 class ReferralListingRadio extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final int estimatedCommission;
   final bool selected;
   final VoidCallback? onTap;
 
   const ReferralListingRadio({
     super.key,
-    required this.listing,
+    required this.appartement,
     required this.estimatedCommission,
     required this.selected,
     this.onTap,
@@ -45,7 +46,7 @@ class ReferralListingRadio extends StatelessWidget {
               SizedBox(
                 width: 56,
                 height: 56,
-                child: ImgPh(tone: listing.tone, radius: 12),
+                child: ImgPh(tone: appartement.tone, radius: 12),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -53,7 +54,7 @@ class ReferralListingRadio extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      listing.title,
+                      appartement.titleSafe,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -64,7 +65,7 @@ class ReferralListingRadio extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${listing.area} · ${FcfaFormatter.compact(listing.price)}/n',
+                      '${appartement.areaName} · ${FcfaFormatter.compact(appartement.priceAmount)}/n',
                       style: AppTextStyles.small.copyWith(fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

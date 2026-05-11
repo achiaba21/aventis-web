@@ -10,7 +10,6 @@ import 'package:asfar/screen/client/proprio/appartements/widget/new_listing_card
 import 'package:asfar/screen/client/proprio/appartements/widget/proprio_listings_loading_view.dart';
 import 'package:asfar/screen/client/proprio/appartements/wizard/proprio_new_listing_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
@@ -85,12 +84,11 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
         top: false,
         child: BlocBuilder<AppartementBloc, AppartementState>(
           builder: (context, state) {
-            final listings =
-                AppartementToListingMapper.mapMany(state.appartements);
+            final appartements = state.appartements;
             final isInitialLoading =
-                state is AppartementLoading && listings.isEmpty;
+                state is AppartementLoading && appartements.isEmpty;
             final isErrorWithoutCache =
-                state is AppartementError && listings.isEmpty;
+                state is AppartementError && appartements.isEmpty;
 
             if (isInitialLoading) return const ProprioListingsLoadingView();
             if (isErrorWithoutCache) {
@@ -103,15 +101,15 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
               children: [
                 const SizedBox(height: 6),
                 ListingsFilterChips(
-                  filters: _buildFilters(listings.length),
+                  filters: _buildFilters(appartements.length),
                   selected: _filter.startsWith('Tout')
-                      ? 'Tout (${listings.length})'
+                      ? 'Tout (${appartements.length})'
                       : _filter,
                   onSelect: (f) => setState(() => _filter = f),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
-                  child: listings.isEmpty
+                  child: appartements.isEmpty
                       ? EmptyState.hero(
                           icon: Icons.home_work_outlined,
                           title: 'Aucune annonce',
@@ -125,29 +123,29 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
                           padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
                           child: Column(
                             children: [
-                              for (var i = 0; i < listings.length; i++) ...[
+                              for (var i = 0; i < appartements.length; i++) ...[
                                 ListingFullCard(
-                                  listing: listings[i],
+                                  appartement: appartements[i],
                                   occupancyRate: 0,
                                   monthlyRevenue: 0,
                                   onTap: () => pushScreen(
                                     context,
                                     ProprioListingEditScreen(
-                                        listing: listings[i]),
+                                        appartement: appartements[i]),
                                   ),
                                   onMoreTap: () =>
                                       _stub("Plus d'options bientôt"),
                                   onCalendarTap: () => pushScreen(
                                     context,
                                     ProprioListingEditScreen(
-                                      listing: listings[i],
+                                      appartement: appartements[i],
                                       initialTab: 1,
                                     ),
                                   ),
                                   onEditTap: () => pushScreen(
                                     context,
                                     ProprioListingEditScreen(
-                                      listing: listings[i],
+                                      appartement: appartements[i],
                                       initialTab: 0,
                                     ),
                                   ),

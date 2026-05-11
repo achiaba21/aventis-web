@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_bloc.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_state.dart';
+import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/widget/card/appartement_preview_card.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 
 /// Liste verticale "Recommandés pour vous" du `LocataireHomeScreen` —
 /// `AppartementPreviewCard` avec `BlocBuilder` sur `FavoriteBloc` pour
 /// le heart.
 class RecommendedListingsList extends StatelessWidget {
-  final List<ListingPreview> listings;
-  final void Function(ListingPreview listing)? onTap;
-  final void Function(ListingPreview listing)? onLikeTap;
+  final List<Appartement> appartements;
+  final void Function(Appartement appartement)? onTap;
+  final void Function(Appartement appartement)? onLikeTap;
 
   const RecommendedListingsList({
     super.key,
-    required this.listings,
+    required this.appartements,
     this.onTap,
     this.onLikeTap,
   });
@@ -28,9 +28,9 @@ class RecommendedListingsList extends StatelessWidget {
     return const [];
   }
 
-  static bool _isLiked(List<int> ids, ListingPreview listing) {
-    final apartId = int.tryParse(listing.id);
-    return apartId != null && ids.contains(apartId);
+  static bool _isLiked(List<int> ids, Appartement appart) {
+    final id = appart.id;
+    return id != null && ids.contains(id);
   }
 
   @override
@@ -40,15 +40,16 @@ class RecommendedListingsList extends StatelessWidget {
         final favIds = _favoriteIdsFromState(favState);
         return Column(
           children: [
-            for (var i = 0; i < listings.length; i++) ...[
+            for (var i = 0; i < appartements.length; i++) ...[
               AppartementPreviewCard(
-                listing: listings[i],
-                liked: _isLiked(favIds, listings[i]),
-                onTap: onTap == null ? null : () => onTap!(listings[i]),
-                onLikeTap:
-                    onLikeTap == null ? null : () => onLikeTap!(listings[i]),
+                appartement: appartements[i],
+                liked: _isLiked(favIds, appartements[i]),
+                onTap: onTap == null ? null : () => onTap!(appartements[i]),
+                onLikeTap: onLikeTap == null
+                    ? null
+                    : () => onLikeTap!(appartements[i]),
               ),
-              if (i != listings.length - 1) const SizedBox(height: 14),
+              if (i != appartements.length - 1) const SizedBox(height: 14),
             ],
           ],
         );

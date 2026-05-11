@@ -10,13 +10,12 @@ import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
 import 'package:asfar/screen/client/locataire/favorite/widget/favorites_grid.dart';
 import 'package:asfar/screen/client/locataire/favorite/widget/favorites_loading_grid.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 
-/// Écran Favoris du Locataire — V8.5 branché sur `FavoriteBloc` croisé
-/// avec `AppartementBloc`.
+/// Écran Favoris du Locataire — branché sur `FavoriteBloc` croisé
+/// avec `AppartementBloc`. Consomme directement `Appartement`.
 class LocataireFavoriteScreen extends StatefulWidget {
   const LocataireFavoriteScreen({super.key});
 
@@ -62,11 +61,10 @@ class _LocataireFavoriteScreenState extends State<LocataireFavoriteScreen> {
             final favIds = _favoriteIdsFromState(favState);
             return BlocBuilder<AppartementBloc, AppartementState>(
               builder: (context, appState) {
-                final all = AppartementToListingMapper.mapMany(
-                    appState.appartements);
+                final all = appState.appartements;
                 final favorites = all
-                    .where((l) => favIds.contains(int.tryParse(l.id) ?? -1))
-                    .toList();
+                    .where((a) => a.id != null && favIds.contains(a.id))
+                    .toList(growable: false);
 
                 final isInitialLoading = favState is FavoriteLoading &&
                     favIds.isEmpty &&
@@ -84,9 +82,9 @@ class _LocataireFavoriteScreenState extends State<LocataireFavoriteScreen> {
 
                 return FavoritesGrid(
                   favorites: favorites,
-                  onTap: (listing) => pushScreen(
+                  onTap: (appartement) => pushScreen(
                     context,
-                    LocataireDetailScreen(listing: listing),
+                    LocataireDetailScreen(appartement: appartement),
                   ),
                 );
               },

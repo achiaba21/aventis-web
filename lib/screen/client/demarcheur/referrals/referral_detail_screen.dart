@@ -9,12 +9,10 @@ import 'package:asfar/screen/client/locataire/booking/widget/host_card.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/listing_summary_card.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 
 /// Détail d'une référence client — `ReferralDetailScreen`.
 ///
@@ -87,21 +85,6 @@ class ReferralDetailScreen extends StatelessWidget {
     }
   }
 
-  ListingPreview _listingFromReservation() {
-    final appart = reservation.appart;
-    if (appart == null) {
-      return const ListingPreview(
-        id: '0',
-        tone: 1,
-        title: 'Logement supprimé',
-        area: '',
-        city: '',
-        price: 0,
-      );
-    }
-    return AppartementToListingMapper.mapOne(appart);
-  }
-
   @override
   Widget build(BuildContext context) {
     final status = reservation.referralStatus;
@@ -137,9 +120,11 @@ class ReferralDetailScreen extends StatelessWidget {
                 currentIndex: _currentStepIndex(status),
               ),
               const SizedBox(height: 22),
-              const Text('Logement', style: AppTextStyles.h3),
-              const SizedBox(height: 10),
-              ListingSummaryCard(listing: _listingFromReservation()),
+              if (reservation.appart != null) ...[
+                const Text('Logement', style: AppTextStyles.h3),
+                const SizedBox(height: 10),
+                ListingSummaryCard(appartement: reservation.appart!),
+              ],
               const SizedBox(height: 22),
               const Text('Client', style: AppTextStyles.h3),
               const SizedBox(height: 10),

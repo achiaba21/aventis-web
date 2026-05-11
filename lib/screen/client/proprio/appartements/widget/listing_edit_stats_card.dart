@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_stats_occupancy_col.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_stats_rating_col.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 
 /// Card stats compacte du `ProprioListingEditScreen` — affichée juste après
-/// le Hero photo.
-///
-/// Reproduit le proto `proprietaire.jsx::ProprietaireListingEdit`
-/// (lignes 481-502) : Row 2 cols séparée par un `Container 1×_` line.
+/// le Hero photo. Consomme directement [Appartement].
 class ListingEditStatsCard extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final double occupancyRate;
 
   const ListingEditStatsCard({
     super.key,
-    required this.listing,
+    required this.appartement,
     required this.occupancyRate,
   });
 
@@ -39,8 +37,8 @@ class ListingEditStatsCard extends StatelessWidget {
             const SizedBox(width: 16),
             Expanded(
               child: ListingStatsRatingCol(
-                rating: listing.rating,
-                reviews: listing.reviews,
+                rating: appartement.rating,
+                reviews: appartement.reviewsCount,
               ),
             ),
           ],

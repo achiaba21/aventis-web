@@ -8,6 +8,7 @@ import 'package:asfar/bloc/demarcheur_bloc/demarcheur_event.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_state.dart';
 import 'package:asfar/model/request/demarcheur_reservation_req.dart';
 import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/new_referral_listing_radio_item.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/recap_line.dart';
 import 'package:asfar/theme/app_colors.dart';
@@ -15,14 +16,12 @@ import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/calc/demarcheur_stats_calculator.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/button/plain_button.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 import 'package:asfar/widget/feedback/info_banner.dart';
 import 'package:asfar/widget/feedback/success_circle.dart';
@@ -49,7 +48,6 @@ class NewReferralScreen extends StatefulWidget {
 
 class _NewReferralScreenState extends State<NewReferralScreen> {
   int _step = 1;
-  ListingPreview? _selectedListing;
   Appartement? _selectedAppartement;
 
   final _nameCtrl = TextEditingController();
@@ -86,7 +84,6 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
     final initial = widget.initialAppartement;
     if (initial != null) {
       _selectedAppartement = initial;
-      _selectedListing = AppartementToListingMapper.mapOne(initial);
       _step = 2;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -145,15 +142,15 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
   }
 
   int get _commissionEstimate {
-    final l = _selectedListing;
-    if (l == null) return 0;
+    final a = _selectedAppartement;
+    if (a == null) return 0;
     return ReferralCommissionHelper.estimate(
-      pricePerNight: l.price,
+      pricePerNight: a.priceAmount,
       nights: _stayNights,
     );
   }
 
-  bool get _step1Valid => _selectedListing != null;
+  bool get _step1Valid => _selectedAppartement != null;
   bool get _step2Valid =>
       _nameCtrl.text.trim().isNotEmpty && _phoneCtrl.text.trim().isNotEmpty;
 
@@ -289,10 +286,9 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
               for (final a in filtered) ...[
                 NewReferralListingRadioItem(
                   appart: a,
-                  selectedListingId: _selectedListing?.id,
-                  onSelect: (appart, preview) => setState(() {
+                  selectedListingId: _selectedAppartement?.displayId,
+                  onSelect: (appart) => setState(() {
                     _selectedAppartement = appart;
-                    _selectedListing = preview;
                   }),
                 ),
                 const SizedBox(height: 12),
@@ -385,7 +381,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
   }
 
   List<Widget> _step3() {
-    final l = _selectedListing!;
+    final a = _selectedAppartement!;
     final ref = _generatedRef ?? 'REF-?';
     return [
       const SizedBox(height: 24),
@@ -418,7 +414,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
           children: [
             RecapLine(label: 'Référence', value: ref, mono: true),
             const SizedBox(height: 10),
-            RecapLine(label: 'Logement', value: l.title),
+            RecapLine(label: 'Logement', value: a.titleSafe),
             const SizedBox(height: 10),
             RecapLine(label: 'Client', value: _nameCtrl.text.trim()),
             const SizedBox(height: 14),

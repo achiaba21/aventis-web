@@ -12,7 +12,6 @@ import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/conversation_display.dart';
 import 'package:asfar/screen/client/shared/partenariats/partenariat_detail_screen.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/chat_input_bar.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_custom_header.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_loading_view.dart';
@@ -109,8 +108,7 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
       _toast('Détail de la réservation indisponible');
       return;
     }
-    final listing = AppartementToListingMapper.mapOne(appart);
-    pushScreen(context, LocataireDetailScreen(listing: listing));
+    pushScreen(context, LocataireDetailScreen(appartement: appart));
   }
 
   void _onPartenariatTap(DemandePartenariat? loaded) {

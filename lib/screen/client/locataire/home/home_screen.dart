@@ -5,6 +5,8 @@ import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_bloc.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_event.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
 import 'package:asfar/screen/client/locataire/home/search_screen.dart';
 import 'package:asfar/screen/client/locataire/home/widget/featured_listings_carousel.dart';
@@ -16,9 +18,7 @@ import 'package:asfar/screen/client/locataire/home/widget/locataire_search_bar.d
 import 'package:asfar/screen/client/locataire/home/widget/recommended_listings_list.dart';
 import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 import 'package:asfar/widget/map/map_teaser.dart';
 import 'package:asfar/widget/text/section_header.dart';
@@ -66,8 +66,8 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
     });
   }
 
-  void _onListingTap(ListingPreview listing) {
-    pushScreen(context, LocataireDetailScreen(listing: listing));
+  void _onListingTap(Appartement appartement) {
+    pushScreen(context, LocataireDetailScreen(appartement: appartement));
   }
 
   void _onSearchTap() {
@@ -78,28 +78,28 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
     context.read<AppartementBloc>().add(RefreshAppartements());
   }
 
-  void _onToggleFavorite(ListingPreview listing) {
-    final apartId = int.tryParse(listing.id);
-    if (apartId == null) return;
-    context.read<FavoriteBloc>().add(ToggleFavorite(apartId));
+  void _onToggleFavorite(Appartement appartement) {
+    final id = appartement.id;
+    if (id == null) return;
+    context.read<FavoriteBloc>().add(ToggleFavorite(id));
   }
 
   void _onSeeMap() {
     pushScreen(context, const LocataireMapScreen());
   }
 
-  /// Génère 1 à 4 pins distribués sur le teaser à partir des listings réels.
-  List<MapTeaserPin> _pinsForListings(List<ListingPreview> listings) {
-    if (listings.isEmpty) return const [];
-    final count = listings.length < _pinPositions.length
-        ? listings.length
+  /// Génère 1 à 4 pins distribués sur le teaser à partir des appartements réels.
+  List<MapTeaserPin> _pinsForAppartements(List<Appartement> appartements) {
+    if (appartements.isEmpty) return const [];
+    final count = appartements.length < _pinPositions.length
+        ? appartements.length
         : _pinPositions.length;
     return [
       for (var i = 0; i < count; i++)
         MapTeaserPin(
           x: _pinPositions[i][0],
           y: _pinPositions[i][1],
-          label: _compactPriceLabel(listings[i].price),
+          label: _compactPriceLabel(appartements[i].priceAmount),
           active: i == 0,
         ),
     ];
@@ -124,12 +124,11 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
         bottom: false,
         child: BlocBuilder<AppartementBloc, AppartementState>(
           builder: (context, state) {
-            final listings =
-                AppartementToListingMapper.mapMany(state.appartements);
+            final appartements = state.appartements;
             final isInitialLoading =
-                state is AppartementLoading && listings.isEmpty;
+                state is AppartementLoading && appartements.isEmpty;
             final isErrorWithoutCache =
-                state is AppartementError && listings.isEmpty;
+                state is AppartementError && appartements.isEmpty;
 
             if (isInitialLoading) return const LocataireHomeLoadingView();
             if (isErrorWithoutCache) {
@@ -169,7 +168,7 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                if (listings.isEmpty)
+                if (appartements.isEmpty)
                   SliverFillRemaining(
                     hasScrollBody: false,
                     child: EmptyState.hero(
@@ -191,7 +190,7 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
                   ),
                   SliverToBoxAdapter(
                     child: FeaturedListingsCarousel(
-                      listings: listings,
+                      appartements: appartements,
                       onTap: _onListingTap,
                       onLikeTap: _onToggleFavorite,
                     ),
@@ -207,8 +206,8 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       child: MapTeaser(
-                        pins: _pinsForListings(listings),
-                        totalListings: listings.length,
+                        pins: _pinsForAppartements(appartements),
+                        totalListings: appartements.length,
                         onSeeMap: _onSeeMap,
                       ),
                     ),
@@ -221,7 +220,7 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
                     padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
                     sliver: SliverToBoxAdapter(
                       child: RecommendedListingsList(
-                        listings: listings,
+                        appartements: appartements,
                         onTap: _onListingTap,
                         onLikeTap: _onToggleFavorite,
                       ),

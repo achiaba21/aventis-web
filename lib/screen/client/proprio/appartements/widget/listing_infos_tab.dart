@@ -6,21 +6,22 @@ import 'package:asfar/model/locolite/address.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/capacity_edit_dialog.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/text_field_edit_dialog.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/item/field_row.dart';
 
 /// Tab « Infos » du `ProprioListingEditScreen`.
 ///
+/// Consomme directement le modèle métier [Appartement] (`appartement`).
 /// V9.1 (read) + V9.3 (write titre/type/description) + V9.4 (write
 /// adresse/capacité). Tap sur n'importe quel champ ouvre le dialog dédié
 /// et dispatch UpdateAppartement au save.
 class ListingInfosTab extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final Appartement? source;
 
-  const ListingInfosTab({super.key, required this.listing, this.source});
+  const ListingInfosTab({super.key, required this.appartement, this.source});
 
   void _toast(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -46,9 +47,9 @@ class ListingInfosTab extends StatelessWidget {
   }
 
   String _capacityText() {
-    final beds = source?.nbLits ?? listing.beds;
+    final beds = source?.nbLits ?? appartement.bedsCount;
     final rooms = source?.nbChambres ?? 0;
-    final baths = source?.nbDouches ?? listing.baths;
+    final baths = source?.nbDouches ?? appartement.bathsCount;
     return '${beds * 2} voyageurs · $rooms ch · $baths sdb';
   }
 
@@ -220,7 +221,7 @@ class ListingInfosTab extends StatelessWidget {
         children: [
           FieldRow(
             eyebrow: 'TITRE',
-            value: listing.title,
+            value: appartement.titleSafe,
             onTap: () => _editTitre(context),
           ),
           FieldRow(

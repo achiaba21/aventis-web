@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_full_card_body.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_full_card_footer.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_full_card_hero.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 
 /// Card complète d'annonce — `ProprioListingsScreen`.
 ///
-/// Reproduit le proto `proprietaire.jsx::ProprietaireListings`
-/// (lignes 377-430). Composée de 3 sous-widgets :
-/// - `ListingFullCardHero` (image + badges + bouton more)
-/// - `ListingFullCardBody` (titre + prix + sub + 3 KPIs)
-/// - `ListingFullCardFooter` (3 boutons Calendrier / Modifier / Stats)
+/// Consomme directement [Appartement]. Reproduit le proto
+/// `proprietaire.jsx::ProprietaireListings` (lignes 377-430). Composée de
+/// 3 sous-widgets : Hero (image + badges + more), Body (titre + prix + KPIs),
+/// Footer (3 boutons Calendrier / Modifier / Stats).
 class ListingFullCard extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final double occupancyRate;
   final int monthlyRevenue;
   final VoidCallback? onTap;
@@ -25,7 +24,7 @@ class ListingFullCard extends StatelessWidget {
 
   const ListingFullCard({
     super.key,
-    required this.listing,
+    required this.appartement,
     required this.occupancyRate,
     required this.monthlyRevenue,
     this.onTap,
@@ -53,11 +52,11 @@ class ListingFullCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ListingFullCardHero(
-                listing: listing,
+                appartement: appartement,
                 onMoreTap: onMoreTap,
               ),
               ListingFullCardBody(
-                listing: listing,
+                appartement: appartement,
                 occupancyRate: occupancyRate,
                 monthlyRevenue: monthlyRevenue,
               ),

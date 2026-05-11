@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_bloc.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_state.dart';
+import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/widget/card/featured_listing_card.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 
 /// Carrousel horizontal "À la une" du `LocataireHomeScreen` — 3 premiers
-/// listings en `FeaturedListingCard`, branché sur `FavoriteBloc` pour le
+/// appartements en `FeaturedListingCard`, branché sur `FavoriteBloc` pour le
 /// heart.
 class FeaturedListingsCarousel extends StatelessWidget {
-  final List<ListingPreview> listings;
-  final void Function(ListingPreview listing)? onTap;
-  final void Function(ListingPreview listing)? onLikeTap;
+  final List<Appartement> appartements;
+  final void Function(Appartement appartement)? onTap;
+  final void Function(Appartement appartement)? onLikeTap;
 
   const FeaturedListingsCarousel({
     super.key,
-    required this.listings,
+    required this.appartements,
     this.onTap,
     this.onLikeTap,
   });
@@ -28,9 +28,9 @@ class FeaturedListingsCarousel extends StatelessWidget {
     return const [];
   }
 
-  static bool _isLiked(List<int> ids, ListingPreview listing) {
-    final apartId = int.tryParse(listing.id);
-    return apartId != null && ids.contains(apartId);
+  static bool _isLiked(List<int> ids, Appartement appart) {
+    final id = appart.id;
+    return id != null && ids.contains(id);
   }
 
   @override
@@ -43,15 +43,15 @@ class FeaturedListingsCarousel extends StatelessWidget {
           return ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 18),
-            itemCount: listings.take(3).length,
+            itemCount: appartements.take(3).length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (_, i) {
-              final l = listings[i];
+              final a = appartements[i];
               return FeaturedListingCard(
-                listing: l,
-                liked: _isLiked(favIds, l),
-                onTap: onTap == null ? null : () => onTap!(l),
-                onLikeTap: onLikeTap == null ? null : () => onLikeTap!(l),
+                appartement: a,
+                liked: _isLiked(favIds, a),
+                onTap: onTap == null ? null : () => onTap!(a),
+                onLikeTap: onLikeTap == null ? null : () => onLikeTap!(a),
               );
             },
           );

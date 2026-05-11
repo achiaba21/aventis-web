@@ -5,29 +5,30 @@ import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/model/remise/condition.dart';
 import 'package:asfar/model/remise/remise.dart';
 import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/base_price_card.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/reduction_palier_dialog.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 import 'package:asfar/widget/item/field_row.dart';
 
 /// Tab « Réductions » du `ProprioListingEditScreen`.
 ///
+/// Consomme directement le modèle métier [Appartement] (`appartement`).
 /// V9.1 (read) : affichage des paliers depuis Appartement.remises.conditions.
 /// V9.2 (write) : tap sur un palier ouvre `ReductionPalierDialog` en édition,
 /// tap sur EmptyState/CTA ouvre le dialog en création. Save/delete construit
 /// un Appartement.copyWith(remises: ...) et dispatche UpdateAppartement.
 class ListingReductionsTab extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final Appartement? source;
 
   const ListingReductionsTab({
     super.key,
-    required this.listing,
+    required this.appartement,
     this.source,
   });
 
@@ -159,7 +160,7 @@ class ListingReductionsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final basePrice = listing.price;
+    final basePrice = appartement.priceAmount;
     final conditions = _sortedConditions();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

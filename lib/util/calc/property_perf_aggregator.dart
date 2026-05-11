@@ -1,7 +1,6 @@
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/ui_only/property_perf.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
 
 /// Calcule la performance par bien (`PropertyPerf` V7) pour le Dashboard et
 /// le Finances P&L du proprio.
@@ -24,7 +23,7 @@ class PropertyPerfAggregator {
     return [
       for (final a in appartements)
         PropertyPerf(
-          listing: AppartementToListingMapper.mapOne(a),
+          appartement: a,
           occupancyRate: _occupancyForApart(reservations, a, currentMonth),
           monthlyRevenue: _revenueForApart(reservations, a, currentMonth),
           deltaPercent: _delta(

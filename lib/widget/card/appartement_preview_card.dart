@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/certified_badge.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/card/spec_chip.dart';
 import 'package:asfar/widget/img/floating_heart_button.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
@@ -12,10 +13,11 @@ import 'package:asfar/widget/img/photo_dots.dart';
 
 /// Card de logement plein largeur — équivalent `ListingCard` du proto.
 ///
-/// Image 16:10 + badges flottants (heart, certifié) + photo dots + body
-/// avec titre, rating, lieu, beds/baths/wifi, prix/nuit + total nuits.
+/// Consomme directement [Appartement]. Image 16:10 + badges flottants (heart,
+/// certifié) + photo dots + body avec titre, rating, lieu, beds/baths/wifi,
+/// prix/nuit + total nuits.
 class AppartementPreviewCard extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final VoidCallback? onTap;
   final VoidCallback? onLikeTap;
   final bool liked;
@@ -23,7 +25,7 @@ class AppartementPreviewCard extends StatelessWidget {
 
   const AppartementPreviewCard({
     super.key,
-    required this.listing,
+    required this.appartement,
     this.onTap,
     this.onLikeTap,
     this.liked = false,
@@ -32,7 +34,7 @@ class AppartementPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final priceTotal = listing.price * nights;
+    final priceTotal = appartement.priceAmount * nights;
 
     return Material(
       color: Colors.transparent,
@@ -54,7 +56,7 @@ class AppartementPreviewCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: ImgPh(tone: listing.tone, radius: 0),
+                      child: ImgPh(tone: appartement.tone, radius: 0),
                     ),
                     Positioned(
                       top: 12,
@@ -64,7 +66,7 @@ class AppartementPreviewCard extends StatelessWidget {
                         active: liked,
                       ),
                     ),
-                    if (listing.superhost)
+                    if (appartement.isSuperhost)
                       const Positioned(
                         top: 12,
                         left: 12,
@@ -88,7 +90,7 @@ class AppartementPreviewCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            listing.title,
+                            appartement.titleSafe,
                             style: AppTextStyles.h3.copyWith(fontSize: 15),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -99,7 +101,7 @@ class AppartementPreviewCard extends StatelessWidget {
                             size: 13, color: AppColors.accent),
                         const SizedBox(width: 4),
                         Text(
-                          listing.rating.toStringAsFixed(2),
+                          appartement.rating.toStringAsFixed(2),
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -108,7 +110,7 @@ class AppartementPreviewCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '(${listing.reviews})',
+                          '(${appartement.reviewsCount})',
                           style: AppTextStyles.small.copyWith(
                               fontSize: 12, color: AppColors.text3),
                         ),
@@ -116,7 +118,7 @@ class AppartementPreviewCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${listing.area} · ${listing.city} · ${listing.surface} m²',
+                      '${appartement.areaName} · ${appartement.cityName} · ${appartement.surfaceM2} m²',
                       style: AppTextStyles.small,
                     ),
                     const SizedBox(height: 8),
@@ -124,11 +126,11 @@ class AppartementPreviewCard extends StatelessWidget {
                       children: [
                         SpecChip(
                             icon: Icons.bed_outlined,
-                            label: '${listing.beds} ch.'),
+                            label: '${appartement.bedsCount} ch.'),
                         const SizedBox(width: 12),
                         SpecChip(
                             icon: Icons.bathtub_outlined,
-                            label: '${listing.baths} sdb.'),
+                            label: '${appartement.bathsCount} sdb.'),
                         const SizedBox(width: 12),
                         const SpecChip(icon: Icons.wifi, label: 'WiFi'),
                       ],
@@ -139,7 +141,7 @@ class AppartementPreviewCard extends StatelessWidget {
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text(
-                          FcfaFormatter.compact(listing.price),
+                          FcfaFormatter.compact(appartement.priceAmount),
                           style: AppTextStyles.mono(const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w700,

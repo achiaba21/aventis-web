@@ -146,9 +146,10 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                             perfs: perfs,
                             onSeeAll: () => pushScreen(
                                 context, const ProprioListingsScreen()),
-                            onListingTap: (listing) => pushScreen(
+                            onListingTap: (appartement) => pushScreen(
                               context,
-                              ProprioListingEditScreen(listing: listing),
+                              ProprioListingEditScreen(
+                                  appartement: appartement),
                             ),
                           ),
                           const SizedBox(height: 22),

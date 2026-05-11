@@ -18,12 +18,9 @@ import 'package:asfar/screen/client/locataire/map/widget/my_location_fab.dart';
 import 'package:asfar/screen/client/locataire/map/widget/search_in_area_button.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/location_util.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
-import 'package:asfar/util/mapping/map_appartement_to_listing.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 
 /// Écran cartographique interactif du locataire — V9.7b.
 ///
@@ -155,16 +152,23 @@ class _LocataireMapScreenState extends State<LocataireMapScreen> {
     _loadInZone(latLng);
   }
 
-  void _onMarkerTap(MapAppartement appartement) {
+  void _onMarkerTap(MapAppartement mapAppart) {
     MapMarkerBottomSheet.show(
       context,
-      appartement: appartement,
+      appartement: mapAppart,
       onViewDetails: (Appartement? loaded) {
         Navigator.of(context).pop();
-        final ListingPreview listing = loaded != null
-            ? AppartementToListingMapper.mapOne(loaded)
-            : MapAppartementToListingMapper.mapOne(appartement);
-        pushScreen(context, LocataireDetailScreen(listing: listing));
+        // Si le fetch détail a réussi → push avec Appartement complet, sinon
+        // construit un Appartement partiel depuis le pin pour conserver le
+        // titre/prix/imgUrl déjà connus (DetailScreen rechargera le détail).
+        final toPush = loaded ??
+            Appartement(
+              id: mapAppart.id,
+              titre: mapAppart.title,
+              prix: mapAppart.price?.toDouble(),
+              imgUrl: mapAppart.imgUrl,
+            );
+        pushScreen(context, LocataireDetailScreen(appartement: toPush));
       },
     );
   }

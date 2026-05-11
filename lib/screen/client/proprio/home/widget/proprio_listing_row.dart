@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/badge/badge_tone.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Ligne compacte d'annonce — Dashboard propriétaire section « Mes annonces ».
 ///
-/// Reproduit le proto `proprietaire.jsx::ProprietaireDashboard`
-/// (lignes 126-146) : `ImgPh` 64×64 tone + titre + ville + badge `● Actif`
-/// success + occupation% + revenus du mois alignés à droite (mono bold).
+/// Consomme directement [Appartement]. Reproduit le proto
+/// `proprietaire.jsx::ProprietaireDashboard` (lignes 126-146) : `ImgPh` 64×64
+/// tone + titre + ville + badge `● Actif` + occupation% + revenus du mois.
 class ProprioListingRow extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final double occupancyRate;
   final int monthlyRevenue;
   final VoidCallback? onTap;
 
   const ProprioListingRow({
     super.key,
-    required this.listing,
+    required this.appartement,
     required this.occupancyRate,
     required this.monthlyRevenue,
     this.onTap,
@@ -47,7 +48,7 @@ class ProprioListingRow extends StatelessWidget {
               SizedBox(
                 width: 64,
                 height: 64,
-                child: ImgPh(tone: listing.tone, radius: 12),
+                child: ImgPh(tone: appartement.tone, radius: 12),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -55,7 +56,7 @@ class ProprioListingRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      listing.title,
+                      appartement.titleSafe,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -66,7 +67,7 @@ class ProprioListingRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      listing.area,
+                      appartement.areaName,
                       style: AppTextStyles.small.copyWith(fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

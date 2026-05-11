@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_listing_radio.dart';
 import 'package:asfar/util/calc/demarcheur_stats_calculator.dart';
-import 'package:asfar/util/mapping/appartement_to_listing.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 
 /// Adaptateur `ReferralListingRadio` pour le tunnel `NewReferralScreen` —
-/// reçoit l'`Appartement` source + la `selectedListingId` actuelle et
-/// délègue le tap à un callback `onSelect(Appartement)`.
+/// reçoit l'`Appartement` source + l'id sélectionné actuel et délègue le
+/// tap à un callback `onSelect(Appartement)`.
 class NewReferralListingRadioItem extends StatelessWidget {
   final Appartement appart;
   final String? selectedListingId;
-  final void Function(Appartement appart, ListingPreview preview) onSelect;
+  final void Function(Appartement appart) onSelect;
 
   const NewReferralListingRadioItem({
     super.key,
@@ -22,14 +21,13 @@ class NewReferralListingRadioItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final preview = AppartementToListingMapper.mapOne(appart);
-    final selected = selectedListingId == preview.id;
+    final selected = selectedListingId == appart.displayId;
     return ReferralListingRadio(
-      listing: preview,
-      estimatedCommission:
-          ReferralCommissionHelper.estimate(pricePerNight: preview.price),
+      appartement: appart,
+      estimatedCommission: ReferralCommissionHelper.estimate(
+          pricePerNight: appart.priceAmount),
       selected: selected,
-      onTap: () => onSelect(appart, preview),
+      onTap: () => onSelect(appart),
     );
   }
 }

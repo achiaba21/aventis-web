@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Hero photo du `ProprioListingEditScreen`.
 ///
-/// Reproduit le proto `proprietaire.jsx::ProprietaireListingEdit`
-/// (lignes 468-477) : `ImgPh` ratio 16:10 + badge en bottom-right
-/// (`rgba(10,10,11,0.7)` blur 10) avec icon image + texte « 8 photos ».
+/// Consomme directement [Appartement]. Reproduit le proto
+/// `proprietaire.jsx::ProprietaireListingEdit` (lignes 468-477) : `ImgPh`
+/// ratio 16:10 + badge en bottom-right blur 10 avec icon image + nb photos.
 class ListingEditHero extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final int photoCount;
 
   const ListingEditHero({
     super.key,
-    required this.listing,
+    required this.appartement,
     this.photoCount = 8,
   });
 
@@ -24,7 +25,7 @@ class ListingEditHero extends StatelessWidget {
       aspectRatio: 16 / 10,
       child: Stack(
         children: [
-          Positioned.fill(child: ImgPh(tone: listing.tone, radius: 0)),
+          Positioned.fill(child: ImgPh(tone: appartement.tone, radius: 0)),
           Positioned(
             bottom: 12,
             right: 12,

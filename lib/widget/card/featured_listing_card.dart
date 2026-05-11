@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/certified_badge.dart';
 import 'package:asfar/widget/badge/rating_chip.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 import 'package:asfar/widget/img/floating_heart_button.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Card "À la une" du Home Locataire — 220px de large, ratio 4:5.
 ///
-/// Reproduit le carrousel horizontal de `LocataireHome` : badge rating
-/// top-left, heart top-right, badge "★ Hôte certifié" bottom-left.
-/// Body sous l'image : titre, lieu, prix/nuit.
+/// Consomme directement le modèle métier [Appartement] via l'extension
+/// `AppartementDisplay`. Reproduit le carrousel horizontal de `LocataireHome`.
 class FeaturedListingCard extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final VoidCallback? onTap;
   final VoidCallback? onLikeTap;
   final bool liked;
@@ -22,17 +22,15 @@ class FeaturedListingCard extends StatelessWidget {
 
   const FeaturedListingCard({
     super.key,
-    required this.listing,
+    required this.appartement,
     this.onTap,
     this.onLikeTap,
     this.liked = false,
     this.width = 220,
   });
 
-  /// Format `area · city` en gérant les valeurs vides (vraies données peuvent
-  /// avoir address null ou commune partielle).
   String _locationText() {
-    final parts = [listing.area, listing.city]
+    final parts = [appartement.areaName, appartement.cityName]
         .where((s) => s.trim().isNotEmpty)
         .toList();
     return parts.join(' · ');
@@ -55,12 +53,12 @@ class FeaturedListingCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: ImgPh(tone: listing.tone, radius: 18),
+                      child: ImgPh(tone: appartement.tone, radius: 18),
                     ),
                     Positioned(
                       top: 10,
                       left: 10,
-                      child: RatingChip(rating: listing.rating),
+                      child: RatingChip(rating: appartement.rating),
                     ),
                     Positioned(
                       top: 10,
@@ -71,7 +69,7 @@ class FeaturedListingCard extends StatelessWidget {
                         size: 32,
                       ),
                     ),
-                    if (listing.superhost)
+                    if (appartement.isSuperhost)
                       const Positioned(
                         bottom: 10,
                         left: 10,
@@ -89,7 +87,7 @@ class FeaturedListingCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      listing.title,
+                      appartement.titleSafe,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -111,7 +109,7 @@ class FeaturedListingCard extends StatelessWidget {
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text(
-                          FcfaFormatter.compact(listing.price),
+                          FcfaFormatter.compact(appartement.priceAmount),
                           style: AppTextStyles.mono(const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,

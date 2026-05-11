@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
 import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_calendar_tab.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_edit_hero.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_edit_stats_card.dart';
@@ -14,21 +15,21 @@ import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
-import 'package:asfar/widget/card/listing_preview.dart';
 
 /// Édition d'une annonce — `ProprioListingEditScreen`.
 ///
-/// Reproduit `ProprietaireListingEdit` du prototype : Hero photo 16:10 +
-/// stats card compacte + 4 onglets via `DefaultTabController`
-/// (Infos / Calendrier / Tarifs / Règles) avec indicator underline accent or.
+/// Consomme directement le modèle métier [Appartement]. Reproduit
+/// `ProprietaireListingEdit` du prototype : Hero photo 16:10 + stats card
+/// compacte + 4 onglets via `DefaultTabController` (Infos / Calendrier /
+/// Tarifs / Règles) avec indicator underline accent or.
 class ProprioListingEditScreen extends StatelessWidget {
-  final ListingPreview listing;
+  final Appartement appartement;
   final int initialTab;
   final double occupancyRate;
 
   const ProprioListingEditScreen({
     super.key,
-    required this.listing,
+    required this.appartement,
     this.initialTab = 0,
     this.occupancyRate = 0.84,
   });
@@ -42,11 +43,11 @@ class ProprioListingEditScreen extends StatelessWidget {
     );
   }
 
-  /// Cherche l'Appartement source dans le cache du BLoC. Renvoie null si
-  /// non trouvé (cas où le screen est ouvert depuis un push qui n'a pas
-  /// préalablement chargé les appartements proprio).
-  Appartement? _findAppartement(List<Appartement> apparts) {
-    final id = int.tryParse(listing.id);
+  /// Cherche la version fraîche de l'Appartement dans le cache du BLoC.
+  /// Renvoie null si non trouvé (cas où le screen est ouvert depuis un push
+  /// qui n'a pas préalablement chargé les appartements proprio).
+  Appartement? _findFresh(List<Appartement> apparts) {
+    final id = appartement.id;
     if (id == null) return null;
     for (final a in apparts) {
       if (a.id == id) return a;
@@ -62,7 +63,7 @@ class ProprioListingEditScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: DynamicAppBar(
-          title: listing.title,
+          title: appartement.titleSafe,
           eyebrow: 'ANNONCE ACTIVE',
           leading: IconBoutton(
             icon: Icons.arrow_back_ios_new,
@@ -77,12 +78,13 @@ class ProprioListingEditScreen extends StatelessWidget {
           top: false,
           child: NestedScrollView(
             headerSliverBuilder: (context, _) => [
-              SliverToBoxAdapter(child: ListingEditHero(listing: listing)),
+              SliverToBoxAdapter(
+                  child: ListingEditHero(appartement: appartement)),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
                 sliver: SliverToBoxAdapter(
                   child: ListingEditStatsCard(
-                    listing: listing,
+                    appartement: appartement,
                     occupancyRate: occupancyRate,
                   ),
                 ),
@@ -95,26 +97,26 @@ class ProprioListingEditScreen extends StatelessWidget {
             ],
             body: BlocBuilder<AppartementBloc, AppartementState>(
               builder: (context, state) {
-                final source = _findAppartement(state.appartements);
+                final source = _findFresh(state.appartements);
                 return TabBarView(
                   children: [
                     SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
                       child: ListingInfosTab(
-                        listing: listing,
+                        appartement: appartement,
                         source: source,
                       ),
                     ),
                     SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
                       child: ListingCalendarTab(
-                        appartementId: int.tryParse(listing.id),
+                        appartementId: appartement.id,
                       ),
                     ),
                     SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(18, 16, 18, 100),
                       child: ListingReductionsTab(
-                        listing: listing,
+                        appartement: appartement,
                         source: source,
                       ),
                     ),

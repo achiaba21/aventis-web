@@ -1,13 +1,12 @@
-import 'package:asfar/widget/card/listing_preview.dart';
+import 'package:asfar/model/residence/appart.dart';
 
 /// Performance d'un bien — section « Performance par bien »
 /// (`ProprioFinancesScreen`).
 ///
-/// Reproduit le mock du proto `proprietaire.jsx::ProprietaireFinances`
-/// (lignes 274-303). Réutilise [ListingPreview] (V5) pour la référence du
-/// logement.
+/// Agrégation pure pour la section dashboard : référence l'appartement
+/// source (modèle métier) + métriques calculées (occupation, revenu, delta).
 class PropertyPerf {
-  final ListingPreview listing;
+  final Appartement appartement;
 
   /// Taux d'occupation entre 0 et 1.
   final double occupancyRate;
@@ -19,7 +18,7 @@ class PropertyPerf {
   final int deltaPercent;
 
   const PropertyPerf({
-    required this.listing,
+    required this.appartement,
     required this.occupancyRate,
     required this.monthlyRevenue,
     required this.deltaPercent,
