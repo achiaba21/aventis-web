@@ -1,4 +1,5 @@
 import 'package:asfar/model/reservation/reservation.dart';
+import 'package:asfar/model/reservation/reservation_counted.dart';
 
 /// Statuts d'une référence démarcheur — UI uniquement.
 ///
@@ -37,7 +38,7 @@ extension ReferralDisplay on Reservation {
     return diff > 0 ? diff : 1;
   }
 
-  int get referralCommissionAmount => (montantCommission ?? 0).round();
+  int get referralCommissionAmount => demarcheurCommissionAmount.round();
 
   /// Sous-total séjour (prix de la résa, qui correspond à nuits × prixNuit).
   int get referralSubtotal => (prix ?? 0).round();

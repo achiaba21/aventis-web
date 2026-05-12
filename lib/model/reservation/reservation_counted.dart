@@ -1,5 +1,5 @@
-import 'package:asfar/model/enumeration/reservation_type.dart';
 import 'package:asfar/model/reservation/reservation.dart';
+import 'package:asfar/model/reservation/reservation_demarcheur.dart';
 
 /// Extension de classification des `Reservation` pour les agrégateurs
 /// financiers du proprio (Dashboard + Finances).
@@ -9,10 +9,11 @@ import 'package:asfar/model/reservation/reservation.dart';
 ///   reçu. Compte dans `RevenueHeroCard.amount`, `BeneficeNetHeroCard`,
 ///   `PnLAggregator.revenue`, `PropertyPerfAggregator`.
 /// - `isPipeline` : `confirmee` uniquement — engagement pris, paiement
-///   pas encore effectué. Visible comme « Engagé · X FCFA » côté Dashboard.
-/// - `wasReferredByDemarcheur` : la résa a été créée par un démarcheur
-///   pour son client (`r.type == ReservationType.demarcheur`) → commission
-///   12% à provisionner dans le P&L.
+///   pas encore effectué.
+/// - `wasReferredByDemarcheur` : `this is ReservationDemarcheur` (héritage
+///   aligné backend `@Inheritance(TABLE_PER_CLASS)`).
+/// - `demarcheurCommissionAmount` : montant réel de la commission stocké
+///   sur `ReservationDemarcheur.montantCommission` (0 pour les autres types).
 extension ReservationCounted on Reservation {
   /// La résa est dans le revenu encaissé (argent reçu).
   bool get isEncaissed {
@@ -26,7 +27,16 @@ extension ReservationCounted on Reservation {
   bool get isPipeline => statut == ReservationStatus.confirmee;
 
   /// La résa a été référencée par un démarcheur.
-  bool get wasReferredByDemarcheur => type == ReservationType.demarcheur;
+  bool get wasReferredByDemarcheur => this is ReservationDemarcheur;
+
+  /// Montant de la commission démarcheur convenue pour cette résa.
+  /// Retourne 0 pour les résa non-démarcheur. Lit le champ réel du backend
+  /// au lieu de recalculer un taux côté Flutter.
+  double get demarcheurCommissionAmount {
+    final r = this;
+    if (r is ReservationDemarcheur) return r.montantCommission ?? 0;
+    return 0;
+  }
 
   /// La résa tombe dans le mois `[year, month]` (basé sur la date de début
   /// de séjour).

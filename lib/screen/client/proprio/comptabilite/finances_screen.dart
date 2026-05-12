@@ -13,15 +13,12 @@ import 'package:asfar/model/comptabilite/charge.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/benefice_net_hero_card.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/period_switcher.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/pnl_card.dart';
-import 'package:asfar/screen/client/proprio/comptabilite/widget/projection_chart.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/property_perf_list.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/year_selector.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/calc/finance_period.dart';
 import 'package:asfar/util/calc/pnl_aggregator.dart';
-import 'package:asfar/util/calc/projection_calculator.dart';
 import 'package:asfar/util/calc/property_perf_aggregator.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
@@ -204,11 +201,17 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                       period: _period,
                       year: _year,
                       index: _index,
-                    );
-                    final projection =
-                        ProjectionCalculator.sevenMonths(reservations);
-                    final q1 =
-                        ProjectionCalculator.q1Estimation(reservations);
+                    )
+                        .where((p) =>
+                            p.monthlyRevenue > 0 || p.occupancyRate > 0)
+                        .toList(growable: false);
+                    // Section projection masquée temporairement — voir
+                    // commentaire plus bas dans le build (vers SectionHeader
+                    // « Projection 3 mois »).
+                    // final projection =
+                    //     ProjectionCalculator.sevenMonths(reservations);
+                    // final q1 =
+                    //     ProjectionCalculator.q1Estimation(reservations);
 
                     return SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(18, 8, 18, 100),
@@ -277,24 +280,28 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                               style: AppTextStyles.h3),
                           const SizedBox(height: 12),
                           PropertyPerfList(perfs: perfs),
-                          const SizedBox(height: 22),
-                          const Text('Projection 3 mois',
-                              style: AppTextStyles.h3),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.bgElev1,
-                              borderRadius:
-                                  BorderRadius.circular(AppRadii.lg),
-                              border: Border.all(
-                                  color: AppColors.line, width: 1),
-                            ),
-                            child: ProjectionChart(
-                              points: projection,
-                              q1Estimation: q1,
-                            ),
-                          ),
+                          // Section « Projection 3 mois » temporairement
+                          // masquée — réactivation prévue après calibration
+                          // du modèle d'extrapolation.
+                          //
+                          // const SizedBox(height: 22),
+                          // const Text('Projection 3 mois',
+                          //     style: AppTextStyles.h3),
+                          // const SizedBox(height: 12),
+                          // Container(
+                          //   padding: const EdgeInsets.all(16),
+                          //   decoration: BoxDecoration(
+                          //     color: AppColors.bgElev1,
+                          //     borderRadius:
+                          //         BorderRadius.circular(AppRadii.lg),
+                          //     border: Border.all(
+                          //         color: AppColors.line, width: 1),
+                          //   ),
+                          //   child: ProjectionChart(
+                          //     points: projection,
+                          //     q1Estimation: q1,
+                          //   ),
+                          // ),
                           const SizedBox(height: 22),
                           OutlinedCustomButton(
                             text: 'Exporter en PDF / CSV',

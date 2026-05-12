@@ -19,8 +19,9 @@ class PropertyPerfList extends StatelessWidget {
     if (perfs.isEmpty) {
       return EmptyState.inline(
         icon: Icons.home_work_outlined,
-        title: 'Aucun bien à analyser',
-        body: 'Vos performances par bien apparaîtront ici.',
+        title: 'Aucune activité sur cette période',
+        body:
+            'Les biens avec revenus ou occupation > 0 apparaîtront ici.',
       );
     }
     return Container(

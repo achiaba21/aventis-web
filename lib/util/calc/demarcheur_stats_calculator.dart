@@ -1,4 +1,5 @@
 import 'package:asfar/model/reservation/reservation.dart';
+import 'package:asfar/model/reservation/reservation_counted.dart';
 
 /// Calcule les KPI affichés sur le `DemarcheurDashboard` (WalletHeroCard +
 /// StatusPillsRow) depuis la liste des réservations référencées par le
@@ -37,7 +38,7 @@ class DemarcheurStatsCalculator {
     int total = 0;
     for (final r in reservations) {
       if (!_isWon(r.statut)) continue;
-      total += (r.montantCommission ?? 0).round();
+      total += r.demarcheurCommissionAmount.round();
     }
     return total;
   }
@@ -49,7 +50,7 @@ class DemarcheurStatsCalculator {
     for (final r in reservations) {
       if (r.statut == ReservationStatus.enAttente ||
           r.statut == ReservationStatus.confirmee) {
-        total += (r.montantCommission ?? 0).round();
+        total += r.demarcheurCommissionAmount.round();
       }
     }
     return total;
@@ -98,7 +99,7 @@ class DemarcheurStatsCalculator {
     for (final r in reservations) {
       if (r.debut == null || !_isWon(r.statut)) continue;
       if (r.debut!.year != year || r.debut!.month != month) continue;
-      total += (r.montantCommission ?? 0).round();
+      total += r.demarcheurCommissionAmount.round();
     }
     return total;
   }

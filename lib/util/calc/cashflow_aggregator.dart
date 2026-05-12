@@ -1,5 +1,6 @@
 import 'package:asfar/model/comptabilite/charge.dart';
 import 'package:asfar/model/reservation/reservation.dart';
+import 'package:asfar/model/reservation/reservation_counted.dart';
 import 'package:asfar/model/ui_only/cashflow_segment.dart';
 import 'package:asfar/theme/app_colors.dart';
 
@@ -54,8 +55,9 @@ class CashflowAggregator {
       if (r.debut!.year != year || r.debut!.month != month) continue;
       if (!_isCounted(r.statut)) continue;
       grossRevenue += r.prix!.round();
-      if ((r.montantCommission ?? 0) > 0) {
-        demarcheurCommissions += r.montantCommission!.round();
+      final commission = r.demarcheurCommissionAmount;
+      if (commission > 0) {
+        demarcheurCommissions += commission.round();
       }
     }
 
