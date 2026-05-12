@@ -1,6 +1,5 @@
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/ui_only/projection_point.dart';
-import 'package:asfar/util/calc/monthly_revenue_calculator.dart';
 
 /// Calcule les 7 points du line chart « Projection 3 mois »
 /// (`ProprioFinancesScreen::ProjectionChart`) depuis l'historique des
@@ -85,11 +84,4 @@ class ProjectionCalculator {
     final i = points.indexWhere((p) => p.isCurrent);
     return i < 0 ? 0 : i;
   }
-}
-
-/// Helper du module pour ne pas dupliquer la fonction `_sumForMonth` partout.
-extension ReservationsMonthlySum on List<Reservation> {
-  /// Total revenu pour le mois donné (utilise `MonthlyRevenueCalculator`
-  /// indirectement via la méthode publique `currentMonth`).
-  int sumForCurrentMonth() => MonthlyRevenueCalculator.currentMonth(this);
 }

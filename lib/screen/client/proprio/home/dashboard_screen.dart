@@ -24,7 +24,6 @@ import 'package:asfar/screen/client/shared/notifications/notifications_screen.da
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/calc/cashflow_aggregator.dart';
 import 'package:asfar/util/calc/kpi_aggregator.dart';
-import 'package:asfar/util/calc/monthly_revenue_calculator.dart';
 import 'package:asfar/util/calc/property_perf_aggregator.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
@@ -98,14 +97,9 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                         ? chargeState.charges
                         : <Charge>[];
 
-                    final monthlyAmount =
-                        MonthlyRevenueCalculator.currentMonth(reservations);
-                    final previousAmount =
-                        MonthlyRevenueCalculator.previousMonth(reservations);
-                    final deltaPercent =
-                        MonthlyRevenueCalculator.deltaPercent(reservations);
-                    final last6 =
-                        MonthlyRevenueCalculator.last6Months(reservations);
+                    final reservationsLoading =
+                        resState is ReservationLoading &&
+                            reservations.isEmpty;
                     final kpis = KpiAggregator.fromData(
                       appartements: appartements,
                       reservations: reservations,
@@ -128,10 +122,8 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           RevenueHeroCard(
-                            amount: monthlyAmount,
-                            deltaPercent: deltaPercent,
-                            previousAmount: previousAmount,
-                            last6Months: last6,
+                            reservations: reservations,
+                            isLoading: reservationsLoading,
                           ),
                           const SizedBox(height: 16),
                           ProprioKpiGrid(kpis: kpis),
