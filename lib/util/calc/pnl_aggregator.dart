@@ -2,56 +2,42 @@ import 'package:asfar/model/comptabilite/charge.dart';
 import 'package:asfar/model/comptabilite/type_charge.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/ui_only/pnl_entry.dart';
+import 'package:asfar/util/calc/finance_period.dart';
+import 'package:asfar/util/calc/reservation_finance_extensions.dart';
 
-/// Calcule le compte de résultat (`PnLCard`) du mois courant à partir des
-/// réservations confirmées/payées/finalisées et des charges récurrentes.
+/// Calcule le compte de résultat (`PnLCard`) pour une période donnée.
 ///
-/// Sortie : 6 segments compatibles `PnLCard` (revenueHeader, revenueDetails,
-/// chargeHeader, chargeDetails, netIncome, netMargin) — calculés dynamiquement.
+/// Toutes les agrégations passent par l'extension `ReservationFinance` sur
+/// `Iterable<Reservation>` pour garantir la cohérence avec les autres
+/// calculators (RevenueHeroCard, PropertyPerf, etc.).
 class PnLAggregator {
   PnLAggregator._();
 
   /// Frais plateforme Asfar prélevés sur les revenus bruts (6%).
   static const double _fraisAsfarRate = 0.06;
 
-  /// Commission moyenne reversée aux démarcheurs (12% des locations
-  /// référencées). Source : décision produit Asfar.
+  /// Commission reversée aux démarcheurs (12% des locations référées).
   static const double _commissionDemarcheurRate = 0.12;
 
-  /// Construit le P&L pour le mois courant. Si aucune donnée, renvoie un PnL
-  /// vide (montants à 0) — l'UI affichera un EmptyState.
-  static PnLBreakdown currentMonth({
+  static PnLBreakdown forPeriod({
     required List<Reservation> reservations,
     required List<Charge> charges,
-  }) {
-    final now = DateTime.now();
-    return _buildBreakdown(
-      reservations: reservations,
-      charges: charges,
-      year: now.year,
-      month: now.month,
-    );
-  }
-
-  static PnLBreakdown _buildBreakdown({
-    required List<Reservation> reservations,
-    required List<Charge> charges,
+    required FinancePeriod period,
     required int year,
-    required int month,
+    required int index,
   }) {
-    int locationsBrutes = 0;
-    int nuitsTotales = 0;
-
-    for (final r in reservations) {
-      if (r.debut == null || r.prix == null) continue;
-      if (r.debut!.year != year || r.debut!.month != month) continue;
-      if (!_isCounted(r.statut)) continue;
-      locationsBrutes += r.prix!.round();
-      if (r.fin != null) {
-        final n = r.fin!.difference(r.debut!).inDays;
-        if (n > 0) nuitsTotales += n;
-      }
-    }
+    final locationsBrutes = reservations.sumEncaissedNet(
+      period: period, year: year, index: index,
+    );
+    final locationsBrutesDemarcheur = reservations.sumEncaissedNetReferred(
+      period: period, year: year, index: index,
+    );
+    final pipelineBrutes = reservations.sumPipelineNet(
+      period: period, year: year, index: index,
+    );
+    final nuitsTotales = reservations.sumEncaissedNightsIn(
+      period: period, year: year, index: index,
+    );
 
     final revenueDetails = <PnLEntry>[
       PnLEntry(
@@ -61,32 +47,34 @@ class PnLAggregator {
         isRevenue: true,
       ),
     ];
-    final revenueTotal = locationsBrutes;
     final revenueHeader = PnLEntry(
       label: '+ Revenus',
-      amount: revenueTotal,
+      amount: locationsBrutes,
       kind: PnLKind.categoryHeader,
       isRevenue: true,
     );
 
     final fraisAsfar = (locationsBrutes * _fraisAsfarRate).round();
     final commissionDemarcheurs =
-        (locationsBrutes * _commissionDemarcheurRate).round();
+        (locationsBrutesDemarcheur * _commissionDemarcheurRate).round();
 
-    final chargesDuMois = _aggregateChargesForMonth(charges, year, month);
+    final chargesDuMois =
+        _aggregateChargesForPeriod(charges, period, year, index);
     final chargeDetails = <PnLEntry>[
-      PnLEntry(
-        label: 'Frais plateforme Asfar (6%)',
-        amount: fraisAsfar,
-        kind: PnLKind.categoryDetail,
-        isRevenue: false,
-      ),
-      PnLEntry(
-        label: 'Commissions démarcheurs',
-        amount: commissionDemarcheurs,
-        kind: PnLKind.categoryDetail,
-        isRevenue: false,
-      ),
+      if (fraisAsfar > 0)
+        PnLEntry(
+          label: 'Frais plateforme Asfar (6%)',
+          amount: fraisAsfar,
+          kind: PnLKind.categoryDetail,
+          isRevenue: false,
+        ),
+      if (commissionDemarcheurs > 0)
+        PnLEntry(
+          label: 'Commissions démarcheurs',
+          amount: commissionDemarcheurs,
+          kind: PnLKind.categoryDetail,
+          isRevenue: false,
+        ),
       ...chargesDuMois,
     ];
 
@@ -101,10 +89,10 @@ class PnLAggregator {
       isRevenue: false,
     );
 
-    final benefice = revenueTotal - chargesTotal;
-    final marge = revenueTotal == 0
+    final benefice = locationsBrutes - chargesTotal;
+    final marge = locationsBrutes == 0
         ? 0
-        : ((benefice / revenueTotal) * 100).round();
+        : ((benefice / locationsBrutes) * 100).round();
 
     return PnLBreakdown(
       revenueHeader: revenueHeader,
@@ -121,16 +109,21 @@ class PnLAggregator {
         amount: marge,
         kind: PnLKind.netMargin,
       ),
-      isEmpty: revenueTotal == 0 && chargeDetails.length <= 2,
+      pipelineRevenue: pipelineBrutes,
+      isEmpty: locationsBrutes == 0 && chargesDuMois.isEmpty,
     );
   }
 
-  static List<PnLEntry> _aggregateChargesForMonth(
-      List<Charge> charges, int year, int month) {
+  static List<PnLEntry> _aggregateChargesForPeriod(
+    List<Charge> charges,
+    FinancePeriod period,
+    int year,
+    int index,
+  ) {
     final grouped = <String, double>{};
     for (final c in charges) {
       if (c.montant == null) continue;
-      if (!_isChargeOfMonth(c, year, month)) continue;
+      if (!_chargeFallsInPeriod(c, period, year, index)) continue;
       final label = c.typeCharge.label;
       grouped.update(label, (v) => v + c.montant!,
           ifAbsent: () => c.montant!);
@@ -147,26 +140,23 @@ class PnLAggregator {
         .toList();
   }
 
-  static bool _isChargeOfMonth(Charge c, int year, int month) {
+  static bool _chargeFallsInPeriod(
+    Charge c,
+    FinancePeriod period,
+    int year,
+    int index,
+  ) {
     final pivot = c.datePaiement ?? c.dateEcheance ?? c.dateDebut;
     if (pivot == null) {
-      // Charges récurrentes sans date pivot → comptées au mois courant
-      // (montant mensuel équivalent).
       return c.estRecurrent == true;
     }
-    return pivot.year == year && pivot.month == month;
-  }
-
-  static bool _isCounted(ReservationStatus? s) {
-    return s == ReservationStatus.confirmee ||
-        s == ReservationStatus.payee ||
-        s == ReservationStatus.finalisee ||
-        s == ReservationStatus.terminee;
+    return period.contains(year, index, pivot);
   }
 }
 
 /// Résultat compositionnel du `PnLAggregator` — directement passable à
-/// `PnLCard`.
+/// `PnLCard`. Le `pipelineRevenue` (résa confirmees non encore payées) est
+/// exposé pour affichage en trace sous le bénéfice.
 class PnLBreakdown {
   final PnLEntry revenueHeader;
   final List<PnLEntry> revenueDetails;
@@ -174,6 +164,7 @@ class PnLBreakdown {
   final List<PnLEntry> chargeDetails;
   final PnLEntry netIncome;
   final PnLEntry netMargin;
+  final int pipelineRevenue;
   final bool isEmpty;
 
   const PnLBreakdown({
@@ -184,5 +175,6 @@ class PnLBreakdown {
     required this.netIncome,
     required this.netMargin,
     required this.isEmpty,
+    this.pipelineRevenue = 0,
   });
 }

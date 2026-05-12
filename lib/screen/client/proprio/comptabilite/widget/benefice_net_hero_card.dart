@@ -2,31 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/calc/finance_period.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
-import 'package:asfar/widget/badge/badge_status.dart';
-import 'package:asfar/widget/badge/badge_tone.dart';
+import 'package:asfar/widget/finance/delta_badge_row.dart';
+import 'package:asfar/widget/finance/period_nav_eyebrow.dart';
+import 'package:asfar/widget/finance/pipeline_trace_line.dart';
 
 /// Card hero du Bénéfice net — `ProprioFinancesScreen`.
 ///
-/// Reproduit le proto `proprietaire.jsx::ProprietaireFinances`
-/// (lignes 211-220) : card simple `bgElev1` (pas de gradient — différencie
-/// du `RevenueHeroCard` du Dashboard) + eyebrow + montant 30px mono bold +
-/// badge delta success.
+/// Composé d'atomes réutilisables (`PeriodNavEyebrow`, `DeltaBadgeRow`,
+/// `PipelineTraceLine`). Le caller (screen) gère le state période/année/index
+/// et passe les agrégats pré-calculés.
 class BeneficeNetHeroCard extends StatelessWidget {
   final int amount;
+  final int previousAmount;
   final int deltaPercent;
-  final String periodLabel;
+  final int pipelineAmount;
+  final FinancePeriod period;
+  final int year;
+  final int index;
+  final bool canGoPrev;
+  final bool canGoNext;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
 
   const BeneficeNetHeroCard({
     super.key,
     required this.amount,
+    required this.previousAmount,
     required this.deltaPercent,
-    this.periodLabel = 'novembre',
+    required this.pipelineAmount,
+    required this.period,
+    required this.year,
+    required this.index,
+    required this.canGoPrev,
+    required this.canGoNext,
+    required this.onPrev,
+    required this.onNext,
   });
 
   @override
   Widget build(BuildContext context) {
-    final positive = deltaPercent >= 0;
+    final eyebrow =
+        'BÉNÉFICE NET · ${period.periodLabel(year, index).toUpperCase()}';
+    final prevLabel =
+        period.previousPeriodLongLabel(year, index).toLowerCase();
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -38,9 +59,13 @@ class BeneficeNetHeroCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'BÉNÉFICE NET · ${periodLabel.toUpperCase()}',
-            style: AppTextStyles.eyebrow.copyWith(fontSize: 10),
+          PeriodNavEyebrow(
+            label: eyebrow,
+            canGoPrev: canGoPrev,
+            canGoNext: canGoNext,
+            onPrev: onPrev,
+            onNext: onNext,
+            fontSize: 10,
           ),
           const SizedBox(height: 6),
           Text(
@@ -53,19 +78,15 @@ class BeneficeNetHeroCard extends StatelessWidget {
             )),
           ),
           const SizedBox(height: 6),
-          Row(
-            children: [
-              BadgeStatus(
-                text: '${positive ? '↑' : '↓'} ${deltaPercent.abs()}%',
-                tone: positive ? BadgeTone.success : BadgeTone.danger,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'vs. mois précédent',
-                style: AppTextStyles.small.copyWith(fontSize: 12),
-              ),
-            ],
+          DeltaBadgeRow(
+            deltaPercent: deltaPercent,
+            previousAmount: previousAmount,
+            previousLabel: prevLabel,
           ),
+          if (pipelineAmount > 0) ...[
+            const SizedBox(height: 4),
+            PipelineTraceLine(amount: pipelineAmount),
+          ],
         ],
       ),
     );

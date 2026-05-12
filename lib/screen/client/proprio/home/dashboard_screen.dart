@@ -11,6 +11,7 @@ import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
 import 'package:asfar/model/comptabilite/charge.dart';
 import 'package:asfar/model/reservation/reservation.dart';
+import 'package:asfar/util/calc/monthly_revenue_calculator.dart';
 import 'package:asfar/screen/client/proprio/appartements/listing_edit_screen.dart';
 import 'package:asfar/screen/client/proprio/appartements/listings_screen.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/finances_screen.dart';
@@ -44,16 +45,36 @@ class ProprioDashboard extends StatefulWidget {
 }
 
 class _ProprioDashboardState extends State<ProprioDashboard> {
+  late DateTime _selectedMonth;
+
   @override
   void initState() {
     super.initState();
+    _selectedMonth = MonthlyRevenueCalculator.normalize(DateTime.now());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // Charge en parallèle les 3 sources de données nécessaires au Dashboard.
-      // Pattern cache-first côté Repositories → render instantané.
       context.read<ReservationBloc>().add(LoadProprietaireReservations());
       context.read<AppartementBloc>().add(LoadProprietaireAppartements());
       context.read<ChargeBloc>().add(LoadCharges());
+    });
+  }
+
+  bool get _isCurrentMonth {
+    final now = MonthlyRevenueCalculator.normalize(DateTime.now());
+    return _selectedMonth.year == now.year &&
+        _selectedMonth.month == now.month;
+  }
+
+  void _onPrevMonth() => setState(() {
+        _selectedMonth =
+            DateTime(_selectedMonth.year, _selectedMonth.month - 1, 1);
+      });
+
+  void _onNextMonth() {
+    if (_isCurrentMonth) return;
+    setState(() {
+      _selectedMonth =
+          DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1);
     });
   }
 
@@ -100,6 +121,43 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                     final reservationsLoading =
                         resState is ReservationLoading &&
                             reservations.isEmpty;
+                    final revenueAmount =
+                        MonthlyRevenueCalculator.revenueFor(
+                      reservations,
+                      targetMonth: _selectedMonth,
+                    );
+                    final previousAmount =
+                        MonthlyRevenueCalculator.previousRevenue(
+                      reservations,
+                      targetMonth: _selectedMonth,
+                    );
+                    final deltaPercent =
+                        MonthlyRevenueCalculator.deltaPercent(
+                      reservations,
+                      targetMonth: _selectedMonth,
+                    );
+                    final pipelineAmount =
+                        MonthlyRevenueCalculator.pipelineFor(
+                      reservations,
+                      targetMonth: _selectedMonth,
+                    );
+                    final avg3 =
+                        MonthlyRevenueCalculator.average3MonthsEnding(
+                      reservations,
+                      targetMonth: _selectedMonth,
+                    );
+                    final last6 = MonthlyRevenueCalculator.last6Months(
+                      reservations,
+                      targetMonth: _selectedMonth,
+                    );
+                    final prevMonth =
+                        MonthlyRevenueCalculator.previousMonth(
+                      targetMonth: _selectedMonth,
+                    );
+                    final eyebrowLabel =
+                        'REVENUS · ${MonthlyRevenueCalculator.shortLabel(_selectedMonth).toUpperCase()}. ${_selectedMonth.year}';
+                    final prevMonthLabel =
+                        MonthlyRevenueCalculator.fullLabel(prevMonth);
                     final kpis = KpiAggregator.fromData(
                       appartements: appartements,
                       reservations: reservations,
@@ -122,7 +180,21 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           RevenueHeroCard(
-                            reservations: reservations,
+                            amount: revenueAmount,
+                            previousAmount: previousAmount,
+                            deltaPercent: deltaPercent,
+                            pipelineAmount: pipelineAmount,
+                            average3Months: avg3,
+                            last6Months: last6,
+                            selectedMonth: _selectedMonth,
+                            eyebrowLabel: eyebrowLabel,
+                            previousMonthLabel: prevMonthLabel,
+                            canGoPrev: true,
+                            canGoNext: !_isCurrentMonth,
+                            onPrev: _onPrevMonth,
+                            onNext: _onNextMonth,
+                            onSparkbarTap: (m) =>
+                                setState(() => _selectedMonth = m.month),
                             isLoading: reservationsLoading,
                           ),
                           const SizedBox(height: 16),

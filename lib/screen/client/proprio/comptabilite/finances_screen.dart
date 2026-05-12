@@ -15,10 +15,11 @@ import 'package:asfar/screen/client/proprio/comptabilite/widget/period_switcher.
 import 'package:asfar/screen/client/proprio/comptabilite/widget/pnl_card.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/projection_chart.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/property_perf_list.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/widget/year_selector.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
-import 'package:asfar/util/calc/monthly_revenue_calculator.dart';
+import 'package:asfar/util/calc/finance_period.dart';
 import 'package:asfar/util/calc/pnl_aggregator.dart';
 import 'package:asfar/util/calc/projection_calculator.dart';
 import 'package:asfar/util/calc/property_perf_aggregator.dart';
@@ -31,8 +32,15 @@ import 'package:asfar/widget/feedback/empty_state.dart';
 
 /// Finances P&L — onglet Finances du `ProprioShell`.
 ///
-/// V8.5 Lot 8c : branché sur les Calculators (Lot 8a) + `PnLAggregator`
-/// (Lot 8c) sur `AppartementBloc` + `ReservationBloc` + `ChargeBloc`.
+/// État local :
+/// - `_year` : année sélectionnée (max = année courante)
+/// - `_period` : granularité (Semaine / Mois / Trimestre)
+/// - `_index` : index dans la période (0..N selon le type)
+///
+/// Toutes les agrégations sont paramétrées par cette triplet via les
+/// nouveaux calculators `PnLAggregator.forPeriod` /
+/// `PropertyPerfAggregator.forPeriod`. La `ProjectionChart` reste basée
+/// sur le présent (7 mois autour de now).
 class ProprioFinancesScreen extends StatefulWidget {
   const ProprioFinancesScreen({super.key});
 
@@ -41,13 +49,17 @@ class ProprioFinancesScreen extends StatefulWidget {
 }
 
 class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
-  static const _periods = ['Semaine', 'Mois', 'Trimestre', 'Année'];
-
-  String _period = 'Mois';
+  late int _year;
+  late FinancePeriod _period;
+  late int _index;
 
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    _year = now.year;
+    _period = FinancePeriod.month;
+    _index = _period.indexOf(_year, now);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<ReservationBloc>().add(LoadProprietaireReservations());
@@ -63,6 +75,75 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  bool get _isCurrentYear => _year == DateTime.now().year;
+
+  /// Borne supérieure : on ne dépasse pas la période en cours.
+  int get _maxIndexForCurrentYear {
+    final now = DateTime.now();
+    if (_year < now.year) return _period.maxIndex(_year);
+    if (_year > now.year) return 0;
+    return _period.indexOf(_year, now);
+  }
+
+  bool get _canGoNextPeriod => _index < _maxIndexForCurrentYear;
+
+  bool get _canGoPrevPeriod {
+    // Recul libre, sauf si on est sur la 1ère période de la 1ère année
+    // accessible. Comme on n'a pas de borne basse, toujours possible.
+    return true;
+  }
+
+  void _onYearPrev() {
+    setState(() {
+      _year -= 1;
+      _index = _index.clamp(0, _maxIndexForCurrentYear);
+    });
+  }
+
+  void _onYearNext() {
+    setState(() {
+      _year += 1;
+      _index = _index.clamp(0, _maxIndexForCurrentYear);
+    });
+  }
+
+  void _onPeriodChange(FinancePeriod next) {
+    if (next == _period) return;
+    // En changeant de granularité, on conserve la date « centrale » : on
+    // retombe sur l'index correspondant à la date de fin de la période
+    // courante dans la nouvelle granularité.
+    final pivot = _period.endOf(_year, _index);
+    setState(() {
+      _period = next;
+      _index = next.indexOf(_year, pivot).clamp(0, _maxIndexForCurrentYear);
+    });
+  }
+
+  void _onPeriodPrev() {
+    final prev = _period.previousAnchor(_year, _index);
+    final now = DateTime.now();
+    if (prev.year > now.year) return;
+    setState(() {
+      _year = prev.year;
+      _index = prev.index;
+    });
+  }
+
+  void _onPeriodNext() {
+    if (!_canGoNextPeriod) return;
+    final next = _period.nextAnchor(_year, _index);
+    final now = DateTime.now();
+    if (next.year > now.year) return;
+    if (next.year == now.year &&
+        next.index > _period.indexOf(now.year, now)) {
+      return;
+    }
+    setState(() {
+      _year = next.year;
+      _index = next.index;
+    });
   }
 
   @override
@@ -98,17 +179,31 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                         ? chargeState.charges
                         : <Charge>[];
 
-                    final pnl = PnLAggregator.currentMonth(
+                    final pnl = PnLAggregator.forPeriod(
                       reservations: reservations,
                       charges: charges,
+                      period: _period,
+                      year: _year,
+                      index: _index,
+                    );
+                    final prev = _period.previousAnchor(_year, _index);
+                    final pnlPrev = PnLAggregator.forPeriod(
+                      reservations: reservations,
+                      charges: charges,
+                      period: _period,
+                      year: prev.year,
+                      index: prev.index,
                     );
                     final beneficeAmount = pnl.netIncome.amount;
-                    final deltaPercent =
-                        MonthlyRevenueCalculator.deltaPercent(reservations)
-                            .round();
-                    final perfs = PropertyPerfAggregator.compute(
+                    final beneficePrev = pnlPrev.netIncome.amount;
+                    final deltaPercent = _delta(beneficeAmount, beneficePrev);
+
+                    final perfs = PropertyPerfAggregator.forPeriod(
                       appartements: appartements,
                       reservations: reservations,
+                      period: _period,
+                      year: _year,
+                      index: _index,
                     );
                     final projection =
                         ProjectionCalculator.sevenMonths(reservations);
@@ -120,15 +215,42 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: YearSelector(
+                              year: _year,
+                              canGoPrev: true,
+                              canGoNext: !_isCurrentYear,
+                              onPrev: _onYearPrev,
+                              onNext: _onYearNext,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
                           PeriodSwitcher(
-                            options: _periods,
-                            selected: _period,
-                            onSelect: (p) => setState(() => _period = p),
+                            options: const ['Semaine', 'Mois', 'Trimestre'],
+                            selected: _period.switcherLabel,
+                            onSelect: (label) {
+                              for (final p in FinancePeriod.values) {
+                                if (p.switcherLabel == label) {
+                                  _onPeriodChange(p);
+                                  return;
+                                }
+                              }
+                            },
                           ),
                           const SizedBox(height: 18),
                           BeneficeNetHeroCard(
                             amount: beneficeAmount,
+                            previousAmount: beneficePrev,
                             deltaPercent: deltaPercent,
+                            pipelineAmount: pnl.pipelineRevenue,
+                            period: _period,
+                            year: _year,
+                            index: _index,
+                            canGoPrev: _canGoPrevPeriod,
+                            canGoNext: _canGoNextPeriod,
+                            onPrev: _onPeriodPrev,
+                            onNext: _onPeriodNext,
                           ),
                           const SizedBox(height: 22),
                           const Text('Compte de résultat',
@@ -137,9 +259,9 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                           if (pnl.isEmpty)
                             EmptyState.inline(
                               icon: Icons.receipt_long_outlined,
-                              title: 'Aucun mouvement ce mois-ci',
+                              title: 'Aucun mouvement sur cette période',
                               body:
-                                  'Le compte de résultat apparaîtra dès la première réservation.',
+                                  'Le compte de résultat apparaîtra dès la première réservation encaissée.',
                             )
                           else
                             PnLCard(
@@ -193,5 +315,10 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
         ),
       ),
     );
+  }
+
+  int _delta(int current, int prev) {
+    if (prev == 0) return current == 0 ? 0 : 100;
+    return (((current - prev) / prev) * 100).round();
   }
 }
