@@ -2,6 +2,7 @@ import 'package:asfar/model/comptabilite/charge.dart';
 import 'package:asfar/model/comptabilite/type_charge.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/ui_only/pnl_entry.dart';
+import 'package:asfar/util/calc/charge_period_filter.dart';
 import 'package:asfar/util/calc/finance_period.dart';
 import 'package:asfar/util/calc/reservation_finance_extensions.dart';
 
@@ -13,12 +14,6 @@ import 'package:asfar/util/calc/reservation_finance_extensions.dart';
 class PnLAggregator {
   PnLAggregator._();
 
-  /// Frais plateforme Asfar prélevés sur les revenus bruts (6%).
-  static const double _fraisAsfarRate = 0.06;
-
-  /// Commission reversée aux démarcheurs (12% des locations référées).
-  static const double _commissionDemarcheurRate = 0.12;
-
   static PnLBreakdown forPeriod({
     required List<Reservation> reservations,
     required List<Charge> charges,
@@ -29,13 +24,16 @@ class PnLAggregator {
     final locationsBrutes = reservations.sumEncaissedNet(
       period: period, year: year, index: index,
     );
-    final locationsBrutesDemarcheur = reservations.sumEncaissedNetReferred(
-      period: period, year: year, index: index,
-    );
     final pipelineBrutes = reservations.sumPipelineNet(
       period: period, year: year, index: index,
     );
     final nuitsTotales = reservations.sumEncaissedNightsIn(
+      period: period, year: year, index: index,
+    );
+    // Commission démarcheur = somme des montants réels backend
+    // (r.montantCommission sur les ReservationDemarcheur encaissées),
+    // au lieu d'un taux calculé côté Flutter.
+    final commissionDemarcheurs = reservations.sumDemarcheurCommissionsIn(
       period: period, year: year, index: index,
     );
 
@@ -54,16 +52,18 @@ class PnLAggregator {
       isRevenue: true,
     );
 
-    final fraisAsfar = (locationsBrutes * _fraisAsfarRate).round();
-    final commissionDemarcheurs =
-        (locationsBrutesDemarcheur * _commissionDemarcheurRate).round();
+    // Frais Asfar : somme réelle des `r.frais` facturés par le backend pour
+    // chaque résa encaissée de la période — plus de taux % calculé côté Flutter.
+    final fraisAsfar = reservations.sumEncaissedFraisIn(
+      period: period, year: year, index: index,
+    );
 
     final chargesDuMois =
         _aggregateChargesForPeriod(charges, period, year, index);
     final chargeDetails = <PnLEntry>[
       if (fraisAsfar > 0)
         PnLEntry(
-          label: 'Frais plateforme Asfar (6%)',
+          label: 'Frais plateforme Asfar',
           amount: fraisAsfar,
           kind: PnLKind.categoryDetail,
           isRevenue: false,
@@ -120,10 +120,14 @@ class PnLAggregator {
     int year,
     int index,
   ) {
+    final start = period.startOf(year, index);
+    final end = period.endOf(year, index);
     final grouped = <String, double>{};
     for (final c in charges) {
       if (c.montant == null) continue;
-      if (!_chargeFallsInPeriod(c, period, year, index)) continue;
+      if (!ChargePeriodFilter.includesInRange(c, start: start, end: end)) {
+        continue;
+      }
       final label = c.typeCharge.label;
       grouped.update(label, (v) => v + c.montant!,
           ifAbsent: () => c.montant!);
@@ -138,19 +142,6 @@ class PnLAggregator {
               isRevenue: false,
             ))
         .toList();
-  }
-
-  static bool _chargeFallsInPeriod(
-    Charge c,
-    FinancePeriod period,
-    int year,
-    int index,
-  ) {
-    final pivot = c.datePaiement ?? c.dateEcheance ?? c.dateDebut;
-    if (pivot == null) {
-      return c.estRecurrent == true;
-    }
-    return period.contains(year, index, pivot);
   }
 }
 

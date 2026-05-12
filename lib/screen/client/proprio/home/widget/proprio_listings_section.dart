@@ -13,12 +13,14 @@ class ProprioListingsSection extends StatelessWidget {
   final List<PropertyPerf> perfs;
   final VoidCallback? onSeeAll;
   final void Function(Appartement appartement)? onListingTap;
+  final String title;
 
   const ProprioListingsSection({
     super.key,
     required this.perfs,
     this.onSeeAll,
     this.onListingTap,
+    this.title = 'Mes annonces',
   });
 
   @override
@@ -27,7 +29,7 @@ class ProprioListingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          title: 'Mes annonces',
+          title: title,
           actionLabel: 'Tout voir',
           onActionTap: onSeeAll,
         ),

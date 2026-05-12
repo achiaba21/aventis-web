@@ -15,6 +15,11 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? trailing;
   final Color? backgroundColor;
 
+  /// Largeur du slot trailing. Par défaut 40 (1 icône). Passer une valeur
+  /// plus grande quand `trailing` contient plusieurs actions (ex. 84 pour
+  /// 2 IconBoutton 36px + gap 8).
+  final double trailingWidth;
+
   const DynamicAppBar({
     super.key,
     required this.title,
@@ -22,6 +27,7 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leading,
     this.trailing,
     this.backgroundColor,
+    this.trailingWidth = 40,
   });
 
   static const double _baseHeight = 48;
@@ -70,7 +76,7 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                 ),
                 SizedBox(
-                  width: 40,
+                  width: trailingWidth,
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: trailing,

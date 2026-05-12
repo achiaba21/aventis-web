@@ -3,9 +3,8 @@ import 'package:asfar/widget/badge/badge_tone.dart';
 
 /// Mapping `ReservationStatus` → libellé court FR + ton du `BadgeStatus`.
 ///
-/// Helper dédié pour respecter la règle 3 du projet (helpers extraits) — évite
-/// la dispersion de la logique dans `ProprioReservationRow`,
-/// `ProprioReservationsScreen`, etc.
+/// Helper transverse utilisé par toutes les surfaces qui affichent un statut
+/// de réservation : `ProprioReservationRow`, `ReservationDetailScreen`, etc.
 class ReservationStatusDisplay {
   ReservationStatusDisplay._();
 

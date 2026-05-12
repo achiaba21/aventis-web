@@ -5,26 +5,37 @@ import 'package:asfar/model/reservation/reservation_demarcheur.dart';
 /// financiers du proprio (Dashboard + Finances).
 ///
 /// Règles de comptage **strictes** alignées sur le projet :
-/// - `isEncaissed` : `payee + finalisee + terminee` — argent réellement
+/// - `isEncaissed` : `payee + finalisee + terminee` (plateforme/démarcheur)
+///   **OU** `confirmee` pour une `ReservationManuelle` — argent réellement
 ///   reçu. Compte dans `RevenueHeroCard.amount`, `BeneficeNetHeroCard`,
 ///   `PnLAggregator.revenue`, `PropertyPerfAggregator`.
-/// - `isPipeline` : `confirmee` uniquement — engagement pris, paiement
-///   pas encore effectué.
+/// - `isPipeline` : `confirmee` uniquement pour plateforme/démarcheur —
+///   engagement pris, paiement pas encore effectué. Les manuelles confirmées
+///   ne sont **pas** en pipeline (déjà encaissées).
 /// - `wasReferredByDemarcheur` : `this is ReservationDemarcheur` (héritage
 ///   aligné backend `@Inheritance(TABLE_PER_CLASS)`).
 /// - `demarcheurCommissionAmount` : montant réel de la commission stocké
 ///   sur `ReservationDemarcheur.montantCommission` (0 pour les autres types).
+///
+/// **Règle métier manuelle :** une `ReservationManuelle` est créée par le
+/// proprio pour un client externe (paiement hors plateforme). Le backend la
+/// crée directement en `CONFIRMER` et on considère que l'argent est reçu à
+/// ce moment-là.
 extension ReservationCounted on Reservation {
   /// La résa est dans le revenu encaissé (argent reçu).
   bool get isEncaissed {
     final s = statut;
+    if (isManuelle && s == ReservationStatus.confirmee) return true;
     return s == ReservationStatus.payee ||
         s == ReservationStatus.finalisee ||
         s == ReservationStatus.terminee;
   }
 
   /// La résa est dans le pipeline (engagée mais non payée).
-  bool get isPipeline => statut == ReservationStatus.confirmee;
+  ///
+  /// Exclut les manuelles confirmées (déjà encaissées, cf. [isEncaissed]).
+  bool get isPipeline =>
+      statut == ReservationStatus.confirmee && !isManuelle;
 
   /// La résa a été référencée par un démarcheur.
   bool get wasReferredByDemarcheur => this is ReservationDemarcheur;

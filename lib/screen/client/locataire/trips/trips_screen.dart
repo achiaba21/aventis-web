@@ -6,7 +6,10 @@ import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
 import 'package:asfar/screen/client/locataire/trips/widget/trip_card.dart';
 import 'package:asfar/screen/client/locataire/trips/widget/trips_filter_chips.dart';
 import 'package:asfar/screen/client/locataire/trips/widget/trips_loading_view.dart';
+import 'package:asfar/screen/client/shared/reservations/reservation_detail_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/util/calc/reservation_actions_resolver.dart';
+import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 
@@ -99,7 +102,16 @@ class _LocataireTripsScreenState extends State<LocataireTripsScreen> {
                     )
                   else
                     for (final r in filtered) ...[
-                      TripCard(reservation: r),
+                      TripCard(
+                        reservation: r,
+                        onTap: () => pushScreen(
+                          context,
+                          ReservationDetailScreen(
+                            reservation: r,
+                            viewerRole: ReservationViewerRole.locataire,
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 14),
                     ],
                 ],

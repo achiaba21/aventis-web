@@ -22,8 +22,11 @@ import 'package:asfar/screen/client/proprio/home/widget/proprio_pending_section.
 import 'package:asfar/screen/client/proprio/home/widget/revenue_hero_card.dart';
 import 'package:asfar/screen/client/proprio/reservations/proprio_reservations_screen.dart';
 import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
+import 'package:asfar/screen/client/shared/reservations/reservation_detail_screen.dart';
+import 'package:asfar/util/calc/reservation_actions_resolver.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/calc/cashflow_aggregator.dart';
+import 'package:asfar/util/calc/finance_period.dart';
 import 'package:asfar/util/calc/kpi_aggregator.dart';
 import 'package:asfar/util/calc/property_perf_aggregator.dart';
 import 'package:asfar/util/navigation.dart';
@@ -63,6 +66,15 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
     final now = MonthlyRevenueCalculator.normalize(DateTime.now());
     return _selectedMonth.year == now.year &&
         _selectedMonth.month == now.month;
+  }
+
+  /// Suffixe le titre d'une section avec le mois sélectionné quand il diffère
+  /// du mois courant — sinon retourne le base. Évite de polluer le dashboard
+  /// avec "Mai 2026" partout quand on regarde simplement le mois en cours.
+  String _sectionTitle(String base) {
+    if (_isCurrentMonth) return base;
+    final short = MonthlyRevenueCalculator.shortLabel(_selectedMonth);
+    return '$base · $short ${_selectedMonth.year}';
   }
 
   void _onPrevMonth() => setState(() {
@@ -162,13 +174,18 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                       appartements: appartements,
                       reservations: reservations,
                     );
-                    final cashflow = CashflowAggregator.currentMonth(
+                    final cashflow = CashflowAggregator.forMonth(
                       reservations: reservations,
                       charges: charges,
+                      year: _selectedMonth.year,
+                      month: _selectedMonth.month,
                     );
-                    final perfs = PropertyPerfAggregator.compute(
+                    final perfs = PropertyPerfAggregator.forPeriod(
                       appartements: appartements,
                       reservations: reservations,
+                      period: FinancePeriod.month,
+                      year: _selectedMonth.year,
+                      index: _selectedMonth.month - 1,
                     );
                     final pending = reservations
                         .where((r) => r.statut == ReservationStatus.enAttente)
@@ -201,12 +218,14 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                           ProprioKpiGrid(kpis: kpis),
                           const SizedBox(height: 22),
                           ProprioCashflowSection(
+                            title: _sectionTitle('Flux financier'),
                             segments: cashflow,
                             onSeeDetails: () => pushScreen(
                                 context, const ProprioFinancesScreen()),
                           ),
                           const SizedBox(height: 22),
                           ProprioListingsSection(
+                            title: _sectionTitle('Mes annonces'),
                             perfs: perfs,
                             onSeeAll: () => pushScreen(
                                 context, const ProprioListingsScreen()),
@@ -221,8 +240,14 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                             pending: pending,
                             onSeeAll: () => pushScreen(
                                 context, const ProprioReservationsScreen()),
-                            onPendingTap: (_) => _toast(
-                                'Détail demande disponible prochainement (F5)'),
+                            onPendingTap: (r) => pushScreen(
+                              context,
+                              ReservationDetailScreen(
+                                reservation: r,
+                                viewerRole:
+                                    ReservationViewerRole.proprietaire,
+                              ),
+                            ),
                           ),
                         ],
                       ),

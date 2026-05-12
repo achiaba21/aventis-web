@@ -10,11 +10,13 @@ import 'package:asfar/widget/text/section_header.dart';
 class ProprioCashflowSection extends StatelessWidget {
   final List<CashflowSegment> segments;
   final VoidCallback? onSeeDetails;
+  final String title;
 
   const ProprioCashflowSection({
     super.key,
     required this.segments,
     this.onSeeDetails,
+    this.title = 'Flux financier',
   });
 
   @override
@@ -23,7 +25,7 @@ class ProprioCashflowSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          title: 'Flux financier',
+          title: title,
           actionLabel: 'Détails →',
           onActionTap: onSeeDetails,
         ),

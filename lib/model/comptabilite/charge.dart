@@ -48,7 +48,11 @@ class Charge {
     this.updatedAt,
   });
 
-  /// Constructeur avec enums directement
+  /// Constructeur avec enums directement.
+  ///
+  /// Invariant garanti : `estRecurrent` est dérivé de `frequence` (ponctuel
+  /// ⟹ false, sinon true). Une charge ponctuelle a `dateEcheance = null`
+  /// (la `dateDebut` fait office de date prévue de paiement).
   Charge.create({
     this.id,
     required this.appartementId, // OBLIGATOIRE
@@ -60,21 +64,25 @@ class Charge {
     this.montant,
     FrequenceCharge? frequence,
     this.dateDebut,
-    this.dateEcheance,
+    DateTime? dateEcheance,
     this.datePaiement,
     this.estPaye = false,
-    this.estRecurrent = true,
     this.notes,
     DateTime? createdAt,
   }) {
+    final freq = frequence ?? FrequenceCharge.mensuel;
     typeChargeValue = typeCharge?.value ?? TypeCharge.autre.value;
-    frequenceValue = frequence?.value ?? FrequenceCharge.mensuel.value;
+    frequenceValue = freq.value;
+    estRecurrent = freq.isRecurrente;
     this.createdAt = createdAt ?? DateTime.now();
     updatedAt = DateTime.now();
 
-    // Si récurrent et pas d'échéance, calculer la première échéance
-    if (estRecurrent == true && dateDebut != null && dateEcheance == null) {
-      dateEcheance = _calculerProchaineEcheance(dateDebut!, frequence ?? FrequenceCharge.mensuel);
+    if (freq.isPonctuel) {
+      this.dateEcheance = null;
+    } else if (dateEcheance != null) {
+      this.dateEcheance = dateEcheance;
+    } else if (dateDebut != null) {
+      this.dateEcheance = _calculerProchaineEcheance(dateDebut!, freq);
     }
   }
 

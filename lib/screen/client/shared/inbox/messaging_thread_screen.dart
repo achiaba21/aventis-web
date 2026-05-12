@@ -9,9 +9,9 @@ import 'package:asfar/model/conversation/chat_message.dart';
 import 'package:asfar/model/conversation/conversation.dart';
 import 'package:asfar/model/partenariat/demande_partenariat.dart';
 import 'package:asfar/model/reservation/reservation.dart';
-import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/conversation_display.dart';
 import 'package:asfar/screen/client/shared/partenariats/partenariat_detail_screen.dart';
+import 'package:asfar/screen/client/shared/reservations/reservation_detail_screen.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/chat_input_bar.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_custom_header.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_loading_view.dart';
@@ -103,12 +103,11 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
   }
 
   void _onReservationTap(Reservation? loaded) {
-    final appart = loaded?.appart;
-    if (appart == null) {
-      _toast('Détail de la réservation indisponible');
+    if (loaded != null) {
+      pushScreen(context, ReservationDetailScreen(reservation: loaded));
       return;
     }
-    pushScreen(context, LocataireDetailScreen(appartement: appart));
+    _toast('Détail de la réservation indisponible');
   }
 
   void _onPartenariatTap(DemandePartenariat? loaded) {

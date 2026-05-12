@@ -9,18 +9,29 @@ import 'package:asfar/bloc/charge_bloc/charge_state.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_bloc.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
+import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/model/comptabilite/charge.dart';
+import 'package:asfar/model/comptabilite/charge_statut.dart';
+import 'package:asfar/model/reservation/reservation_counted.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/charges/charges_list_screen.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/benefice_net_hero_card.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/widget/export_bottom_sheet.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/period_switcher.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/pnl_card.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/property_perf_list.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/year_selector.dart';
+import 'package:asfar/service/export/export_share_helper.dart';
+import 'package:asfar/service/export/finances_csv_exporter.dart';
+import 'package:asfar/service/export/finances_pdf_exporter.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/calc/charge_status_display.dart';
 import 'package:asfar/util/calc/finance_period.dart';
 import 'package:asfar/util/calc/pnl_aggregator.dart';
 import 'package:asfar/util/calc/property_perf_aggregator.dart';
+import 'package:asfar/util/function.dart';
 import 'package:asfar/util/navigation.dart';
+import 'package:asfar/widget/finance/charges_alert_card.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
@@ -72,6 +83,126 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  void _onExportTap() {
+    ExportBottomSheet.show(
+      context,
+      onPdfTap: _exportPdf,
+      onCsvTap: _exportCsv,
+    );
+  }
+
+  Future<void> _exportPdf() async {
+    final userState = context.read<UserBloc>().state;
+    final user = userState.user;
+    if (user == null) {
+      _toast('Utilisateur non chargé');
+      return;
+    }
+    try {
+      final reservations =
+          context.read<ReservationBloc>().state.reservations;
+      final charges = _chargesFromBloc();
+      final pnl = PnLAggregator.forPeriod(
+        reservations: reservations,
+        charges: charges,
+        period: _period,
+        year: _year,
+        index: _index,
+      );
+      final prev = _period.previousAnchor(_year, _index);
+      final pnlPrev = PnLAggregator.forPeriod(
+        reservations: reservations,
+        charges: charges,
+        period: _period,
+        year: prev.year,
+        index: prev.index,
+      );
+      final deltaPercent = _delta(pnl.netIncome.amount, pnlPrev.netIncome.amount);
+      final appartements =
+          context.read<AppartementBloc>().state.appartements;
+      final perfs = PropertyPerfAggregator.forPeriod(
+        appartements: appartements,
+        reservations: reservations,
+        period: _period,
+        year: _year,
+        index: _index,
+      ).where((p) => p.monthlyRevenue > 0 || p.occupancyRate > 0).toList();
+      final encaissed = reservations
+          .where((r) =>
+              r.isEncaissed &&
+              r.debut != null &&
+              _period.contains(_year, _index, r.debut!))
+          .toList();
+
+      final bytes = await FinancesPdfExporter.build(
+        proprio: user,
+        period: _period,
+        year: _year,
+        index: _index,
+        pnl: pnl,
+        previousBeneficeAmount: pnlPrev.netIncome.amount,
+        beneficeDeltaPercent: deltaPercent,
+        perfs: perfs,
+        reservationsEncaissed: encaissed,
+      );
+
+      final fileName = ExportShareHelper.buildFileName(
+        periodSlug: _periodSlug(),
+        generatedAt: DateTime.now(),
+        extension: 'pdf',
+      );
+      if (!mounted) return;
+      await ExportShareHelper.previewPdf(
+        context: context,
+        bytes: bytes,
+        fileName: fileName,
+        title: 'Rapport ${_period.longLabel(_year, _index)}',
+      );
+    } catch (e) {
+      deboger('FinancesExport.pdf: $e');
+      if (mounted) _toast('Erreur génération PDF');
+    }
+  }
+
+  Future<void> _exportCsv() async {
+    try {
+      final reservations =
+          context.read<ReservationBloc>().state.reservations;
+      final encaissed = reservations
+          .where((r) =>
+              r.isEncaissed &&
+              r.debut != null &&
+              _period.contains(_year, _index, r.debut!))
+          .toList();
+
+      final csv = FinancesCsvExporter.build(
+        period: _period,
+        year: _year,
+        index: _index,
+        reservationsEncaissed: encaissed,
+      );
+      final fileName = ExportShareHelper.buildFileName(
+        periodSlug: _periodSlug(),
+        generatedAt: DateTime.now(),
+        extension: 'csv',
+      );
+      await ExportShareHelper.shareCsv(content: csv, fileName: fileName);
+    } catch (e) {
+      deboger('FinancesExport.csv: $e');
+      if (mounted) _toast('Erreur génération CSV');
+    }
+  }
+
+  List<Charge> _chargesFromBloc() {
+    final state = context.read<ChargeBloc>().state;
+    return state is ChargeLoaded ? state.charges : const <Charge>[];
+  }
+
+  String _periodSlug() {
+    final p = _period.switcherLabel.toLowerCase();
+    return '${_year}_${p}_${_index + 1}';
   }
 
   bool get _isCurrentYear => _year == DateTime.now().year;
@@ -156,10 +287,21 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                 onPressed: () => back(context),
               )
             : null,
-        trailing: IconBoutton(
-          icon: Icons.download_outlined,
-          onPressed: () =>
-              _toast('Export PDF/CSV disponible prochainement (F8)'),
+        trailingWidth: 84,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconBoutton(
+              icon: Icons.receipt_long_outlined,
+              onPressed: () =>
+                  pushScreen(context, const ChargesListScreen()),
+            ),
+            const SizedBox(width: 8),
+            IconBoutton(
+              icon: Icons.download_outlined,
+              onPressed: _onExportTap,
+            ),
+          ],
         ),
       ),
       body: SafeArea(
@@ -255,6 +397,24 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                             onPrev: _onPeriodPrev,
                             onNext: _onPeriodNext,
                           ),
+                          const SizedBox(height: 16),
+                          ChargesAlertCard(
+                            retardCount: charges
+                                .where((c) =>
+                                    ChargeStatusDisplay.statutOf(c) ==
+                                    ChargeStatut.enRetard)
+                                .length,
+                            retardAmount: charges
+                                .where((c) =>
+                                    ChargeStatusDisplay.statutOf(c) ==
+                                    ChargeStatut.enRetard)
+                                .fold<int>(0,
+                                    (s, c) => s + (c.montant ?? 0).round()),
+                            onTap: () => pushScreen(
+                              context,
+                              const ChargesListScreen(),
+                            ),
+                          ),
                           const SizedBox(height: 22),
                           const Text('Compte de résultat',
                               style: AppTextStyles.h3),
@@ -305,8 +465,7 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                           const SizedBox(height: 22),
                           OutlinedCustomButton(
                             text: 'Exporter en PDF / CSV',
-                            onPressed: () => _toast(
-                                'Export PDF/CSV disponible prochainement (F8)'),
+                            onPressed: _onExportTap,
                             size: ButtonSize.lg,
                             block: true,
                             leadingIcon: Icons.download_outlined,

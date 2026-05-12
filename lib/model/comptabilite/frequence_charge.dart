@@ -29,6 +29,12 @@ extension FrequenceChargeExtension on FrequenceCharge {
     }
   }
 
+  /// Indique si la charge est un paiement unique (pas de récurrence).
+  bool get isPonctuel => this == FrequenceCharge.ponctuel;
+
+  /// Indique si la charge se répète dans le temps (mensuel, trimestriel, etc.).
+  bool get isRecurrente => !isPonctuel;
+
   /// Nombre de mois entre chaque paiement
   int get intervalMois {
     switch (this) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/residence/appart_display.dart';
-import 'package:asfar/screen/client/proprio/reservations/widget/reservation_status_display.dart';
+import 'package:asfar/util/calc/reservation_status_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';

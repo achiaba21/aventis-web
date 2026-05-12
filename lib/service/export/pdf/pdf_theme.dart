@@ -24,6 +24,12 @@ class PdfTheme {
   static const PdfColor success = PdfColor.fromInt(0xFF2E8B4D);
   static const PdfColor danger = PdfColor.fromInt(0xFFC0392B);
 
+  /// Variantes pâles pour fond de pill/chip — contraste élevé avec le texte
+  /// sémantique correspondant. Calculées comme blanc tinté ~10%.
+  static const PdfColor successSoft = PdfColor.fromInt(0xFFE6F4EA);
+  static const PdfColor dangerSoft = PdfColor.fromInt(0xFFFCE8E6);
+  static const PdfColor neutralSoft = PdfColor.fromInt(0xFFEEEEF0);
+
   // Marges page A4
   static const pageMargin = pw.EdgeInsets.fromLTRB(40, 36, 40, 40);
 

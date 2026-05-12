@@ -23,7 +23,10 @@ class LoadCharges extends ChargeEvent {
 /// Rafraîchir les charges (recharger avec les mêmes filtres)
 class RefreshCharges extends ChargeEvent {}
 
-/// Ajouter une nouvelle charge
+/// Ajouter une nouvelle charge.
+///
+/// `estRecurrent` n'est pas exposé : il est dérivé de `frequence` côté
+/// modèle (`Charge.create`) selon l'invariant `ponctuel ⟺ !recurrent`.
 class AddCharge extends ChargeEvent {
   final int appartementId;
   final TypeCharge typeCharge;
@@ -32,7 +35,6 @@ class AddCharge extends ChargeEvent {
   final FrequenceCharge frequence;
   final DateTime? dateDebut;
   final DateTime? dateEcheance;
-  final bool estRecurrent;
   final String? notes;
 
   AddCharge({
@@ -43,7 +45,6 @@ class AddCharge extends ChargeEvent {
     required this.frequence,
     this.dateDebut,
     this.dateEcheance,
-    this.estRecurrent = false,
     this.notes,
   });
 }

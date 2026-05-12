@@ -195,6 +195,56 @@ class ReservationRepository {
     });
   }
 
+  /// Récupère une réservation par sa référence (deep-link, push notif, card chat).
+  ///
+  /// Pattern cache-first : si la réservation est présente dans l'un des deux
+  /// caches (user ou proprio), elle est retournée immédiatement avec
+  /// `isFromCache: true` ; un fetch API tourne en arrière-plan et appelle
+  /// `onApiData` quand la version fraîche arrive. Si rien en cache, fetch
+  /// direct API.
+  Future<ReservationResult> getByReference(
+    String reference, {
+    Function(Reservation)? onApiData,
+  }) async {
+    final cached = _findCachedByReference(reference);
+
+    if (cached == null) {
+      try {
+        final fresh = await _apiService.getByReference(reference);
+        return ReservationResult(reservations: [fresh], isFromCache: false);
+      } catch (e) {
+        deboger(['[ReservationRepository] getByReference API échoué: $e']);
+        return ReservationResult(reservations: const [], isFromCache: true);
+      }
+    }
+
+    _refreshByReferenceInBackground(reference, onApiData);
+    return ReservationResult(reservations: [cached], isFromCache: true);
+  }
+
+  Reservation? _findCachedByReference(String reference) {
+    final ref = reference.trim();
+    if (ref.isEmpty) return null;
+    for (final r in getCachedUserReservations()) {
+      if (r.reference == ref) return r;
+    }
+    for (final r in getCachedProprietaireReservations()) {
+      if (r.reference == ref) return r;
+    }
+    return null;
+  }
+
+  void _refreshByReferenceInBackground(
+    String reference,
+    Function(Reservation)? onApiData,
+  ) {
+    _apiService.getByReference(reference).then((fresh) {
+      if (onApiData != null) onApiData(fresh);
+    }).catchError((e) {
+      deboger(['[ReservationRepository] Erreur refresh byRef background: $e']);
+    });
+  }
+
   /// Récupère la date de dernière synchronisation du cache locataire
   DateTime? getUserLastSyncDate() {
     return _storage.getReservationsLastSync();

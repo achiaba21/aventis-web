@@ -75,6 +75,62 @@ extension ReservationFinance on Iterable<Reservation> {
     );
   }
 
+  /// Somme **réelle** des commissions démarcheurs sur la période (lit
+  /// `r.montantCommission` des `ReservationDemarcheur` encaissées).
+  /// Plus précis qu'un taux calculé côté Flutter — vrai montant backend.
+  int sumDemarcheurCommissionsIn({
+    required FinancePeriod period,
+    required int year,
+    required int index,
+  }) {
+    int total = 0;
+    for (final r in this) {
+      if (!r.isEncaissed) continue;
+      if (r.debut == null) continue;
+      if (!period.contains(year, index, r.debut!)) continue;
+      total += r.demarcheurCommissionAmount.round();
+    }
+    return total;
+  }
+
+  /// Somme **réelle** des frais Asfar facturés sur les résa encaissées de la
+  /// période (lit `r.frais` envoyé par le backend pour chaque réservation).
+  ///
+  /// Source unique de vérité pour les frais plateforme — utilisée par
+  /// `PnLAggregator` et `CashflowAggregator`. Remplace tout calcul de type
+  /// `brut × taux %` qui ne reflète pas la réalité backend (taux différenciés,
+  /// promotions, plans, etc.).
+  int sumEncaissedFraisIn({
+    required FinancePeriod period,
+    required int year,
+    required int index,
+  }) {
+    int total = 0;
+    for (final r in this) {
+      if (!r.isEncaissed) continue;
+      if (r.debut == null) continue;
+      if (!period.contains(year, index, r.debut!)) continue;
+      total += (r.frais ?? 0).round();
+    }
+    return total;
+  }
+
+  /// Somme des frais Asfar facturés sur les résa encaissées du mois donné.
+  /// Variante simple pour Cashflow (qui filtre par year+month).
+  int sumEncaissedFraisForMonth({
+    required int year,
+    required int month,
+  }) {
+    int total = 0;
+    for (final r in this) {
+      if (!r.isEncaissed) continue;
+      if (r.debut == null) continue;
+      if (r.debut!.year != year || r.debut!.month != month) continue;
+      total += (r.frais ?? 0).round();
+    }
+    return total;
+  }
+
   /// Nombre de nuits cumulées sur les résa encaissées de la période.
   int sumEncaissedNightsIn({
     required FinancePeriod period,

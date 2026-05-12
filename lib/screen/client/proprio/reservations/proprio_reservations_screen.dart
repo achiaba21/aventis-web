@@ -5,6 +5,8 @@ import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/screen/client/proprio/reservations/widget/proprio_reservations_list.dart';
+import 'package:asfar/screen/client/shared/reservations/reservation_detail_screen.dart';
+import 'package:asfar/util/calc/reservation_actions_resolver.dart';
 import 'package:asfar/screen/client/proprio/reservations/widget/reservations_filter_chips_row.dart';
 import 'package:asfar/screen/client/proprio/reservations/widget/reservations_loading_view.dart';
 import 'package:asfar/theme/app_colors.dart';
@@ -51,10 +53,11 @@ class _ProprioReservationsScreenState
   }
 
   void _onRowTap(Reservation r) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Détail réservation disponible prochainement'),
-        behavior: SnackBarBehavior.floating,
+    pushScreen(
+      context,
+      ReservationDetailScreen(
+        reservation: r,
+        viewerRole: ReservationViewerRole.proprietaire,
       ),
     );
   }

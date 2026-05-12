@@ -90,23 +90,13 @@ class ProprioListingRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    FcfaFormatter.compact(monthlyRevenue),
-                    style: AppTextStyles.mono(const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text,
-                    )),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'ce mois',
-                    style: AppTextStyles.small.copyWith(fontSize: 11),
-                  ),
-                ],
+              Text(
+                FcfaFormatter.compact(monthlyRevenue),
+                style: AppTextStyles.mono(const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text,
+                )),
               ),
             ],
           ),

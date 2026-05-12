@@ -2,25 +2,29 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/pdf_preview_screen.dart';
+import 'package:asfar/util/navigation.dart';
 
 /// Helper de partage des exports Finances (PDF + CSV).
 ///
-/// Wraps `printing` package pour proposer preview puis share. Le PDF est
-/// d'abord affiché en plein écran via `Printing.layoutPdf` (preview natif
-/// avec zoom, rotation, share, impression). L'utilisateur peut ensuite
-/// partager via le bouton intégré.
+/// Le PDF est affiché dans un écran Flutter dédié (`PdfPreviewScreen`) avec
+/// le widget `PdfPreview` du package `printing` qui propose scroll/zoom +
+/// toolbar share/print intégrée. Évite le saut direct vers l'écran
+/// d'impression de l'OS.
 class ExportShareHelper {
   ExportShareHelper._();
 
-  /// Ouvre le preview PDF natif. L'utilisateur peut partager / imprimer
-  /// depuis le viewer.
+  /// Pousse un écran d'aperçu PDF avec viewer intégré. L'utilisateur peut
+  /// partager ou imprimer depuis la toolbar du viewer.
   static Future<void> previewPdf({
+    required BuildContext context,
     required Uint8List bytes,
     required String fileName,
+    String title = 'Aperçu',
   }) async {
-    await Printing.layoutPdf(
-      onLayout: (_) async => bytes,
-      name: fileName,
+    pushScreen(
+      context,
+      PdfPreviewScreen(bytes: bytes, fileName: fileName, title: title),
     );
   }
 

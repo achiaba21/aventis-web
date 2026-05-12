@@ -24,7 +24,10 @@ class PdfBeneficeSection {
     final deltaColor = positive
         ? PdfTheme.success
         : (negative ? PdfTheme.danger : PdfTheme.text3);
-    final arrow = positive ? '↑' : (negative ? '↓' : '−');
+    final deltaBg = positive
+        ? PdfTheme.successSoft
+        : (negative ? PdfTheme.dangerSoft : PdfTheme.neutralSoft);
+    final sign = positive ? '+' : (negative ? '-' : '');
     final prevLabel = period.previousPeriodLongLabel(year, index);
 
     return pw.Container(
@@ -56,12 +59,12 @@ class PdfBeneficeSection {
                   vertical: 3,
                 ),
                 decoration: pw.BoxDecoration(
-                  color: deltaColor.shade(0.85),
+                  color: deltaBg,
                   borderRadius:
                       const pw.BorderRadius.all(pw.Radius.circular(4)),
                 ),
                 child: pw.Text(
-                  '$arrow ${deltaPercent.abs()}%',
+                  '$sign${deltaPercent.abs()}%',
                   style: pw.TextStyle(
                     fontSize: 10,
                     fontWeight: pw.FontWeight.bold,

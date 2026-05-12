@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/charge_bloc/charge_event.dart';
 import 'package:asfar/bloc/charge_bloc/charge_state.dart';
 import 'package:asfar/model/residence/appart.dart';
-import 'package:asfar/repository/charge_repository.dart';
+import 'package:asfar/repository/charge_data_manager.dart';
 import 'package:asfar/util/function.dart';
 
 /// BLoC pour la gestion des charges
@@ -90,7 +90,6 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
         frequence: event.frequence,
         dateDebut: event.dateDebut,
         dateEcheance: event.dateEcheance,
-        estRecurrent: event.estRecurrent,
         notes: event.notes,
       );
 

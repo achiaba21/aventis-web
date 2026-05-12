@@ -65,7 +65,10 @@ class ChargeDataManager {
     }
   }
 
-  /// Crée une nouvelle charge
+  /// Crée une nouvelle charge.
+  ///
+  /// `estRecurrent` n'est plus exposé : il est dérivé automatiquement de
+  /// `frequence` par `Charge.create` (invariant : `ponctuel ⟺ !recurrent`).
   Future<Charge> createCharge({
     required int appartementId,
     required TypeCharge typeCharge,
@@ -74,7 +77,6 @@ class ChargeDataManager {
     required FrequenceCharge frequence,
     DateTime? dateDebut,
     DateTime? dateEcheance,
-    bool estRecurrent = false,
     String? notes,
   }) async {
     final appartInfo = _findAppartementInfo(appartementId);
@@ -90,7 +92,6 @@ class ChargeDataManager {
       frequence: frequence,
       dateDebut: dateDebut,
       dateEcheance: dateEcheance,
-      estRecurrent: estRecurrent,
       notes: notes,
     );
 

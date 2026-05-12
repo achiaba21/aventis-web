@@ -284,6 +284,44 @@ class ReservationService {
     }
   }
 
+  /// Met à jour une réservation manuelle (propriétaire).
+  ///
+  /// Endpoint backend attendu : `PUT /api/user/reservations/owner/manual/{ref}`.
+  /// Restriction backend : autorisé uniquement si statut ∈ {EN_ATTENTE, CONFIRMER}.
+  /// Voir `BACKEND_NOTES_RESERVATION_DETAIL.md`.
+  Future<Reservation> updateManualReservation(
+    String reference,
+    ReservationManuelleReq req,
+  ) async {
+    try {
+      final dio = DioRequest.instance;
+      final response = await dio.put(
+        "${api}user/reservations/owner/manual/$reference",
+        data: req.toJson(),
+      );
+
+      if (response.data is Map<String, dynamic>) {
+        final responseData = response.data as Map<String, dynamic>;
+        final body = responseData['body'];
+        if (body is Map<String, dynamic>) {
+          if (body.containsKey('id')) {
+            return Reservation.fromJson(body);
+          }
+          if (body['reservation'] is Map<String, dynamic>) {
+            return Reservation.fromJson(
+              body['reservation'] as Map<String, dynamic>,
+            );
+          }
+        }
+      }
+
+      throw Exception('Format de réponse invalide');
+    } catch (e) {
+      deboger(['Erreur mise à jour réservation manuelle:', e]);
+      rethrow;
+    }
+  }
+
   /// Finalise une réservation après scan du QR code (propriétaire)
   /// Le secretKey est scanné depuis le QR code du locataire
   Future<void> finalizeReservation(String secretKey) async {
