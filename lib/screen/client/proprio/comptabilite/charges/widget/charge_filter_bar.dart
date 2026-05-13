@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/bloc/charge_filter_cubit/charge_filter_cubit.dart';
 import 'package:asfar/model/comptabilite/type_charge.dart';
-import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charge_statut_filter_chips.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 
-/// Barre de filtres complète : chips statut + 3 boutons (appart/type/période).
+/// Barre de filtres : 3 boutons (appart/type/période).
 ///
-/// Les pickers (appart/type/période) sont déclenchés par le caller via les
-/// callbacks pour garder ce widget découplé du contexte BLoC.
+/// Sémantique post-2026-05-13 : le filtre statut (payée/impayée/en retard)
+/// a été retiré — chaque charge est par définition un paiement enregistré.
 class ChargeFilterBar extends StatelessWidget {
   final ChargeFilterState state;
-  final ValueChanged<ChargeStatutFilter> onStatutChange;
   final VoidCallback onTapAppart;
   final VoidCallback onTapType;
   final VoidCallback onTapPeriod;
@@ -22,7 +20,6 @@ class ChargeFilterBar extends StatelessWidget {
   const ChargeFilterBar({
     super.key,
     required this.state,
-    required this.onStatutChange,
     required this.onTapAppart,
     required this.onTapType,
     required this.onTapPeriod,
@@ -32,44 +29,33 @@ class ChargeFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(height: 6),
-        ChargeStatutFilterChips(
-          selected: state.statut,
-          onSelect: onStatutChange,
-        ),
-        const SizedBox(height: 10),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Row(
-            children: [
-              _FilterPillButton(
-                icon: Icons.home_outlined,
-                label: appartLabel,
-                active: state.appartementId != null,
-                onTap: onTapAppart,
-              ),
-              const SizedBox(width: 8),
-              _FilterPillButton(
-                icon: Icons.category_outlined,
-                label: state.typeCharge?.label ?? 'Type',
-                active: state.typeCharge != null,
-                onTap: onTapType,
-              ),
-              const SizedBox(width: 8),
-              _FilterPillButton(
-                icon: Icons.calendar_today_outlined,
-                label: periodLabel,
-                active: state.month != 0,
-                onTap: onTapPeriod,
-              ),
-            ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      child: Row(
+        children: [
+          _FilterPillButton(
+            icon: Icons.home_outlined,
+            label: appartLabel,
+            active: state.appartementId != null,
+            onTap: onTapAppart,
           ),
-        ),
-      ],
+          const SizedBox(width: 8),
+          _FilterPillButton(
+            icon: Icons.category_outlined,
+            label: state.typeCharge?.label ?? 'Type',
+            active: state.typeCharge != null,
+            onTap: onTapType,
+          ),
+          const SizedBox(width: 8),
+          _FilterPillButton(
+            icon: Icons.calendar_today_outlined,
+            label: periodLabel,
+            active: state.month != 0,
+            onTap: onTapPeriod,
+          ),
+        ],
+      ),
     );
   }
 }

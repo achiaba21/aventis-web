@@ -61,27 +61,16 @@ class AppartementPreloadExecutor implements PreloadExecutor {
     }
   }
 
-  /// Vérifie si les données sont déjà chargées
+  /// Vérifie si les données sont déjà chargées.
+  ///
+  /// Après le refacto state unifié : on regarde simplement si on a un
+  /// `AppartementLoaded` non vide (peu importe la `source`).
   bool _checkIfDataAlreadyLoaded(AppartementState state) {
-    if (_isProprietaire) {
-      return state is ProprietaireAppartementsLoaded &&
-          state.appartements.isNotEmpty;
-    } else {
-      return (state is AppartementLoaded && state.appartements.isNotEmpty) ||
-          (state is FilteredAppartementsLoaded &&
-              state.appartements.isNotEmpty);
-    }
+    return state is AppartementLoaded && state.appartements.isNotEmpty;
   }
 
-  /// Vérifie si le chargement est terminé (succès ou erreur)
+  /// Vérifie si le chargement est terminé (succès ou erreur).
   bool _isLoadingComplete(AppartementState state) {
-    if (_isProprietaire) {
-      return state is ProprietaireAppartementsLoaded ||
-          state is AppartementError;
-    } else {
-      return state is AppartementLoaded ||
-          state is FilteredAppartementsLoaded ||
-          state is AppartementError;
-    }
+    return state is AppartementLoaded || state is AppartementError;
   }
 }

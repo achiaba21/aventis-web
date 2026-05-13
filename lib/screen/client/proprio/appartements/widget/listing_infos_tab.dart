@@ -50,7 +50,7 @@ class ListingInfosTab extends StatelessWidget {
     final beds = source?.nbLits ?? appartement.bedsCount;
     final rooms = source?.nbChambres ?? 0;
     final baths = source?.nbDouches ?? appartement.bathsCount;
-    return '${beds * 2} voyageurs · $rooms ch · $baths sdb';
+    return '$beds lit${beds > 1 ? 's' : ''} · $rooms ch · $baths sdb';
   }
 
   String _addressText() {

@@ -1,24 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/model/comptabilite/charge.dart';
-import 'package:asfar/model/comptabilite/charge_statut.dart';
 import 'package:asfar/model/comptabilite/type_charge.dart';
-import 'package:asfar/util/calc/charge_status_display.dart';
-
-/// Filtres de statut exposés sur l'écran liste des charges.
-enum ChargeStatutFilter {
-  tous,
-  payee,
-  impayee,
-  enRetard,
-}
 
 /// État des filtres in-memory de l'écran `ChargesListScreen`.
+///
+/// Sémantique post-2026-05-13 : chaque charge en base = un paiement déjà
+/// enregistré. Le filtre par statut (payée/impayée/en retard) a été retiré.
 ///
 /// La liste complète des charges est gérée par `ChargeBloc` — ce cubit ne
 /// stocke que les sélections de filtres et fournit le helper `apply()` pour
 /// filtrer la liste fournie par le BLoC parent.
 class ChargeFilterState {
-  final ChargeStatutFilter statut;
   final int? appartementId;
   final TypeCharge? typeCharge;
 
@@ -27,7 +19,6 @@ class ChargeFilterState {
   final int month;
 
   const ChargeFilterState({
-    this.statut = ChargeStatutFilter.tous,
     this.appartementId,
     this.typeCharge,
     required this.year,
@@ -40,13 +31,9 @@ class ChargeFilterState {
   }
 
   bool get hasActiveFilters =>
-      statut != ChargeStatutFilter.tous ||
-      appartementId != null ||
-      typeCharge != null ||
-      month != 0;
+      appartementId != null || typeCharge != null || month != 0;
 
   ChargeFilterState copyWith({
-    ChargeStatutFilter? statut,
     int? appartementId,
     bool clearAppartement = false,
     TypeCharge? typeCharge,
@@ -55,8 +42,8 @@ class ChargeFilterState {
     int? month,
   }) {
     return ChargeFilterState(
-      statut: statut ?? this.statut,
-      appartementId: clearAppartement ? null : (appartementId ?? this.appartementId),
+      appartementId:
+          clearAppartement ? null : (appartementId ?? this.appartementId),
       typeCharge: clearType ? null : (typeCharge ?? this.typeCharge),
       year: year ?? this.year,
       month: month ?? this.month,
@@ -66,7 +53,6 @@ class ChargeFilterState {
   /// Applique les filtres à une liste de charges (in-memory).
   List<Charge> apply(List<Charge> all) {
     return all.where((c) {
-      if (!_matchesStatut(c)) return false;
       if (appartementId != null && c.appartementId != appartementId) {
         return false;
       }
@@ -76,23 +62,8 @@ class ChargeFilterState {
     }).toList();
   }
 
-  bool _matchesStatut(Charge c) {
-    if (statut == ChargeStatutFilter.tous) return true;
-    final cs = ChargeStatusDisplay.statutOf(c);
-    switch (statut) {
-      case ChargeStatutFilter.payee:
-        return cs == ChargeStatut.payee;
-      case ChargeStatutFilter.impayee:
-        return cs != ChargeStatut.payee;
-      case ChargeStatutFilter.enRetard:
-        return cs == ChargeStatut.enRetard;
-      case ChargeStatutFilter.tous:
-        return true;
-    }
-  }
-
   bool _matchesPeriod(Charge c) {
-    final pivot = c.datePaiement ?? c.dateEcheance;
+    final pivot = c.dateDebut ?? c.dateEcheance ?? c.createdAt;
     if (pivot == null) return true;
     if (pivot.year != year) return false;
     if (month == 0) return true;
@@ -103,8 +74,6 @@ class ChargeFilterState {
 /// Cubit gérant les filtres in-memory de la liste des charges.
 class ChargeFilterCubit extends Cubit<ChargeFilterState> {
   ChargeFilterCubit() : super(ChargeFilterState.initial());
-
-  void setStatut(ChargeStatutFilter v) => emit(state.copyWith(statut: v));
 
   void setAppartement(int? id) {
     emit(state.copyWith(

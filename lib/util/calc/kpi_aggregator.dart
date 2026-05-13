@@ -1,5 +1,6 @@
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/model/ui_only/proprio_kpi.dart';
 
 /// Calcule les 4 KPIs du Dashboard propriétaire (grid 2×2) depuis les
@@ -130,7 +131,7 @@ class KpiAggregator {
 
   static double _averageNote(List<Appartement> appartements) {
     if (appartements.isEmpty) return 0;
-    final sum = appartements.fold<double>(0, (s, a) => s + a.note);
+    final sum = appartements.fold<double>(0, (s, a) => s + a.rating);
     return sum / appartements.length;
   }
 }

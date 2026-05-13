@@ -57,11 +57,9 @@ class _ChargeDetailView extends StatelessWidget {
           'Supprimer la charge',
           style: TextStyle(color: AppColors.text),
         ),
-        content: Text(
-          charge.estPaye == true
-              ? 'Cette charge a déjà été payée. Confirmer la suppression ?'
-              : 'Cette charge sera définitivement supprimée. Confirmer ?',
-          style: const TextStyle(color: AppColors.text2),
+        content: const Text(
+          'Cette charge sera définitivement supprimée. Confirmer ?',
+          style: TextStyle(color: AppColors.text2),
         ),
         actions: [
           TextButton(
@@ -93,12 +91,6 @@ class _ChargeDetailView extends StatelessWidget {
   ) {
     final bloc = context.read<ChargeDetailBloc>();
     switch (action) {
-      case ChargeDetailAction.markPaid:
-        bloc.add(MarkPaid());
-        return;
-      case ChargeDetailAction.markUnpaid:
-        bloc.add(MarkUnpaid());
-        return;
       case ChargeDetailAction.edit:
         pushScreen(
           context,
@@ -117,21 +109,11 @@ class _ChargeDetailView extends StatelessWidget {
   void _handleActionResult(BuildContext context, ChargeDetailState state) {
     if (state is ChargeDetailActionSuccess) {
       final label = _successLabelOf(state.action);
-      if (label != null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(label),
-          behavior: SnackBarBehavior.floating,
-        ));
-      }
-      // Actions terminales : retour automatique à la liste pour voir le
-      // statut mis à jour avec ses pairs (évite tout rendu intermédiaire
-      // pendant la cascade de states ActionInProgress → Loaded → Success).
-      const terminales = {
-        ChargeDetailAction.delete,
-        ChargeDetailAction.markPaid,
-        ChargeDetailAction.markUnpaid,
-      };
-      if (terminales.contains(state.action)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(label),
+        behavior: SnackBarBehavior.floating,
+      ));
+      if (state.action == ChargeDetailAction.delete) {
         back(context);
       }
     }
@@ -144,12 +126,8 @@ class _ChargeDetailView extends StatelessWidget {
     }
   }
 
-  String? _successLabelOf(ChargeDetailAction a) {
+  String _successLabelOf(ChargeDetailAction a) {
     switch (a) {
-      case ChargeDetailAction.markPaid:
-        return 'Charge marquée payée';
-      case ChargeDetailAction.markUnpaid:
-        return 'Charge remarquée impayée';
       case ChargeDetailAction.edit:
         return 'Charge modifiée';
       case ChargeDetailAction.delete:
@@ -221,7 +199,6 @@ class _ChargeDetailView extends StatelessWidget {
               ? state.action
               : null;
           return ChargeDetailActionsBar(
-            charge: charge,
             actionInProgress: actionInProgress,
             onAction: (a) => _onAction(context, a, charge),
           );

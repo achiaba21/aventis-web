@@ -2,18 +2,22 @@ import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
+import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/model/residence/appartement_list_source.dart';
 import 'package:asfar/service/model/appartement/appartement_service.dart';
 import 'package:asfar/service/repository/appartement_repository.dart';
 import 'package:asfar/util/custom_exception.dart';
 import 'package:asfar/util/error_handler.dart';
 import 'package:asfar/util/function.dart';
 
-/// BLoC pour la gestion des appartements
+/// BLoC pour la gestion des appartements.
 ///
-/// Utilise AppartementRepository avec pattern cache-first :
-/// 1. Charge depuis le cache Hive immédiatement
-/// 2. Rafraîchit depuis l'API en arrière-plan
-/// 3. Émet un nouvel état quand les données API arrivent
+/// Pattern cache-first via `AppartementRepository` aussi bien côté locataire
+/// (feed découverte) que côté propriétaire (mes biens). Le filtrage est géré
+/// par `AppartementFilterCubit` dédié.
+///
+/// Le CRUD côté proprio émet un `AppartementLoaded` unique avec
+/// `transientMessage` — plus de `Future.delayed` / double émission.
 class AppartementBloc extends Bloc<AppartementEvent, AppartementState> {
   late AppartementService appartementService;
   final AppartementRepository _repository = AppartementRepository();
@@ -21,264 +25,253 @@ class AppartementBloc extends Bloc<AppartementEvent, AppartementState> {
   AppartementBloc() : super(AppartementInitial()) {
     appartementService = AppartementService();
 
-    on<LoadAppartements>((event, emit) async {
-      final currentAppartements = state.appartements;
-      emit(AppartementLoading(appartements: currentAppartements));
-      try {
-        final appartements = await appartementService.getAppartements();
-        deboger(["appartements :", appartements]);
-        emit(AppartementLoaded(appartements));
-      } on CustomException catch (e) {
-        deboger([e]);
-        emit(AppartementError(e.message, appartements: currentAppartements));
-      } on DioException catch (e) {
-        deboger(["dio :", e]);
-        emit(AppartementError(e.response?.data.toString() ?? "Erreur de récupération", appartements: currentAppartements));
-      } catch (e) {
-        emit(AppartementError("Une erreur est survenue", appartements: currentAppartements));
-        deboger(e);
-      }
-    });
+    on<LoadAppartements>(_onLoadAppartements);
+    on<RefreshAppartements>(_onRefreshAppartements);
+    on<LoadAppartementsByOwner>(_onLoadAppartementsByOwner);
+    on<LoadProprietaireAppartements>(_onLoadProprietaireAppartements);
+    on<RefreshProprietaireAppartements>(_onRefreshProprietaireAppartements);
+    on<UpdateAppartementsFromApi>(_onUpdateAppartementsFromApi);
+    on<CreateAppartement>(_onCreateAppartement);
+    on<UpdateAppartement>(_onUpdateAppartement);
+    on<DeleteAppartement>(_onDeleteAppartement);
+    on<SyncFromResidences>(_onSyncFromResidences);
+    on<ResetAppartementState>(_onResetAppartementState);
+  }
 
-    on<RefreshAppartements>((event, emit) async {
-      final currentAppartements = state.appartements;
-      try {
-        final appartements = await appartementService.getAppartements();
-        emit(AppartementLoaded(appartements));
-      } on CustomException catch (e) {
-        emit(AppartementError(e.message, appartements: currentAppartements));
-      } on DioException catch (e) {
-        emit(AppartementError(e.response?.data.toString() ?? "Erreur de récupération", appartements: currentAppartements));
-      } catch (e) {
-        emit(AppartementError("Une erreur est survenue", appartements: currentAppartements));
-        deboger(e);
-      }
-    });
+  // ==================== CHARGEMENT LOCATAIRE (cache-first) ====================
 
-    on<LoadAppartementsByOwner>((event, emit) async {
-      final currentAppartements = state.appartements;
-      emit(AppartementLoading(appartements: currentAppartements));
-      try {
-        final appartements = await appartementService.getAppartementsByOwner(event.proprietaireId);
-        deboger(["appartements by owner :", appartements]);
-        emit(AppartementsByOwnerLoaded(appartements, event.proprietaireId));
-      } on CustomException catch (e) {
-        deboger([e]);
-        emit(AppartementError(e.message, appartements: currentAppartements));
-      } on DioException catch (e) {
-        deboger(["dio :", e]);
-        emit(AppartementError(e.response?.data.toString() ?? "Erreur de récupération", appartements: currentAppartements));
-      } catch (e) {
-        emit(AppartementError("Une erreur est survenue", appartements: currentAppartements));
-        deboger(e);
-      }
-    });
+  Future<void> _onLoadAppartements(
+    LoadAppartements event,
+    Emitter<AppartementState> emit,
+  ) async {
+    final current = state.appartements;
+    emit(AppartementLoading(appartements: current));
+    try {
+      final appartements = await _repository.getAllAppartements(
+        forceRefresh: false,
+        onApiData: (apiAppartements) {
+          add(UpdateAppartementsFromApi(apiAppartements));
+        },
+      );
+      emit(AppartementLoaded(
+        appartements,
+        source: AppartementListSource.all,
+      ));
+    } catch (e) {
+      _emitError(emit, e, current);
+    }
+  }
 
-    on<LoadFilteredAppartements>((event, emit) async {
-      final currentAppartements = state.appartements;
-      emit(AppartementLoading(appartements: currentAppartements));
-      try {
-        final appartements = await appartementService.getFilteredAppartements(event.criteria);
-        deboger(["filtered appartements :", appartements]);
-        emit(FilteredAppartementsLoaded(appartements, event.criteria));
-      } on CustomException catch (e) {
-        deboger([e]);
-        emit(AppartementError(e.message, appartements: currentAppartements));
-      } on DioException catch (e) {
-        deboger(["dio :", e]);
-        emit(AppartementError(e.response?.data.toString() ?? "Erreur de récupération", appartements: currentAppartements));
-      } catch (e) {
-        emit(AppartementError("Une erreur est survenue", appartements: currentAppartements));
-        deboger(e);
-      }
-    });
+  Future<void> _onRefreshAppartements(
+    RefreshAppartements event,
+    Emitter<AppartementState> emit,
+  ) async {
+    final current = state.appartements;
+    try {
+      final appartements = await _repository.getAllAppartements(
+        forceRefresh: true,
+      );
+      emit(AppartementLoaded(
+        appartements,
+        source: AppartementListSource.all,
+      ));
+    } catch (e) {
+      _emitError(emit, e, current);
+    }
+  }
 
-    on<LoadFilterOptions>((event, emit) async {
-      final currentAppartements = state.appartements;
-      try {
-        final options = await appartementService.getFilterOptions();
-        deboger(["filter options :", options]);
-        emit(FilterOptionsLoaded(options, currentAppartements));
-      } on CustomException catch (e) {
-        deboger([e]);
-        emit(AppartementError(e.message, appartements: currentAppartements));
-      } on DioException catch (e) {
-        deboger(["dio :", e]);
-        emit(AppartementError(e.response?.data.toString() ?? "Erreur de récupération", appartements: currentAppartements));
-      } catch (e) {
-        emit(AppartementError("Une erreur est survenue", appartements: currentAppartements));
-        deboger(e);
-      }
-    });
+  Future<void> _onLoadAppartementsByOwner(
+    LoadAppartementsByOwner event,
+    Emitter<AppartementState> emit,
+  ) async {
+    final current = state.appartements;
+    emit(AppartementLoading(appartements: current));
+    try {
+      final appartements =
+          await appartementService.getAppartementsByOwner(event.proprietaireId);
+      emit(AppartementLoaded(
+        appartements,
+        source: AppartementListSource.byOwner,
+        ownerId: event.proprietaireId,
+      ));
+    } catch (e) {
+      _emitError(emit, e, current);
+    }
+  }
 
-    on<ClearFilters>((event, emit) async {
-      final currentAppartements = state.appartements;
-      emit(AppartementLoading(appartements: currentAppartements));
-      try {
-        final appartements = await appartementService.getAppartements();
-        deboger(["clear filters - all appartements :", appartements]);
-        emit(AppartementLoaded(appartements));
-      } on CustomException catch (e) {
-        deboger([e]);
-        emit(AppartementError(e.message, appartements: currentAppartements));
-      } on DioException catch (e) {
-        deboger(["dio :", e]);
-        emit(AppartementError(e.response?.data.toString() ?? "Erreur de récupération", appartements: currentAppartements));
-      } catch (e) {
-        emit(AppartementError("Une erreur est survenue", appartements: currentAppartements));
-        deboger(e);
-      }
-    });
+  // ==================== CHARGEMENT PROPRIO (cache-first) ====================
 
-    on<LoadProprietaireAppartements>((event, emit) async {
-      final currentAppartements = state.appartements;
-      emit(AppartementLoading(appartements: currentAppartements));
-      try {
-        // Pattern cache-first : retourne le cache immédiatement
-        // puis rafraîchit en arrière-plan
-        final appartements = await _repository.getAppartements(
-          forceRefresh: false,
-          onApiData: (apiAppartements) {
-            // Quand les données API arrivent, mettre à jour l'état
-            add(UpdateAppartementsFromApi(apiAppartements));
-          },
-        );
-        deboger(["propriétaire appartements (cache):", appartements.length]);
-        emit(ProprietaireAppartementsLoaded(appartements));
-      } catch (e) {
-        ErrorHandler.logError("LOAD_PROPRIETAIRE_APPARTEMENTS", e);
-        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
-        emit(AppartementError(errorMessage, appartements: currentAppartements));
-      }
-    });
+  Future<void> _onLoadProprietaireAppartements(
+    LoadProprietaireAppartements event,
+    Emitter<AppartementState> emit,
+  ) async {
+    final current = state.appartements;
+    emit(AppartementLoading(appartements: current));
+    try {
+      final appartements = await _repository.getAppartements(
+        forceRefresh: false,
+        onApiData: (apiAppartements) {
+          add(UpdateAppartementsFromApi(apiAppartements));
+        },
+      );
+      emit(AppartementLoaded(
+        appartements,
+        source: AppartementListSource.proprietaire,
+      ));
+    } catch (e) {
+      _emitError(emit, e, current);
+    }
+  }
 
-    /// Met à jour l'état avec les données fraîches de l'API
-    on<UpdateAppartementsFromApi>((event, emit) async {
-      deboger(['[AppartementBloc] Mise à jour avec données API: ${event.appartements.length} appartements']);
-      emit(ProprietaireAppartementsLoaded(event.appartements));
-    });
+  Future<void> _onRefreshProprietaireAppartements(
+    RefreshProprietaireAppartements event,
+    Emitter<AppartementState> emit,
+  ) async {
+    final current = state.appartements;
+    try {
+      final appartements =
+          await _repository.getAppartements(forceRefresh: true);
+      emit(AppartementLoaded(
+        appartements,
+        source: AppartementListSource.proprietaire,
+      ));
+    } catch (e) {
+      _emitError(emit, e, current);
+    }
+  }
 
-    /// Rafraîchit les appartements du propriétaire depuis l'API
-    on<RefreshProprietaireAppartements>((event, emit) async {
-      final currentAppartements = state.appartements;
-      try {
-        // Forcer le rechargement depuis l'API
-        final appartements = await _repository.getAppartements(forceRefresh: true);
-        deboger(["appartements rafraîchis depuis l'API :", appartements.length]);
-        emit(ProprietaireAppartementsLoaded(appartements));
-      } catch (e) {
-        ErrorHandler.logError("REFRESH_PROPRIETAIRE_APPARTEMENTS", e);
-        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
-        emit(AppartementError(errorMessage, appartements: currentAppartements));
-      }
-    });
+  void _onUpdateAppartementsFromApi(
+    UpdateAppartementsFromApi event,
+    Emitter<AppartementState> emit,
+  ) {
+    final currentSource = state is AppartementLoaded
+        ? (state as AppartementLoaded).source
+        : AppartementListSource.proprietaire;
+    final currentOwnerId = state is AppartementLoaded
+        ? (state as AppartementLoaded).ownerId
+        : null;
+    emit(AppartementLoaded(
+      event.appartements,
+      source: currentSource,
+      ownerId: currentOwnerId,
+    ));
+  }
 
-    // ==================== CRUD HANDLERS (Propriétaire) ====================
+  // ==================== CRUD ====================
 
-    /// Crée un nouvel appartement via le Repository
-    on<CreateAppartement>((event, emit) async {
-      final currentAppartements = state.appartements;
-      emit(AppartementLoading(appartements: currentAppartements));
-      try {
-        // Utiliser la méthode avec ou sans images selon le cas
-        if (event.images != null && event.images!.isNotEmpty) {
-          await _repository.createAppartementWithImages(event.appartement, event.images!);
-        } else {
-          await _repository.saveAppartement(event.appartement);
-        }
-        deboger(["appartement créé avec succès"]);
-
-        // Le cache a été mis à jour par le repository
-        final appartements = _repository.getCachedAppartements();
-
-        // DOUBLE ÉMISSION : 1. Message de succès temporaire
-        emit(AppartementOperationSuccess("Appartement créé avec succès", appartements));
-
-        // DOUBLE ÉMISSION : 2. État stable pour actualisation automatique
-        await Future.delayed(const Duration(milliseconds: 300));
-        emit(ProprietaireAppartementsLoaded(List.from(appartements)));
-
-        deboger(["état stable émis - liste actualisée"]);
-      } catch (e) {
-        ErrorHandler.logError("CREATE_APPARTEMENT", e);
-        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
-        emit(AppartementError(errorMessage, appartements: currentAppartements));
-      }
-    });
-
-    /// Met à jour un appartement existant via le Repository
-    on<UpdateAppartement>((event, emit) async {
-      final currentAppartements = state.appartements;
-      emit(AppartementLoading(appartements: currentAppartements));
-      try {
-        // Utiliser updateAppartementWithImages pour gérer les photos
-        await _repository.updateAppartementWithImages(
-          event.appartement.id!,
+  Future<void> _onCreateAppartement(
+    CreateAppartement event,
+    Emitter<AppartementState> emit,
+  ) async {
+    final current = state.appartements;
+    emit(AppartementLoading(appartements: current));
+    try {
+      if (event.images != null && event.images!.isNotEmpty) {
+        await _repository.createAppartementWithImages(
           event.appartement,
-          event.images ?? [],
-          photosToDelete: event.photosToDelete,
+          event.images!,
         );
-        deboger(["appartement mis à jour avec succès"]);
-
-        // Le cache a été mis à jour par le repository
-        final appartements = _repository.getCachedAppartements();
-
-        // DOUBLE ÉMISSION : 1. Message de succès temporaire
-        emit(AppartementOperationSuccess("Appartement modifié avec succès", appartements));
-
-        // DOUBLE ÉMISSION : 2. État stable pour actualisation automatique
-        await Future.delayed(const Duration(milliseconds: 300));
-        emit(ProprietaireAppartementsLoaded(List.from(appartements)));
-
-        deboger(["état stable émis - liste actualisée"]);
-      } catch (e) {
-        ErrorHandler.logError("UPDATE_APPARTEMENT", e);
-        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
-        emit(AppartementError(errorMessage, appartements: currentAppartements));
+      } else {
+        await _repository.saveAppartement(event.appartement);
       }
-    });
+      emit(AppartementLoaded(
+        _repository.getCachedAppartements(),
+        source: AppartementListSource.proprietaire,
+        transientMessage: 'Appartement créé avec succès',
+      ));
+    } catch (e) {
+      ErrorHandler.logError("CREATE_APPARTEMENT", e);
+      emit(AppartementError(
+        ErrorHandler.extractGenericErrorMessage(e),
+        appartements: current,
+      ));
+    }
+  }
 
-    /// Supprime un appartement via le Repository
-    on<DeleteAppartement>((event, emit) async {
-      final currentAppartements = state.appartements;
-      emit(AppartementLoading(appartements: currentAppartements));
-      try {
-        await _repository.deleteAppartement(event.appartementId);
-        deboger(["appartement supprimé avec succès"]);
+  Future<void> _onUpdateAppartement(
+    UpdateAppartement event,
+    Emitter<AppartementState> emit,
+  ) async {
+    final current = state.appartements;
+    emit(AppartementLoading(appartements: current));
+    try {
+      await _repository.updateAppartementWithImages(
+        event.appartement.id!,
+        event.appartement,
+        event.images ?? [],
+        photosToDelete: event.photosToDelete,
+      );
+      emit(AppartementLoaded(
+        _repository.getCachedAppartements(),
+        source: AppartementListSource.proprietaire,
+        transientMessage: 'Appartement modifié avec succès',
+      ));
+    } catch (e) {
+      ErrorHandler.logError("UPDATE_APPARTEMENT", e);
+      emit(AppartementError(
+        ErrorHandler.extractGenericErrorMessage(e),
+        appartements: current,
+      ));
+    }
+  }
 
-        // Le cache a été mis à jour par le repository
-        final appartements = _repository.getCachedAppartements();
+  Future<void> _onDeleteAppartement(
+    DeleteAppartement event,
+    Emitter<AppartementState> emit,
+  ) async {
+    final current = state.appartements;
+    emit(AppartementLoading(appartements: current));
+    try {
+      await _repository.deleteAppartement(event.appartementId);
+      emit(AppartementLoaded(
+        _repository.getCachedAppartements(),
+        source: AppartementListSource.proprietaire,
+        transientMessage: 'Appartement supprimé avec succès',
+      ));
+    } catch (e) {
+      ErrorHandler.logError("DELETE_APPARTEMENT", e);
+      emit(AppartementError(
+        ErrorHandler.extractGenericErrorMessage(e),
+        appartements: current,
+      ));
+    }
+  }
 
-        // DOUBLE ÉMISSION : 1. Message de succès temporaire
-        emit(AppartementOperationSuccess("Appartement supprimé avec succès", appartements));
+  // ==================== SYNC / RESET ====================
 
-        // DOUBLE ÉMISSION : 2. État stable pour actualisation automatique
-        await Future.delayed(const Duration(milliseconds: 300));
-        emit(ProprietaireAppartementsLoaded(List.from(appartements)));
+  void _onSyncFromResidences(
+    SyncFromResidences event,
+    Emitter<AppartementState> emit,
+  ) {
+    emit(AppartementLoaded(
+      event.appartements,
+      source: AppartementListSource.proprietaire,
+    ));
+  }
 
-        deboger(["état stable émis - liste actualisée"]);
-      } catch (e) {
-        ErrorHandler.logError("DELETE_APPARTEMENT", e);
-        final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
-        emit(AppartementError(errorMessage, appartements: currentAppartements));
-      }
-    });
+  void _onResetAppartementState(
+    ResetAppartementState event,
+    Emitter<AppartementState> emit,
+  ) {
+    emit(AppartementInitial());
+  }
 
-    // ==================== SYNCHRONISATION ====================
+  // ==================== Helpers ====================
 
-    /// Synchronise les appartements depuis une liste préchargée
-    on<SyncFromResidences>((event, emit) {
-      deboger(['[AppartementBloc] Sync préchargement: ${event.appartements.length} appartements']);
-      emit(AppartementLoaded(event.appartements));
-    });
-
-    // ==================== RÉINITIALISATION ====================
-
-    /// Réinitialise le BLoC à son état Initial
-    /// Utilisé lors d'une nouvelle session utilisateur pour garantir l'affichage des skeletons
-    on<ResetAppartementState>((event, emit) {
-      deboger(['[AppartementBloc] Réinitialisation à l\'état Initial']);
-      emit(AppartementInitial());
-    });
+  void _emitError(
+    Emitter<AppartementState> emit,
+    Object e,
+    List<Appartement> current,
+  ) {
+    String msg;
+    if (e is CustomException) {
+      msg = e.message;
+    } else if (e is DioException) {
+      msg = e.response?.data?.toString() ?? 'Erreur de récupération';
+    } else {
+      msg = 'Une erreur est survenue';
+    }
+    deboger(['[AppartementBloc] $msg', e]);
+    emit(AppartementError(msg, appartements: current));
   }
 }

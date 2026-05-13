@@ -18,9 +18,11 @@ import 'package:asfar/model/reservation/reservation_demarcheur.dart';
 ///   sur `ReservationDemarcheur.montantCommission` (0 pour les autres types).
 ///
 /// **Règle métier manuelle :** une `ReservationManuelle` est créée par le
-/// proprio pour un client externe (paiement hors plateforme). Le backend la
-/// crée directement en `CONFIRMER` et on considère que l'argent est reçu à
-/// ce moment-là.
+/// proprio pour un client externe (paiement hors plateforme). Depuis le
+/// backend 2026-05-13, elle est créée directement en `FINALISER` (le
+/// proprio gère un client externe sans paiement plateforme, donc pas
+/// d'étapes intermédiaires). La compatibilité avec l'ancien `CONFIRMER` est
+/// conservée ci-dessous pour les résas créées avant cette date.
 extension ReservationCounted on Reservation {
   /// La résa est dans le revenu encaissé (argent reçu).
   bool get isEncaissed {

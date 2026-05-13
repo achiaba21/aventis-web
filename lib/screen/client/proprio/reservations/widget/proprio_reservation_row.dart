@@ -6,6 +6,7 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Ligne d'une réservation côté propriétaire — `ProprioReservationsScreen`.
@@ -68,7 +69,11 @@ class ProprioReservationRow extends StatelessWidget {
               SizedBox(
                 width: 44,
                 height: 44,
-                child: ImgPh(tone: tone, radius: 10),
+                child: DomainImage(
+                  path: appart?.firstPhotoPath,
+                  placeholder: ImgPh(tone: tone, radius: 10),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

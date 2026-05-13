@@ -6,10 +6,8 @@ import 'package:asfar/bloc/charge_bloc/charge_event.dart';
 import 'package:asfar/bloc/charge_bloc/charge_state.dart';
 import 'package:asfar/bloc/charge_filter_cubit/charge_filter_cubit.dart';
 import 'package:asfar/model/comptabilite/charge.dart';
-import 'package:asfar/model/comptabilite/charge_statut.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/charges/charge_detail_screen.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/charges/charge_form_screen.dart';
-import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charge_alerts_banner.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charge_appartement_picker.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charge_filter_bar.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charge_period_picker.dart';
@@ -18,16 +16,15 @@ import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charge_t
 import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charges_empty_view.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charges_loading_view.dart';
 import 'package:asfar/theme/app_colors.dart';
-import 'package:asfar/util/calc/charge_status_display.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 
 /// Écran liste des charges du propriétaire — accessible depuis Finances.
 ///
-/// Affiche les charges filtrées par 4 critères (statut, appartement, type,
-/// période) via `ChargeFilterCubit`. Permet le swipe-to-pay et l'ouverture
-/// du détail au tap. FAB pour créer une nouvelle charge.
+/// Sémantique post-2026-05-13 : chaque charge = un paiement déjà enregistré.
+/// Plus de bannière "en retard", plus de swipe-to-pay. Filtres restants :
+/// appartement / type / période.
 class ChargesListScreen extends StatelessWidget {
   const ChargesListScreen({super.key});
 
@@ -65,17 +62,6 @@ class _ChargesListViewState extends State<_ChargesListView> {
 
   void _onTapCharge(Charge c) {
     pushScreen(context, ChargeDetailScreen(charge: c));
-  }
-
-  Future<bool> _onSwipeAction(Charge c) async {
-    if (c.id == null) return false;
-    if (c.estPaye == true) {
-      final reset = c.copyWith(estPaye: false, datePaiement: null);
-      context.read<ChargeBloc>().add(UpdateCharge(charge: reset));
-    } else {
-      context.read<ChargeBloc>().add(MarkChargeAsPaid(chargeId: c.id!));
-    }
-    return false;
   }
 
   Future<void> _onTapAppartPicker() async {
@@ -130,20 +116,6 @@ class _ChargesListViewState extends State<_ChargesListView> {
     return '${monthsShort[state.month]} ${state.year}';
   }
 
-  int _retardCount(List<Charge> charges) {
-    return charges
-        .where((c) =>
-            ChargeStatusDisplay.statutOf(c) == ChargeStatut.enRetard)
-        .length;
-  }
-
-  int _retardAmount(List<Charge> charges) {
-    return charges
-        .where((c) =>
-            ChargeStatusDisplay.statutOf(c) == ChargeStatut.enRetard)
-        .fold<int>(0, (s, c) => s + (c.montant ?? 0).round());
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,8 +143,6 @@ class _ChargesListViewState extends State<_ChargesListView> {
                 final isLoading =
                     chargeState is ChargeLoading && all.isEmpty;
                 final filtered = filterState.apply(all);
-                final retardCount = _retardCount(all);
-                final retardAmount = _retardAmount(all);
                 final hasAppartements = context
                     .read<AppartementBloc>()
                     .state
@@ -183,25 +153,12 @@ class _ChargesListViewState extends State<_ChargesListView> {
                   children: [
                     ChargeFilterBar(
                       state: filterState,
-                      onStatutChange: (v) =>
-                          context.read<ChargeFilterCubit>().setStatut(v),
                       onTapAppart: _onTapAppartPicker,
                       onTapType: _onTapTypePicker,
                       onTapPeriod: _onTapPeriodPicker,
                       appartLabel: _appartLabel(filterState),
                       periodLabel: _periodLabel(filterState),
                     ),
-                    if (retardCount > 0) ...[
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 18),
-                        child: ChargeAlertsBanner(
-                          retardCount: retardCount,
-                          retardAmount: retardAmount,
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 12),
                     Expanded(
                       child: isLoading
@@ -226,7 +183,6 @@ class _ChargesListViewState extends State<_ChargesListView> {
                                     return ChargeRow(
                                       charge: c,
                                       onTap: () => _onTapCharge(c),
-                                      onSwipeAction: _onSwipeAction,
                                     );
                                   },
                                 ),

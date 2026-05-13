@@ -4,12 +4,8 @@ import 'package:asfar/model/comptabilite/type_charge.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
-import 'package:asfar/util/calc/charge_status_display.dart';
-import 'package:asfar/widget/badge/badge_status.dart';
 
-/// Header sobre du `ChargeDetailScreen` : icône type + libellé + appart + badge.
-///
-/// Pas de hero gradient — l'or reste réservé aux revenus.
+/// Header sobre du `ChargeDetailScreen` : icône type + libellé + appart.
 class ChargeDetailHeader extends StatelessWidget {
   final Charge charge;
 
@@ -17,7 +13,6 @@ class ChargeDetailHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statut = ChargeStatusDisplay.statutOf(charge);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -65,11 +60,6 @@ class ChargeDetailHeader extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: 8),
-                BadgeStatus(
-                  text: ChargeStatusDisplay.labelOf(statut),
-                  tone: ChargeStatusDisplay.toneOf(statut),
-                ),
               ],
             ),
           ),

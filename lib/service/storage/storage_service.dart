@@ -32,6 +32,8 @@ class StorageService {
   static const String _residencesLastSyncKey = 'residences_last_sync';
   static const String _appartementsKey = 'appartements';
   static const String _appartementsLastSyncKey = 'appartements_last_sync';
+  static const String _appartementsLocataireKey = 'appartements_locataire';
+  static const String _appartementsLocataireLastSyncKey = 'appartements_locataire_last_sync';
   static const String _proprietairesKey = 'proprietaires';
   static const String _reservationsKey = 'reservations';
   static const String _reservationsLastSyncKey = 'reservations_last_sync';
@@ -308,6 +310,56 @@ class StorageService {
     _ensureInitialized();
     await _appartementsBox.clear();
     deboger("Appartements supprimés de StorageService");
+  }
+
+  // ==================== APPARTEMENTS LOCATAIRE (feed découverte) ====================
+
+  /// Récupère le cache du feed locataire (endpoint public `auth/appartement/apparts`).
+  ///
+  /// Distinct du cache proprio pour éviter les collisions quand un user est
+  /// à la fois locataire et propriétaire (vue active).
+  List<Map<String, dynamic>> getAppartementsLocataire() {
+    _ensureInitialized();
+    try {
+      final data = _appartementsBox.get(_appartementsLocataireKey);
+      if (data == null) return [];
+      final List<dynamic> list = data is String
+          ? jsonDecode(data)
+          : List.from(data);
+      return list.map((e) => _convertMap(e as Map)).toList();
+    } catch (e) {
+      deboger(["Erreur getAppartementsLocataire:", e]);
+      return [];
+    }
+  }
+
+  /// Sauvegarde le cache du feed locataire.
+  Future<void> saveAppartementsLocataire(
+    List<Map<String, dynamic>> appartements,
+  ) async {
+    _ensureInitialized();
+    await _appartementsBox.put(_appartementsLocataireKey, appartements);
+    await _appartementsBox.put(
+      _appartementsLocataireLastSyncKey,
+      DateTime.now().toIso8601String(),
+    );
+    deboger("Appartements locataire sauvegardés: ${appartements.length}");
+  }
+
+  /// Date de dernière synchronisation du cache feed locataire.
+  DateTime? getAppartementsLocataireLastSync() {
+    _ensureInitialized();
+    final syncDate =
+        _appartementsBox.get(_appartementsLocataireLastSyncKey) as String?;
+    return syncDate != null ? DateTime.tryParse(syncDate) : null;
+  }
+
+  /// Vide le cache feed locataire.
+  Future<void> clearAppartementsLocataire() async {
+    _ensureInitialized();
+    await _appartementsBox.delete(_appartementsLocataireKey);
+    await _appartementsBox.delete(_appartementsLocataireLastSyncKey);
+    deboger("Cache appartements locataire vidé");
   }
 
   // ==================== PROPRIETAIRES (cache locataire) ====================

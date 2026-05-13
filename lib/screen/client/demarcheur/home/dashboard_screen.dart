@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/bloc/compte_bloc/compte_bloc.dart';
 import 'package:asfar/bloc/compte_bloc/compte_event.dart';
 import 'package:asfar/bloc/compte_bloc/compte_state.dart';
@@ -69,10 +70,11 @@ class _DemarcheurDashboardState extends State<DemarcheurDashboard> {
   }
 
   /// Top 5 appartements à pousser, triés par note décroissante.
+  /// Utilise `rating` (non-nullable, dérive `note ?? avgCommentaires ?? 0.0`).
   List<Appartement> _topAppartsToPush(List<Appartement> apparts) {
     if (apparts.isEmpty) return const [];
     final sorted = List.of(apparts)
-      ..sort((a, b) => (b.note).compareTo(a.note));
+      ..sort((a, b) => b.rating.compareTo(a.rating));
     return sorted.take(5).toList();
   }
 

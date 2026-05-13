@@ -5,6 +5,7 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Card carrée 1:1 pour grid 2 cols — utilisée dans Saved (Favoris).
@@ -45,7 +46,10 @@ class SavedListingCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: ImgPh(tone: appartement.tone, radius: 0),
+                      child: DomainImage(
+                        path: appartement.firstPhotoPath,
+                        placeholder: ImgPh(tone: appartement.tone, radius: 0),
+                      ),
                     ),
                     Positioned(
                       top: 8,

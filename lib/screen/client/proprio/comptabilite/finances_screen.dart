@@ -11,7 +11,6 @@ import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/model/comptabilite/charge.dart';
-import 'package:asfar/model/comptabilite/charge_statut.dart';
 import 'package:asfar/model/reservation/reservation_counted.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/charges/charges_list_screen.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/widget/benefice_net_hero_card.dart';
@@ -25,13 +24,11 @@ import 'package:asfar/service/export/finances_csv_exporter.dart';
 import 'package:asfar/service/export/finances_pdf_exporter.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
-import 'package:asfar/util/calc/charge_status_display.dart';
 import 'package:asfar/util/calc/finance_period.dart';
 import 'package:asfar/util/calc/pnl_aggregator.dart';
 import 'package:asfar/util/calc/property_perf_aggregator.dart';
 import 'package:asfar/util/function.dart';
 import 'package:asfar/util/navigation.dart';
-import 'package:asfar/widget/finance/charges_alert_card.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
@@ -396,24 +393,6 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                             canGoNext: _canGoNextPeriod,
                             onPrev: _onPeriodPrev,
                             onNext: _onPeriodNext,
-                          ),
-                          const SizedBox(height: 16),
-                          ChargesAlertCard(
-                            retardCount: charges
-                                .where((c) =>
-                                    ChargeStatusDisplay.statutOf(c) ==
-                                    ChargeStatut.enRetard)
-                                .length,
-                            retardAmount: charges
-                                .where((c) =>
-                                    ChargeStatusDisplay.statutOf(c) ==
-                                    ChargeStatut.enRetard)
-                                .fold<int>(0,
-                                    (s, c) => s + (c.montant ?? 0).round()),
-                            onTap: () => pushScreen(
-                              context,
-                              const ChargesListScreen(),
-                            ),
                           ),
                           const SizedBox(height: 22),
                           const Text('Compte de résultat',

@@ -1,20 +1,25 @@
 import 'package:asfar/model/comptabilite/type_charge.dart';
 import 'package:asfar/model/comptabilite/frequence_charge.dart';
 
+/// Charge enregistrée par le proprio.
+///
+/// Sémantique post-2026-05-13 : **chaque charge représente un paiement déjà
+/// effectué**. Les notions `estPaye`, `datePaiement`, `estEnRetard` ont été
+/// retirées du backend ; toute charge en base est par définition payée.
+///
+/// `dateEcheance` ne sert plus qu'à projeter la prochaine occurrence pour les
+/// charges récurrentes (vu par `AlerteChargeResponse.aVenir`). Côté Flutter,
+/// la sémantique courante est : `dateDebut` = date du paiement enregistré.
 class Charge {
   int? id;
   int? appartementId; // OBLIGATOIRE - la charge est liée à un appartement
   String? appartementNom; // Nom de l'appartement (retourné par le serveur)
-  int? residenceId; // ID de la résidence (déduit via appartement, retourné par le serveur)
-  String? residenceNom; // Nom de la résidence (retourné par le serveur)
   String? typeChargeValue;
   String? libelle;
   double? montant;
   String? frequenceValue;
-  DateTime? dateDebut; // Date de début pour les charges récurrentes
-  DateTime? dateEcheance; // Prochaine échéance
-  DateTime? datePaiement;
-  bool? estPaye;
+  DateTime? dateDebut;
+  DateTime? dateEcheance;
   bool? estRecurrent;
   String? notes;
   DateTime? createdAt;
@@ -32,16 +37,12 @@ class Charge {
     this.id,
     this.appartementId,
     this.appartementNom,
-    this.residenceId,
-    this.residenceNom,
     this.typeChargeValue,
     this.libelle,
     this.montant,
     this.frequenceValue,
     this.dateDebut,
     this.dateEcheance,
-    this.datePaiement,
-    this.estPaye,
     this.estRecurrent,
     this.notes,
     this.createdAt,
@@ -52,21 +53,17 @@ class Charge {
   ///
   /// Invariant garanti : `estRecurrent` est dérivé de `frequence` (ponctuel
   /// ⟹ false, sinon true). Une charge ponctuelle a `dateEcheance = null`
-  /// (la `dateDebut` fait office de date prévue de paiement).
+  /// (la `dateDebut` fait office de date du paiement).
   Charge.create({
     this.id,
-    required this.appartementId, // OBLIGATOIRE
+    required this.appartementId,
     this.appartementNom,
-    this.residenceId,
-    this.residenceNom,
     TypeCharge? typeCharge,
     this.libelle,
     this.montant,
     FrequenceCharge? frequence,
     this.dateDebut,
     DateTime? dateEcheance,
-    this.datePaiement,
-    this.estPaye = false,
     this.notes,
     DateTime? createdAt,
   }) {
@@ -86,20 +83,15 @@ class Charge {
     }
   }
 
-  /// Calcule la prochaine échéance basée sur la date de début et la fréquence
   static DateTime _calculerProchaineEcheance(DateTime dateDebut, FrequenceCharge frequence) {
     final now = DateTime.now();
     var echeance = dateDebut;
-
-    // Avancer jusqu'à la prochaine échéance future
     while (echeance.isBefore(now)) {
       echeance = _ajouterIntervalle(echeance, frequence);
     }
-
     return echeance;
   }
 
-  /// Ajoute l'intervalle de fréquence à une date
   static DateTime _ajouterIntervalle(DateTime date, FrequenceCharge frequence) {
     switch (frequence) {
       case FrequenceCharge.ponctuel:
@@ -121,23 +113,18 @@ class Charge {
     id = json['id'] as int?;
     appartementId = json['appartementId'] as int?;
     appartementNom = json['appartementNom'] as String?;
-    residenceId = json['residenceId'] as int?;
-    residenceNom = json['residenceNom'] as String?;
     typeChargeValue = json['typeCharge'] as String?;
     libelle = json['libelle'] as String?;
     montant = _parseDouble(json['montant']);
     frequenceValue = json['frequence'] as String?;
     dateDebut = _parseDateTime(json['dateDebut']);
     dateEcheance = _parseDateTime(json['dateEcheance']);
-    datePaiement = _parseDateTime(json['datePaiement']);
-    estPaye = json['estPaye'] as bool? ?? false;
     estRecurrent = json['estRecurrent'] as bool? ?? true;
     notes = json['notes'] as String?;
     createdAt = _parseDateTime(json['createdAt']);
     updatedAt = _parseDateTime(json['updatedAt']);
   }
 
-  /// Helper pour parser les valeurs numériques de façon sécurisée
   static double? _parseDouble(dynamic value) {
     if (value == null) return null;
     if (value is double) return value;
@@ -146,7 +133,6 @@ class Charge {
     return null;
   }
 
-  /// Helper pour parser les dates de façon sécurisée
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
     if (value is DateTime) return value;
@@ -159,15 +145,13 @@ class Charge {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'appartementId': appartementId, // OBLIGATOIRE pour création/mise à jour
+      'appartementId': appartementId,
       'typeCharge': typeChargeValue,
       'libelle': libelle,
       'montant': montant,
       'frequence': frequenceValue,
       'dateDebut': dateDebut?.toIso8601String(),
       'dateEcheance': dateEcheance?.toIso8601String(),
-      'datePaiement': datePaiement?.toIso8601String(),
-      'estPaye': estPaye,
       'estRecurrent': estRecurrent,
       'notes': notes,
       'createdAt': createdAt?.toIso8601String(),
@@ -179,16 +163,12 @@ class Charge {
     int? id,
     int? appartementId,
     String? appartementNom,
-    int? residenceId,
-    String? residenceNom,
     TypeCharge? typeCharge,
     String? libelle,
     double? montant,
     FrequenceCharge? frequence,
     DateTime? dateDebut,
     DateTime? dateEcheance,
-    DateTime? datePaiement,
-    bool? estPaye,
     bool? estRecurrent,
     String? notes,
     DateTime? createdAt,
@@ -198,34 +178,17 @@ class Charge {
       id: id ?? this.id,
       appartementId: appartementId ?? this.appartementId,
       appartementNom: appartementNom ?? this.appartementNom,
-      residenceId: residenceId ?? this.residenceId,
-      residenceNom: residenceNom ?? this.residenceNom,
       typeChargeValue: typeCharge?.value ?? typeChargeValue,
       libelle: libelle ?? this.libelle,
       montant: montant ?? this.montant,
       frequenceValue: frequence?.value ?? frequenceValue,
       dateDebut: dateDebut ?? this.dateDebut,
       dateEcheance: dateEcheance ?? this.dateEcheance,
-      datePaiement: datePaiement ?? this.datePaiement,
-      estPaye: estPaye ?? this.estPaye,
       estRecurrent: estRecurrent ?? this.estRecurrent,
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
     );
-  }
-
-  /// Vérifie si la charge est en retard
-  bool get estEnRetard {
-    if (estPaye == true || dateEcheance == null) return false;
-    return DateTime.now().isAfter(dateEcheance!);
-  }
-
-  /// Vérifie si l'échéance approche (dans les 7 prochains jours)
-  bool get echeanceProche {
-    if (estPaye == true || dateEcheance == null) return false;
-    final diff = dateEcheance!.difference(DateTime.now()).inDays;
-    return diff >= 0 && diff <= 7;
   }
 
   /// Calcule le montant mensuel équivalent
@@ -244,6 +207,6 @@ class Charge {
 
   @override
   String toString() {
-    return 'Charge{id: $id, type: ${typeCharge.label}, montant: $montant, residence: $residenceId}';
+    return 'Charge{id: $id, type: ${typeCharge.label}, montant: $montant, appart: $appartementId}';
   }
 }

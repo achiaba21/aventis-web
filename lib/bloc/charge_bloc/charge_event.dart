@@ -7,13 +7,11 @@ abstract class ChargeEvent {}
 
 /// Charger toutes les charges
 class LoadCharges extends ChargeEvent {
-  final int? residenceId;
   final int? appartementId;
   final DateTime? dateDebut;
   final DateTime? dateFin;
 
   LoadCharges({
-    this.residenceId,
     this.appartementId,
     this.dateDebut,
     this.dateFin,
@@ -61,17 +59,6 @@ class DeleteCharge extends ChargeEvent {
   final int chargeId;
 
   DeleteCharge({required this.chargeId});
-}
-
-/// Marquer une charge comme payée
-class MarkChargeAsPaid extends ChargeEvent {
-  final int chargeId;
-  final DateTime? datePaiement;
-
-  MarkChargeAsPaid({
-    required this.chargeId,
-    this.datePaiement,
-  });
 }
 
 // ==================== RÉINITIALISATION ====================

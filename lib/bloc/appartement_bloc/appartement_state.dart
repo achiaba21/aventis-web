@@ -1,13 +1,12 @@
 import 'package:asfar/model/residence/appart.dart';
-import 'package:asfar/model/filter/filter_criteria.dart';
-import 'package:asfar/model/filter/filter_options.dart';
+import 'package:asfar/model/residence/appartement_list_source.dart';
 
-/// État de base pour les appartements
+/// État de base pour les appartements.
 ///
-/// Pattern "keep last known data" : conserve les appartements connus
-/// même pendant les transitions d'état pour éviter les flashs UI
+/// Pattern « keep last known data » : conserve les appartements connus
+/// même pendant les transitions d'état pour éviter les flashs UI.
 abstract class AppartementState {
-  /// Liste des derniers appartements connus (persistée entre les états)
+  /// Liste des derniers appartements connus (persistée entre les états).
   final List<Appartement> appartements;
 
   AppartementState({this.appartements = const []});
@@ -21,40 +20,71 @@ class AppartementLoading extends AppartementState {
   AppartementLoading({super.appartements});
 }
 
+/// État unifié de chargement réussi.
+///
+/// `source` indique l'origine de la liste pour les consommateurs (preload
+/// executor, UI conditionnelle). `ownerId` est requis quand
+/// `source == byOwner`. `transientMessage` porte un message de succès
+/// one-shot après une opération CRUD — consommé par BlocListener puis
+/// effacé via `copyWith(clearTransientMessage: true)`.
 class AppartementLoaded extends AppartementState {
-  AppartementLoaded(List<Appartement> appartements)
-      : super(appartements: appartements);
+  final AppartementListSource source;
+  final int? ownerId;
+  final String? transientMessage;
+
+  AppartementLoaded(
+    List<Appartement> appartements, {
+    this.source = AppartementListSource.all,
+    this.ownerId,
+    this.transientMessage,
+  }) : super(appartements: appartements);
+
+  AppartementLoaded copyWith({
+    List<Appartement>? appartements,
+    AppartementListSource? source,
+    int? ownerId,
+    String? transientMessage,
+    bool clearTransientMessage = false,
+  }) {
+    return AppartementLoaded(
+      appartements ?? this.appartements,
+      source: source ?? this.source,
+      ownerId: ownerId ?? this.ownerId,
+      transientMessage: clearTransientMessage
+          ? null
+          : (transientMessage ?? this.transientMessage),
+    );
+  }
 }
 
-class AppartementsByOwnerLoaded extends AppartementState {
-  final int proprietaireId;
-  AppartementsByOwnerLoaded(List<Appartement> appartements, this.proprietaireId)
-      : super(appartements: appartements);
-}
-
-class ProprietaireAppartementsLoaded extends AppartementState {
+/// @deprecated Alias rétro-compat. Préférer
+/// `state is AppartementLoaded && state.source == AppartementListSource.proprietaire`.
+@Deprecated(
+  'Utiliser AppartementLoaded(source: AppartementListSource.proprietaire). '
+  'Alias retiré après migration des consommateurs.',
+)
+class ProprietaireAppartementsLoaded extends AppartementLoaded {
   ProprietaireAppartementsLoaded(List<Appartement> appartements)
-      : super(appartements: appartements);
+      : super(appartements, source: AppartementListSource.proprietaire);
 }
 
-class FilteredAppartementsLoaded extends AppartementState {
-  final FilterCriteria criteria;
-  FilteredAppartementsLoaded(List<Appartement> appartements, this.criteria)
-      : super(appartements: appartements);
-}
+/// @deprecated Alias rétro-compat. Préférer
+/// `AppartementLoaded(source: byOwner, ownerId: ...)`.
+@Deprecated(
+  'Utiliser AppartementLoaded(source: byOwner, ownerId: ...). '
+  'Alias retiré après migration des consommateurs.',
+)
+class AppartementsByOwnerLoaded extends AppartementLoaded {
+  final int proprietaireId;
 
-class FilterOptionsLoaded extends AppartementState {
-  final FilterOptions options;
-  FilterOptionsLoaded(this.options, [List<Appartement>? appartements])
-      : super(appartements: appartements ?? const []);
-}
-
-/// État émis après une opération CRUD réussie (création, modification, suppression)
-/// Contient la liste à jour des appartements du propriétaire
-class AppartementOperationSuccess extends AppartementState {
-  final String message;
-  AppartementOperationSuccess(this.message, List<Appartement> appartements)
-      : super(appartements: appartements);
+  AppartementsByOwnerLoaded(
+    List<Appartement> appartements,
+    this.proprietaireId,
+  ) : super(
+          appartements,
+          source: AppartementListSource.byOwner,
+          ownerId: proprietaireId,
+        );
 }
 
 class AppartementError extends AppartementState {

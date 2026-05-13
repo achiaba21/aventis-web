@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/bloc/calendar_plage_bloc/calendar_plage_bloc.dart';
+import 'package:asfar/bloc/calendar_plage_bloc/calendar_plage_event.dart';
+import 'package:asfar/bloc/calendar_plage_bloc/calendar_plage_state.dart';
 import 'package:asfar/bloc/reservation_detail_bloc/reservation_detail_bloc.dart';
 import 'package:asfar/bloc/reservation_detail_bloc/reservation_detail_event.dart';
 import 'package:asfar/bloc/reservation_detail_bloc/reservation_detail_state.dart';
+import 'package:asfar/model/calendar/calendar_plage.dart';
 import 'package:asfar/model/request/reservation_manuelle_req.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/reservation/reservation_detail_action.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/calc/calendar_availability.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/button_size.dart';
@@ -53,6 +58,29 @@ class _ReservationEditManuelleScreenState
     _emailCtrl = TextEditingController(text: r.clientExterneEmail ?? '');
     _debut = r.debut;
     _fin = r.fin;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final appartId = r.appart?.id;
+      if (appartId == null) return;
+      final now = DateTime.now();
+      context.read<CalendarPlageBloc>().add(
+            LoadCalendarPlages(
+              appartId: appartId,
+              debut: DateTime(now.year, now.month - 1, 1),
+              fin: DateTime(now.year + 1, now.month, 0),
+              isDemarcheur: false,
+            ),
+          );
+    });
+  }
+
+  List<CalendarPlage> _plagesForAppart() {
+    final state = context.read<CalendarPlageBloc>().state;
+    final id = widget.reservation.appart?.id;
+    if (state is CalendarPlagesLoaded && state.appartId == id) {
+      return state.plages;
+    }
+    return const [];
   }
 
   @override
@@ -67,11 +95,19 @@ class _ReservationEditManuelleScreenState
     final initial = isDebut
         ? (_debut ?? DateTime.now())
         : (_fin ?? _debut ?? DateTime.now());
+    final plages = _plagesForAppart();
+    final r = widget.reservation;
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+      selectableDayPredicate: (day) => CalendarAvailability.isDayAvailable(
+        day,
+        plages,
+        selfStart: r.debut,
+        selfEnd: r.fin,
+      ),
     );
     if (picked != null) {
       setState(() {
@@ -109,6 +145,20 @@ class _ReservationEditManuelleScreenState
     final duree = fin.difference(debut).inDays;
     if (duree <= 0) {
       setState(() => _error = 'La fin doit être après le début');
+      return;
+    }
+
+    final plages = _plagesForAppart();
+    final available = CalendarAvailability.isRangeAvailable(
+      debut,
+      fin,
+      plages,
+      selfStart: r.debut,
+      selfEnd: r.fin,
+    );
+    if (!available) {
+      setState(() => _error =
+          'Cette plage chevauche une autre réservation. Choisissez une autre période.');
       return;
     }
 

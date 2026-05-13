@@ -5,10 +5,13 @@ import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/repository/charge_data_manager.dart';
 import 'package:asfar/util/function.dart';
 
-/// BLoC pour la gestion des charges
+/// BLoC pour la gestion des charges.
 ///
-/// Responsabilité unique: CRUD des charges
-/// Les calculs comptables sont délégués à ComptabiliteCalculator
+/// Responsabilité unique : CRUD des charges. Les calculs comptables sont
+/// délégués à `ComptabiliteCalculator`.
+///
+/// Sémantique post-2026-05-13 : chaque charge = un paiement déjà enregistré.
+/// L'event `MarkChargeAsPaid` a été supprimé (endpoint backend retiré).
 class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
   final ChargeDataManager _repository = ChargeDataManager();
 
@@ -18,12 +21,10 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
     on<AddCharge>(_onAddCharge);
     on<UpdateCharge>(_onUpdateCharge);
     on<DeleteCharge>(_onDeleteCharge);
-    on<MarkChargeAsPaid>(_onMarkAsPaid);
     on<ResetChargeState>(_onResetChargeState);
   }
 
   /// Injecter les appartements depuis AppartementBloc.
-  /// Nécessaire pour récupérer les infos d'appartement en mode offline.
   void setAppartements(List<Appartement> appartements) {
     _repository.setAppartements(appartements);
     deboger(['[ChargeBloc] Appartements injectés: ${appartements.length}']);
@@ -36,7 +37,6 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
     emit(ChargeLoading());
     try {
       final charges = await _repository.getCharges(
-        residenceId: event.residenceId,
         appartementId: event.appartementId,
         dateDebut: event.dateDebut,
         dateFin: event.dateFin,
@@ -44,7 +44,6 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
 
       emit(ChargeLoaded(
         charges: charges,
-        residenceId: event.residenceId,
         appartementId: event.appartementId,
         dateDebut: event.dateDebut,
         dateFin: event.dateFin,
@@ -62,7 +61,6 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
     if (state is ChargeLoaded) {
       final currentState = state as ChargeLoaded;
       add(LoadCharges(
-        residenceId: currentState.residenceId,
         appartementId: currentState.appartementId,
         dateDebut: currentState.dateDebut,
         dateFin: currentState.dateFin,
@@ -98,9 +96,7 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
         previousState: currentState,
       ));
 
-      // Recharger les données
       add(LoadCharges(
-        residenceId: currentState.residenceId,
         appartementId: currentState.appartementId,
         dateDebut: currentState.dateDebut,
         dateFin: currentState.dateFin,
@@ -128,9 +124,7 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
         previousState: currentState,
       ));
 
-      // Recharger les données
       add(LoadCharges(
-        residenceId: currentState.residenceId,
         appartementId: currentState.appartementId,
         dateDebut: currentState.dateDebut,
         dateFin: currentState.dateFin,
@@ -158,9 +152,7 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
         previousState: currentState,
       ));
 
-      // Recharger les données
       add(LoadCharges(
-        residenceId: currentState.residenceId,
         appartementId: currentState.appartementId,
         dateDebut: currentState.dateDebut,
         dateFin: currentState.dateFin,
@@ -170,35 +162,6 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
       emit(ChargeError(message: 'Erreur lors de la suppression: $e'));
     }
   }
-
-  Future<void> _onMarkAsPaid(
-    MarkChargeAsPaid event,
-    Emitter<ChargeState> emit,
-  ) async {
-    if (state is! ChargeLoaded) return;
-
-    final currentState = state as ChargeLoaded;
-
-    try {
-      await _repository.markAsPaid(
-        event.chargeId,
-        datePaiement: event.datePaiement ?? DateTime.now(),
-      );
-
-      // Recharger les données
-      add(LoadCharges(
-        residenceId: currentState.residenceId,
-        appartementId: currentState.appartementId,
-        dateDebut: currentState.dateDebut,
-        dateFin: currentState.dateFin,
-      ));
-    } catch (e) {
-      deboger(['[ChargeBloc] Erreur MarkAsPaid: $e']);
-      emit(ChargeError(message: 'Erreur lors du marquage: $e'));
-    }
-  }
-
-  // ==================== RÉINITIALISATION ====================
 
   void _onResetChargeState(
     ResetChargeState event,

@@ -136,10 +136,12 @@ class ReservationService {
     }
   }
 
-  /// Crée une réservation manuelle (propriétaire)
+  /// Crée une réservation manuelle (propriétaire).
   ///
   /// Permet au propriétaire d'enregistrer une réservation effectuée
-  /// en dehors de la plateforme (pas de frais, statut CONFIRMER automatique)
+  /// en dehors de la plateforme (pas de frais). Depuis le backend
+  /// 2026-05-13, la résa est créée directement au statut `FINALISER`
+  /// (auparavant `CONFIRMER`).
   Future<Reservation> createManualReservation(
     ReservationManuelleReq req,
   ) async {

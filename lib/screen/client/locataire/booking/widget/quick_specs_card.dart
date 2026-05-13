@@ -3,22 +3,20 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 
-/// Card "Quick specs" du Detail.
+/// Card "Quick specs" du Detail logement.
 ///
-/// 4 colonnes (chambres / salles de bain / m² / voyageurs) avec icons
-/// accent or et dividers verticaux. Reproduit le bloc spec-card du proto.
+/// 3 colonnes (lits / chambres / salles de bain) avec icons accent or et
+/// dividers verticaux. Toutes les valeurs proviennent du backend.
 class QuickSpecsCard extends StatelessWidget {
   final int beds;
+  final int rooms;
   final int baths;
-  final int surface;
-  final int travelers;
 
   const QuickSpecsCard({
     super.key,
     required this.beds,
+    required this.rooms,
     required this.baths,
-    required this.surface,
-    required this.travelers,
   });
 
   @override
@@ -27,22 +25,17 @@ class QuickSpecsCard extends StatelessWidget {
       _SpecCellData(
         icon: Icons.bed_outlined,
         value: '$beds',
-        label: beds > 1 ? 'chambres' : 'chambre',
+        label: beds > 1 ? 'lits' : 'lit',
+      ),
+      _SpecCellData(
+        icon: Icons.meeting_room_outlined,
+        value: '$rooms',
+        label: rooms > 1 ? 'chambres' : 'chambre',
       ),
       _SpecCellData(
         icon: Icons.bathtub_outlined,
         value: '$baths',
         label: baths > 1 ? 'salles de bain' : 'salle de bain',
-      ),
-      _SpecCellData(
-        icon: Icons.square_foot_outlined,
-        value: '$surface',
-        label: 'm²',
-      ),
-      _SpecCellData(
-        icon: Icons.people_outline,
-        value: '$travelers',
-        label: 'voyageurs',
       ),
     ];
 

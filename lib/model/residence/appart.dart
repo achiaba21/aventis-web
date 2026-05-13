@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:asfar/model/document/photo_appart.dart';
 import 'package:asfar/model/enumeration/appartement_status.dart';
 import 'package:asfar/model/locolite/address.dart';
@@ -24,6 +22,11 @@ class Appartement {
   String? typeLocation;
   String? regles;
   bool? brouillon;
+
+  /// Note moyenne persistée (0-5). `null` si jamais notée — l'UI doit alors
+  /// retomber sur la moyenne des `commentaires` via `AppartementDisplay.rating`.
+  double? note;
+
   DateTime? createdAt;
   DateTime? updatedAt;
   List<PhotoAppart>? photos;
@@ -49,6 +52,7 @@ class Appartement {
     this.typeLocation,
     this.regles,
     this.brouillon,
+    this.note,
     this.createdAt,
     this.updatedAt,
     this.photos,
@@ -82,6 +86,7 @@ class Appartement {
     typeLocation = json['typeLocation'];
     regles = json['regles'];
     brouillon = json['brouillon'];
+    note = (json['note'] as num?)?.toDouble();
     createdAt = json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null;
     updatedAt = json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null;
     photos = json['photos'] != null
@@ -107,13 +112,12 @@ class Appartement {
               json['commentaires'].map((x) => Commentaire.fromJson(x)),
             )
             : null;
-    rules =
-        json['rules'] != null
-            ? List<Rule>.from(json['rules'].map((x) => Rule.fromJson(x)))
-            : null;
-  }
-  double get note {
-    return double.parse((Random().nextDouble() * 6).toStringAsFixed(1));
+    // Backend exposes `appartementRules` (champ JPA). Le champ `rules` est
+    // accepté en fallback pour les anciens DTOs / le cache local.
+    final dynamic rulesJson = json['appartementRules'] ?? json['rules'];
+    rules = rulesJson != null
+        ? List<Rule>.from(rulesJson.map((x) => Rule.fromJson(x)))
+        : null;
   }
 
   /// Crée une copie de l'appartement avec les valeurs spécifiées
@@ -133,6 +137,7 @@ class Appartement {
     String? typeLocation,
     String? regles,
     bool? brouillon,
+    double? note,
     DateTime? createdAt,
     DateTime? updatedAt,
     List<PhotoAppart>? photos,
@@ -158,6 +163,7 @@ class Appartement {
       typeLocation: typeLocation ?? this.typeLocation,
       regles: regles ?? this.regles,
       brouillon: brouillon ?? this.brouillon,
+      note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       photos: photos ?? this.photos,
@@ -191,6 +197,7 @@ class Appartement {
     data['typeLocation'] = typeLocation;
     data['regles'] = regles;
     data['brouillon'] = brouillon;
+    data['note'] = note;
     data['createdAt'] = createdAt?.toIso8601String();
     data['updatedAt'] = updatedAt?.toIso8601String();
     if (photos != null) {
@@ -209,7 +216,7 @@ class Appartement {
       data['commentaires'] = commentaires!.map((x) => x.toJson()).toList();
     }
     if (rules != null) {
-      data['rules'] = rules!.map((x) => x.toJson()).toList();
+      data['appartementRules'] = rules!.map((x) => x.toJson()).toList();
     }
     return data;
   }

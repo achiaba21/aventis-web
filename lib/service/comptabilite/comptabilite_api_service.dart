@@ -65,49 +65,21 @@ class ComptabiliteApiService {
     await dio.delete("$_baseEndpoint/charges/$chargeId");
   }
 
-  /// Marque une charge comme payée sur le serveur
-  Future<Charge> markChargeAsPaid(int chargeId, {DateTime? datePaiement}) async {
-    final DioRequest dio = DioRequest.instance;
-
-    deboger(['[ComptabiliteApiService] Marquer charge payée: $chargeId']);
-
-    final response = await dio.patch(
-      "$_baseEndpoint/charges/$chargeId/payer",
-      data: {
-        'datePaiement': (datePaiement ?? DateTime.now()).toIso8601String(),
-      },
-    );
-
-    final Map<String, dynamic>? chargeJson = _extractBodyAsMap(response.data);
-    if (chargeJson != null) {
-      return Charge.fromJson(chargeJson);
-    }
-
-    throw Exception("Format de réponse invalide");
-  }
-
-  /// Récupère toutes les charges
+  /// Récupère toutes les charges.
   ///
-  /// Filtres disponibles:
-  /// - residenceId: filtrer par résidence
-  /// - appartementId: filtrer par appartement
-  /// - dateDebut/dateFin: filtrer par période
-  /// - estPaye: true = payées, false = impayées
+  /// Filtres disponibles : `appartementId`, `dateDebut`, `dateFin`.
+  /// (Les filtres `residenceId` et `estPaye` ont été retirés du backend
+  /// le 2026-05-13 — toute charge en base est désormais un paiement déjà
+  /// effectué.)
   Future<List<Charge>> getAllCharges({
-    int? residenceId,
     int? appartementId,
     DateTime? dateDebut,
     DateTime? dateFin,
-    bool? estPaye,
   }) async {
     final DioRequest dio = DioRequest.instance;
 
-    // Construire les query params
     final Map<String, String> queryParams = {};
 
-    if (residenceId != null) {
-      queryParams['residenceId'] = residenceId.toString();
-    }
     if (appartementId != null) {
       queryParams['appartementId'] = appartementId.toString();
     }
@@ -116,9 +88,6 @@ class ComptabiliteApiService {
     }
     if (dateFin != null) {
       queryParams['dateFin'] = _formatDate(dateFin);
-    }
-    if (estPaye != null) {
-      queryParams['estPaye'] = estPaye.toString();
     }
 
     String endpoint = "$_baseEndpoint/charges";

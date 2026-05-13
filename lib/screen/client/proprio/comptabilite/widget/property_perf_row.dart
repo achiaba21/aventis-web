@@ -4,6 +4,7 @@ import 'package:asfar/model/ui_only/property_perf.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Ligne de performance d'un bien — section « Performance par bien » du
@@ -40,7 +41,11 @@ class PropertyPerfRow extends StatelessWidget {
           SizedBox(
             width: 44,
             height: 44,
-            child: ImgPh(tone: perf.appartement.tone, radius: 10),
+            child: DomainImage(
+              path: perf.appartement.firstPhotoPath,
+              placeholder: ImgPh(tone: perf.appartement.tone, radius: 10),
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

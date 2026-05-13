@@ -33,15 +33,12 @@ class ChargeDetailDatesSection extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _DateRow(label: 'Début', value: _formatLong(charge.dateDebut)),
-          const SizedBox(height: 10),
-          _DateRow(label: 'Échéance', value: _formatLong(charge.dateEcheance)),
-          if (charge.estPaye == true) ...[
+          _DateRow(label: 'Paiement', value: _formatLong(charge.dateDebut)),
+          if (charge.estRecurrent == true && charge.dateEcheance != null) ...[
             const SizedBox(height: 10),
             _DateRow(
-              label: 'Date de paiement',
-              value: _formatLong(charge.datePaiement),
-              emphasis: true,
+              label: 'Prochaine échéance',
+              value: _formatLong(charge.dateEcheance),
             ),
           ],
         ],
@@ -53,12 +50,10 @@ class ChargeDetailDatesSection extends StatelessWidget {
 class _DateRow extends StatelessWidget {
   final String label;
   final String value;
-  final bool emphasis;
 
   const _DateRow({
     required this.label,
     required this.value,
-    this.emphasis = false,
   });
 
   @override
@@ -77,10 +72,10 @@ class _DateRow extends StatelessWidget {
         const SizedBox(width: 12),
         Text(
           value,
-          style: AppTextStyles.mono(TextStyle(
-            fontSize: emphasis ? 14 : 13,
-            fontWeight: emphasis ? FontWeight.w600 : FontWeight.w400,
-            color: emphasis ? AppColors.success : AppColors.text,
+          style: AppTextStyles.mono(const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
+            color: AppColors.text,
           )),
         ),
       ],

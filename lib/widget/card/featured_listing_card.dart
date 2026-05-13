@@ -6,6 +6,7 @@ import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/certified_badge.dart';
 import 'package:asfar/widget/badge/rating_chip.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/floating_heart_button.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
@@ -53,7 +54,11 @@ class FeaturedListingCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: ImgPh(tone: appartement.tone, radius: 18),
+                      child: DomainImage(
+                        path: appartement.firstPhotoPath,
+                        placeholder:
+                            ImgPh(tone: appartement.tone, radius: 18),
+                      ),
                     ),
                     Positioned(
                       top: 10,

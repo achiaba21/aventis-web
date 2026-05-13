@@ -6,6 +6,7 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Card radio de sélection d'un logement — étape 1 du tunnel
@@ -46,7 +47,11 @@ class ReferralListingRadio extends StatelessWidget {
               SizedBox(
                 width: 56,
                 height: 56,
-                child: ImgPh(tone: appartement.tone, radius: 12),
+                child: DomainImage(
+                  path: appartement.firstPhotoPath,
+                  placeholder: ImgPh(tone: appartement.tone, radius: 12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

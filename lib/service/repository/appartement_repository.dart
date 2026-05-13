@@ -95,6 +95,57 @@ class AppartementRepository {
     });
   }
 
+  // ==================== FEED LOCATAIRE (endpoint public) ====================
+
+  /// Récupère le feed locataire depuis le cache Hive (clé distincte du proprio).
+  List<Appartement> getCachedAllAppartements() {
+    try {
+      final data = _storage.getAppartementsLocataire();
+      if (data.isEmpty) return [];
+      return data.map((json) => Appartement.fromJson(json)).toList();
+    } catch (e) {
+      deboger(['[AppartementRepository] Erreur getCachedAllAppartements: $e']);
+      return [];
+    }
+  }
+
+  /// Fetch le feed locataire depuis l'endpoint public et met à jour le cache.
+  Future<List<Appartement>> fetchAndCacheAllAppartements() async {
+    try {
+      final appartements = await _apiService.getAppartements();
+      final json = appartements.map((a) => a.toJson()).toList();
+      await _storage.saveAppartementsLocataire(json);
+      deboger([
+        '[AppartementRepository] ${appartements.length} appartements feed locataire mis en cache'
+      ]);
+      return appartements;
+    } catch (e) {
+      deboger(['[AppartementRepository] Erreur fetchAndCacheAllAppartements: $e']);
+      rethrow;
+    }
+  }
+
+  /// Récupère le feed locataire avec pattern cache-first (cache Hive →
+  /// API en background). Source : endpoint public `auth/appartement/apparts`.
+  Future<List<Appartement>> getAllAppartements({
+    bool forceRefresh = false,
+    Function(List<Appartement>)? onApiData,
+  }) async {
+    if (forceRefresh) return fetchAndCacheAllAppartements();
+    final cached = getCachedAllAppartements();
+    if (cached.isEmpty) return fetchAndCacheAllAppartements();
+    _refreshAllInBackground(onApiData);
+    return cached;
+  }
+
+  void _refreshAllInBackground(Function(List<Appartement>)? onApiData) {
+    fetchAndCacheAllAppartements().then((appartements) {
+      if (onApiData != null) onApiData(appartements);
+    }).catchError((e) {
+      deboger(['[AppartementRepository] Erreur refresh feed background: $e']);
+    });
+  }
+
   /// Récupère un appartement par ID depuis le cache
   Appartement? getCachedAppartementById(int id) {
     final cached = getCachedAppartements();
@@ -184,11 +235,12 @@ class AppartementRepository {
     return difference.inHours >= maxAgeHours;
   }
 
-  /// Vide le cache des appartements
+  /// Vide les caches (proprio + feed locataire).
   Future<void> clearCache() async {
     await _storage.clearAppartements();
+    await _storage.clearAppartementsLocataire();
     _backendResidenceIds.clear();
-    deboger('[AppartementRepository] Cache vidé');
+    deboger('[AppartementRepository] Caches vidés (proprio + locataire)');
   }
 
   // ============== Helpers privés ==============

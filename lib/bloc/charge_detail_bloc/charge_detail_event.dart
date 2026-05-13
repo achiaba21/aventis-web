@@ -10,12 +10,6 @@ class LoadCharge extends ChargeDetailEvent {
   LoadCharge(this.charge);
 }
 
-/// Marque la charge courante comme payée.
-class MarkPaid extends ChargeDetailEvent {}
-
-/// Annule le paiement (charge re-marquée impayée).
-class MarkUnpaid extends ChargeDetailEvent {}
-
 /// Met à jour la charge (depuis formulaire d'édition).
 class UpdateChargeAction extends ChargeDetailEvent {
   final Charge updated;

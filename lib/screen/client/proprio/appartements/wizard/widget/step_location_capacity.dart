@@ -56,7 +56,10 @@ class _StepLocationAndCapacityState extends State<StepLocationAndCapacity> {
       if (!mounted) return;
       final state = context.read<PaysBloc>().state;
       if (state is PaysInitial || state is PaysError) {
-        context.read<PaysBloc>().add(LoadAllPays());
+        // Backend 2026-05-13 : `/api/lieux/pays/CI` retourne l'arbre nested
+        // complet (régions → villes → communes) seedé pour la Côte d'Ivoire.
+        // On évite `LoadAllPays` qui chargerait tous les pays (inutile ici).
+        context.read<PaysBloc>().add(LoadPaysByCode('ci'));
       }
     });
   }

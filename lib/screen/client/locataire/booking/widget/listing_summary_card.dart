@@ -4,6 +4,7 @@ import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Card résumé compact d'un listing — utilisée dans le tunnel Reserve.
@@ -28,7 +29,11 @@ class ListingSummaryCard extends StatelessWidget {
           SizedBox(
             width: 80,
             height: 80,
-            child: ImgPh(tone: appartement.tone, radius: 12),
+            child: DomainImage(
+              path: appartement.firstPhotoPath,
+              placeholder: ImgPh(tone: appartement.tone, radius: 12),
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

@@ -4,25 +4,20 @@ import 'package:asfar/model/comptabilite/type_charge.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
-import 'package:asfar/util/calc/charge_status_display.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
-import 'package:asfar/widget/badge/badge_status.dart';
 
-/// Carte d'une charge dans la liste, swipeable pour marquer payée/impayée.
+/// Carte d'une charge dans la liste.
 ///
-/// `Dismissible` direction `startToEnd` : background success (→ marquer payée)
-/// si non payée, neutre (→ marquer impayée) si payée. `confirmDismiss` retourne
-/// `false` pour laisser le `ChargeBloc` piloter le re-render via `RefreshCharges`.
+/// Sémantique post-2026-05-13 : chaque charge = un paiement déjà enregistré.
+/// Plus de swipe-to-pay, plus de badge statut.
 class ChargeRow extends StatelessWidget {
   final Charge charge;
   final VoidCallback? onTap;
-  final Future<bool> Function(Charge charge)? onSwipeAction;
 
   const ChargeRow({
     super.key,
     required this.charge,
     this.onTap,
-    this.onSwipeAction,
   });
 
   static const _months = [
@@ -37,10 +32,8 @@ class ChargeRow extends StatelessWidget {
 
   String _subLine() {
     final appart = charge.appartementNom?.trim();
-    final isPaid = charge.estPaye == true;
-    final pivot = isPaid ? charge.datePaiement : charge.dateEcheance;
-    final pivotLabel = isPaid ? 'Payée' : 'Éch.';
-    final dateText = pivot != null ? '$pivotLabel ${_formatDate(pivot)}' : '';
+    final pivot = charge.dateDebut ?? charge.createdAt;
+    final dateText = pivot != null ? _formatDate(pivot) : '';
     if ((appart == null || appart.isEmpty) && dateText.isEmpty) return '';
     if (appart == null || appart.isEmpty) return dateText;
     if (dateText.isEmpty) return appart;
@@ -49,11 +42,9 @@ class ChargeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statut = ChargeStatusDisplay.statutOf(charge);
-    final isPaid = charge.estPaye == true;
     final montant = (charge.montant ?? 0).round();
 
-    final card = Material(
+    return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
@@ -87,10 +78,10 @@ class ChargeRow extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           FcfaFormatter.full(montant),
-                          style: AppTextStyles.mono(TextStyle(
+                          style: AppTextStyles.mono(const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: isPaid ? AppColors.text2 : AppColors.accent,
+                            color: AppColors.accent,
                           )),
                         ),
                       ],
@@ -105,11 +96,6 @@ class ChargeRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
-                    BadgeStatus(
-                      text: ChargeStatusDisplay.labelOf(statut),
-                      tone: ChargeStatusDisplay.toneOf(statut),
-                    ),
                   ],
                 ),
               ),
@@ -117,19 +103,6 @@ class ChargeRow extends StatelessWidget {
           ),
         ),
       ),
-    );
-
-    if (onSwipeAction == null) return card;
-
-    return Dismissible(
-      key: ValueKey('charge_${charge.id}'),
-      direction: DismissDirection.startToEnd,
-      confirmDismiss: (_) async {
-        await onSwipeAction!(charge);
-        return false;
-      },
-      background: _ChargeSwipeBackground(isPaid: isPaid),
-      child: card,
     );
   }
 }
@@ -150,43 +123,6 @@ class _ChargeTypeIcon extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: Text(typeIcon, style: const TextStyle(fontSize: 20)),
-    );
-  }
-}
-
-class _ChargeSwipeBackground extends StatelessWidget {
-  final bool isPaid;
-
-  const _ChargeSwipeBackground({required this.isPaid});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        color: isPaid ? AppColors.bgElev3 : AppColors.success,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isPaid ? Icons.undo_rounded : Icons.check_circle_outline,
-            color: AppColors.text,
-            size: 22,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            isPaid ? 'Marquer impayée' : 'Marquer payée',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.text,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

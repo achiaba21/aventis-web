@@ -13,7 +13,6 @@ class ChargeDetailAppartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nom = charge.appartementNom?.trim();
-    final residence = charge.residenceNom?.trim();
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -49,18 +48,6 @@ class ChargeDetailAppartCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (residence != null && residence.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    residence,
-                    style: AppTextStyles.small.copyWith(
-                      fontSize: 12,
-                      color: AppColors.text3,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ],
             ),
           ),

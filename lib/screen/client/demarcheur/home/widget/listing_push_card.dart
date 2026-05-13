@@ -5,6 +5,7 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Card 200 px du carrousel « Logements à pousser » du Dashboard démarcheur.
@@ -44,7 +45,10 @@ class ListingPushCard extends StatelessWidget {
               children: [
                 AspectRatio(
                   aspectRatio: 4 / 3,
-                  child: ImgPh(tone: appartement.tone, radius: 0),
+                  child: DomainImage(
+                    path: appartement.firstPhotoPath,
+                    placeholder: ImgPh(tone: appartement.tone, radius: 0),
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(12),

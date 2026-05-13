@@ -7,45 +7,34 @@ import 'package:asfar/service/comptabilite/comptabilite_api_service.dart';
 import 'package:asfar/service/repository/charge_repository.dart';
 import 'package:asfar/util/function.dart';
 
-/// Manager pour la gestion des charges (API + Cache local)
+/// Manager pour la gestion des charges (API + Cache local).
 ///
-/// Architecture online-first avec fallback offline:
-/// - Priorité: API serveur
-/// - Fallback: Cache Hive local
-/// - Synchronisation: mise à jour du cache après succès API
+/// Architecture online-first avec fallback offline :
+/// - Priorité : API serveur
+/// - Fallback : cache Hive local
+/// - Synchronisation : mise à jour du cache après succès API
 ///
-/// Note: Utilise ChargeRepository pour le stockage Hive local.
-///
-/// Depuis BACKEND-FLAT-APPART, ce manager n'a plus connaissance de
-/// Résidence. Le filtre `residenceId` n'a plus d'effet local (sera ignoré
-/// en fallback offline).
+/// Sémantique post-2026-05-13 : chaque charge en base = un paiement déjà
+/// effectué. Plus de `markAsPaid` ni de filtre `estPaye/residenceId`.
 class ChargeDataManager {
   final ComptabiliteApiService _apiService = ComptabiliteApiService();
   final ChargeRepository _localRepository = ChargeRepository();
 
-  // Données injectées depuis AppartementBloc (pour résoudre les infos
-  // d'appartement en mode offline lors de la création).
+  // Appartements injectés depuis AppartementBloc (offline create).
   List<Appartement> _apparts = [];
 
-  /// Injecter les appartements (pour récupérer les infos en mode offline).
   void setAppartements(List<Appartement> appartements) {
     _apparts = appartements;
   }
 
   /// Récupère toutes les charges avec filtres optionnels.
-  ///
-  /// `residenceId` est conservé pour compatibilité API serveur mais n'est
-  /// plus utilisé en fallback local (le modèle plat ne référence plus de
-  /// résidence côté client).
   Future<List<Charge>> getCharges({
-    int? residenceId,
     int? appartementId,
     DateTime? dateDebut,
     DateTime? dateFin,
   }) async {
     try {
       final charges = await _apiService.getAllCharges(
-        residenceId: residenceId,
         appartementId: appartementId,
         dateDebut: dateDebut,
         dateFin: dateFin,
@@ -58,7 +47,7 @@ class ChargeDataManager {
     } catch (e) {
       deboger(['[ChargeDataManager] Erreur API, fallback local: $e']);
       return _localRepository.getCharges(
-        appartementIds: null, // pas de filtre par résidence en local
+        appartementId: appartementId,
         dateDebut: dateDebut,
         dateFin: dateFin,
       );
@@ -66,9 +55,6 @@ class ChargeDataManager {
   }
 
   /// Crée une nouvelle charge.
-  ///
-  /// `estRecurrent` n'est plus exposé : il est dérivé automatiquement de
-  /// `frequence` par `Charge.create` (invariant : `ponctuel ⟺ !recurrent`).
   Future<Charge> createCharge({
     required int appartementId,
     required TypeCharge typeCharge,
@@ -84,8 +70,6 @@ class ChargeDataManager {
     final charge = Charge.create(
       appartementId: appartementId,
       appartementNom: appartInfo.appartementNom,
-      residenceId: appartInfo.residenceId,
-      residenceNom: appartInfo.residenceNom,
       typeCharge: typeCharge,
       libelle: libelle,
       montant: montant,
@@ -132,23 +116,6 @@ class ChargeDataManager {
     await _localRepository.deleteCharge(chargeId);
   }
 
-  /// Marque une charge comme payée
-  Future<Charge?> markAsPaid(int chargeId, {DateTime? datePaiement}) async {
-    try {
-      final updatedCharge = await _apiService.markChargeAsPaid(
-        chargeId,
-        datePaiement: datePaiement,
-      );
-      await _localRepository.markAsPaid(chargeId, datePaiement: datePaiement);
-      deboger(['[ChargeDataManager] Charge marquée payée via API: $chargeId']);
-      return updatedCharge;
-    } catch (e) {
-      deboger(['[ChargeDataManager] Erreur API markAsPaid, sauvegarde locale: $e']);
-      await _localRepository.markAsPaid(chargeId, datePaiement: datePaiement);
-      return _localRepository.getChargeById(chargeId);
-    }
-  }
-
   /// Vide le cache local (déconnexion)
   Future<void> clearCache() async {
     await _localRepository.clearAllCharges();
@@ -170,20 +137,10 @@ class ChargeDataManager {
     }
   }
 
-  /// Cherche les infos d'un appartement parmi ceux injectés.
-  ///
-  /// Le champ `residenceNom` est dérivé de l'adresse (commune ou nom),
-  /// `residenceId` est laissé null (le modèle plat n'a plus d'ID résidence
-  /// côté client). Le backend, lui, conserve sa résidence virtuelle via le
-  /// mapper.
   AppartementInfo _findAppartementInfo(int appartementId) {
     try {
       final appart = _apparts.firstWhere((a) => a.id == appartementId);
-      final addr = appart.address;
-      final residenceNom = addr?.commune?.nom ?? addr?.nom;
       return AppartementInfo(
-        residenceId: null,
-        residenceNom: residenceNom,
         appartementNom: appart.titre ?? appart.numero,
       );
     } catch (_) {

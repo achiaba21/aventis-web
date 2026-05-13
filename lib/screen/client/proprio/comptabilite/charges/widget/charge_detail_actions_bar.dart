@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/model/comptabilite/charge.dart';
 import 'package:asfar/model/comptabilite/charge_detail_action.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
-import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/button/outlined_custom_button.dart';
 
 /// Action bar sticky bottom du `ChargeDetailScreen`.
 ///
-/// Bouton principal : Marquer payée (si non payée) OU Marquer impayée
-/// (si payée). Boutons secondaires : Éditer (or) et Supprimer (danger).
+/// Sémantique post-2026-05-13 : chaque charge = un paiement déjà enregistré.
+/// Les actions `markPaid` / `markUnpaid` ont été retirées. Subsistent
+/// `edit` (modifier) et `delete` (supprimer).
 class ChargeDetailActionsBar extends StatelessWidget {
-  final Charge charge;
   final ChargeDetailAction? actionInProgress;
   final void Function(ChargeDetailAction action) onAction;
 
   const ChargeDetailActionsBar({
     super.key,
-    required this.charge,
     required this.onAction,
     this.actionInProgress,
   });
@@ -26,9 +23,6 @@ class ChargeDetailActionsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
-    final isPaid = charge.estPaye == true;
-    final primary =
-        isPaid ? ChargeDetailAction.markUnpaid : ChargeDetailAction.markPaid;
     final disabled = actionInProgress != null;
 
     return Container(
@@ -42,38 +36,28 @@ class ChargeDetailActionsBar extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: isPaid
-                  ? OutlinedCustomButton(
-                      text: 'Marquer impayée',
-                      size: ButtonSize.md,
-                      block: true,
-                      loading: actionInProgress == primary,
-                      textColor: AppColors.text2,
-                      onPressed: disabled ? null : () => onAction(primary),
-                    )
-                  : CustomButton(
-                      text: 'Marquer payée',
-                      size: ButtonSize.md,
-                      block: true,
-                      loading: actionInProgress == primary,
-                      onPressed: disabled ? null : () => onAction(primary),
-                    ),
+              child: CustomButton(
+                text: 'Modifier',
+                size: ButtonSize.md,
+                block: true,
+                loading: actionInProgress == ChargeDetailAction.edit,
+                onPressed: disabled
+                    ? null
+                    : () => onAction(ChargeDetailAction.edit),
+              ),
             ),
             const SizedBox(width: 10),
-            IconBoutton(
-              icon: Icons.edit_outlined,
-              iconColor: AppColors.accent,
-              onPressed: disabled
-                  ? null
-                  : () => onAction(ChargeDetailAction.edit),
-            ),
-            const SizedBox(width: 6),
-            IconBoutton(
-              icon: Icons.delete_outline,
-              iconColor: AppColors.danger,
-              onPressed: disabled
-                  ? null
-                  : () => onAction(ChargeDetailAction.delete),
+            Expanded(
+              child: OutlinedCustomButton(
+                text: 'Supprimer',
+                size: ButtonSize.md,
+                block: true,
+                loading: actionInProgress == ChargeDetailAction.delete,
+                textColor: AppColors.danger,
+                onPressed: disabled
+                    ? null
+                    : () => onAction(ChargeDetailAction.delete),
+              ),
             ),
           ],
         ),

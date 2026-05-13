@@ -9,9 +9,9 @@ import 'package:asfar/util/function.dart';
 
 /// BLoC dédié au cycle de vie d'UNE charge (page détail).
 ///
-/// Isolation des états (action en cours, edit en cours) du `ChargeBloc`
-/// liste. Notifie le BLoC liste après chaque action mutante pour synchroniser
-/// les surfaces (Finances, alertes, etc.).
+/// Sémantique post-2026-05-13 : chaque charge = un paiement déjà enregistré.
+/// Les actions `markPaid` / `markUnpaid` ont été retirées (endpoint backend
+/// supprimé). Seules `edit` et `delete` subsistent.
 class ChargeDetailBloc extends Bloc<ChargeDetailEvent, ChargeDetailState> {
   final ChargeDataManager _repository = ChargeDataManager();
   final ChargeBloc _listBloc;
@@ -20,8 +20,6 @@ class ChargeDetailBloc extends Bloc<ChargeDetailEvent, ChargeDetailState> {
       : _listBloc = listBloc,
         super(ChargeDetailInitial()) {
     on<LoadCharge>(_onLoadCharge);
-    on<MarkPaid>(_onMarkPaid);
-    on<MarkUnpaid>(_onMarkUnpaid);
     on<UpdateChargeAction>(_onUpdate);
     on<DeleteChargeAction>(_onDelete);
     on<UpdateChargeFromApi>(_onUpdateFromApi);
@@ -36,70 +34,6 @@ class ChargeDetailBloc extends Bloc<ChargeDetailEvent, ChargeDetailState> {
     Emitter<ChargeDetailState> emit,
   ) {
     emit(ChargeDetailLoaded(event.charge));
-  }
-
-  Future<void> _onMarkPaid(
-    MarkPaid event,
-    Emitter<ChargeDetailState> emit,
-  ) async {
-    final c = state.charge;
-    if (c == null || c.id == null) return;
-    emit(ChargeDetailActionInProgress(
-      ChargeDetailAction.markPaid,
-      charge: c,
-    ));
-    try {
-      final updated = await _repository.markAsPaid(c.id!);
-      if (updated != null) {
-        emit(ChargeDetailLoaded(updated));
-      } else {
-        emit(ChargeDetailLoaded(c));
-      }
-      emit(ChargeDetailActionSuccess(
-        ChargeDetailAction.markPaid,
-        charge: state.charge,
-      ));
-      _listBloc.add(RefreshCharges());
-    } catch (e) {
-      deboger(['[ChargeDetailBloc] MarkPaid: $e']);
-      emit(ChargeDetailActionError(
-        ChargeDetailAction.markPaid,
-        'Échec du marquage comme payée',
-        charge: c,
-      ));
-    }
-  }
-
-  Future<void> _onMarkUnpaid(
-    MarkUnpaid event,
-    Emitter<ChargeDetailState> emit,
-  ) async {
-    final c = state.charge;
-    if (c == null || c.id == null) return;
-    emit(ChargeDetailActionInProgress(
-      ChargeDetailAction.markUnpaid,
-      charge: c,
-    ));
-    try {
-      final reset = c.copyWith(
-        estPaye: false,
-        datePaiement: null,
-      );
-      final updated = await _repository.updateCharge(reset);
-      emit(ChargeDetailLoaded(updated));
-      emit(ChargeDetailActionSuccess(
-        ChargeDetailAction.markUnpaid,
-        charge: updated,
-      ));
-      _listBloc.add(RefreshCharges());
-    } catch (e) {
-      deboger(['[ChargeDetailBloc] MarkUnpaid: $e']);
-      emit(ChargeDetailActionError(
-        ChargeDetailAction.markUnpaid,
-        'Échec du retour en impayée',
-        charge: c,
-      ));
-    }
   }
 
   Future<void> _onUpdate(

@@ -4,6 +4,7 @@ import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_full_card_more_button.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/badge/badge_tone.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Hero image 16:9 d'une `ListingFullCard` avec badges Actif + Certifié
@@ -24,7 +25,12 @@ class ListingFullCardHero extends StatelessWidget {
       aspectRatio: 16 / 9,
       child: Stack(
         children: [
-          Positioned.fill(child: ImgPh(tone: appartement.tone, radius: 0)),
+          Positioned.fill(
+            child: DomainImage(
+              path: appartement.firstPhotoPath,
+              placeholder: ImgPh(tone: appartement.tone, radius: 0),
+            ),
+          ),
           Positioned(
             top: 12,
             left: 12,

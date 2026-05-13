@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Image preview lazy du `MapMarkerBottomSheet` — V9.7b option A.
@@ -37,17 +38,12 @@ class MapMarkerPreviewImage extends StatelessWidget {
           const _ShimmerOverlay(),
         ],
       );
-    } else if (imgUrl != null && imgUrl!.isNotEmpty) {
-      content = ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        child: Image.network(
-          imgUrl!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => ImgPh(tone: tone, radius: AppRadii.md),
-        ),
-      );
     } else {
-      content = ImgPh(tone: tone, radius: AppRadii.md);
+      content = DomainImage(
+        path: imgUrl,
+        placeholder: ImgPh(tone: tone, radius: AppRadii.md),
+        borderRadius: BorderRadius.circular(AppRadii.md),
+      );
     }
 
     return AspectRatio(

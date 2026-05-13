@@ -64,10 +64,10 @@ class ComptabiliteCalculator {
         return false;
       }
 
-      // Filtrer par résidence si spécifiée
-      if (residenceId != null && c.residenceId != residenceId) {
-        return false;
-      }
+      // Note 2026-05-13 : `residenceId` n'a plus aucune valeur sémantique
+      // (champ retiré du modèle Charge). Le paramètre est conservé pour
+      // rétro-compat des callers mais ne filtre plus rien.
+      final _ = residenceId;
 
       // Filtrer par période (basé sur dateEcheance ou createdAt)
       final dateRef = c.dateEcheance ?? c.createdAt;
@@ -178,28 +178,6 @@ class ComptabiliteCalculator {
     );
 
     return chargesFiltrees
-        .where((c) => c.estPaye == true)
-        .fold(0.0, (sum, c) => sum + (c.montant ?? 0));
-  }
-
-  /// Calcule le total des charges impayées
-  static double chargesImpayees({
-    required List<Charge> charges,
-    required DateTime dateDebut,
-    required DateTime dateFin,
-    int? residenceId,
-    int? appartementId,
-  }) {
-    final chargesFiltrees = filtrerCharges(
-      charges: charges,
-      dateDebut: dateDebut,
-      dateFin: dateFin,
-      residenceId: residenceId,
-      appartementId: appartementId,
-    );
-
-    return chargesFiltrees
-        .where((c) => c.estPaye != true)
         .fold(0.0, (sum, c) => sum + (c.montant ?? 0));
   }
 
@@ -376,57 +354,6 @@ class ComptabiliteCalculator {
 
     if (prixList.isEmpty) return 0;
     return prixList.reduce((a, b) => a + b) / prixList.length;
-  }
-
-  // ==================== ALERTES ====================
-
-  /// Retourne les charges en retard de paiement
-  static List<Charge> chargesEnRetard(List<Charge> charges) {
-    return charges.where((c) => c.estEnRetard).toList();
-  }
-
-  /// Retourne les charges dont l'échéance approche
-  static List<Charge> chargesEcheanceProche(
-    List<Charge> charges, {
-    int joursAvant = 7,
-  }) {
-    final now = DateTime.now();
-    return charges.where((c) {
-      if (c.estPaye == true || c.dateEcheance == null) return false;
-      final diff = c.dateEcheance!.difference(now).inDays;
-      return diff >= 0 && diff <= joursAvant;
-    }).toList();
-  }
-
-  /// Retourne toutes les charges avec alertes (en retard ou échéance proche)
-  static List<Charge> chargesAvecAlertes(
-    List<Charge> charges, {
-    int joursAvant = 7,
-  }) {
-    final enRetard = chargesEnRetard(charges);
-    final echeanceProche = chargesEcheanceProche(
-      charges,
-      joursAvant: joursAvant,
-    );
-
-    // Combiner sans doublons
-    final Set<int?> idsRetard = enRetard.map((c) => c.id).toSet();
-    final alertes = [...enRetard];
-
-    for (final c in echeanceProche) {
-      if (!idsRetard.contains(c.id)) {
-        alertes.add(c);
-      }
-    }
-
-    // Trier par date d'échéance
-    alertes.sort((a, b) {
-      if (a.dateEcheance == null) return 1;
-      if (b.dateEcheance == null) return -1;
-      return a.dateEcheance!.compareTo(b.dateEcheance!);
-    });
-
-    return alertes;
   }
 
   // ==================== REPARTITION ====================

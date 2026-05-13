@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/model/reservation/reservation.dart';
+import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_display.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_status_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Ligne d'une référence client référée — Dashboard + Referrals screen.
@@ -51,7 +53,11 @@ class ReferralRow extends StatelessWidget {
               SizedBox(
                 width: 36,
                 height: 36,
-                child: ImgPh(tone: _tone, radius: 10),
+                child: DomainImage(
+                  path: reservation.appart?.firstPhotoPath,
+                  placeholder: ImgPh(tone: _tone, radius: 10),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

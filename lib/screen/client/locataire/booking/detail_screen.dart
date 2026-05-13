@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/residence/appart_display.dart';
+import 'package:asfar/model/reservation/commentaire/commentaire.dart';
 import 'package:asfar/screen/client/locataire/booking/reserve_screen.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/amenities_grid.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/amenity_item.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/detail_bottom_bar.dart';
-import 'package:asfar/screen/client/locataire/booking/widget/detail_hero_gallery.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/detail_map_section.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/detail_title_block.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/host_card.dart';
@@ -13,8 +13,12 @@ import 'package:asfar/screen/client/locataire/booking/widget/quick_specs_card.da
 import 'package:asfar/screen/client/locataire/booking/widget/review_card.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/formate.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
+import 'package:asfar/widget/feedback/empty_state.dart';
+import 'package:asfar/widget/img/img_placeholder.dart';
+import 'package:asfar/widget/img/photo_carousel.dart';
 
 /// Écran Detail logement — fiche complète.
 ///
@@ -41,31 +45,27 @@ class LocataireDetailScreen extends StatelessWidget {
     AmenityItem(icon: Icons.tv_outlined, label: 'TV'),
   ];
 
-  static const _reviews = [
-    _ReviewData(
-      name: 'Yacine D.',
-      text:
-          'Logement impeccable, hôte très réactif. Je recommande vraiment !',
-      date: 'Oct 2025',
-    ),
-    _ReviewData(
-      name: 'Mariam T.',
-      text: 'Quartier calme, lit confortable. Parfait pour 3 nuits.',
-      date: 'Sept 2025',
-    ),
-    _ReviewData(
-      name: 'Kofi A.',
-      text: 'Excellent rapport qualité-prix. À refaire.',
-      date: 'Sept 2025',
-    ),
-  ];
-
   void _onReserve(BuildContext context) {
     pushScreen(context, LocataireReserveScreen(appartement: appartement));
   }
 
+  String get _typeLabel {
+    final t = appartement.typeLocation;
+    if (t == null || t.isEmpty) return 'Logement';
+    return t[0].toUpperCase() + t.substring(1).toLowerCase();
+  }
+
+  String get _descriptionText {
+    final d = appartement.description;
+    if (d != null && d.trim().isNotEmpty) return d;
+    return "Espace lumineux et calme au cœur de ${appartement.areaName}. "
+        "Décoration soignée, équipements modernes, balcon avec "
+        "vue dégagée. Idéal pour séjours d'affaires ou tourisme.";
+  }
+
   @override
   Widget build(BuildContext context) {
+    final reviews = appartement.commentaires ?? const <Commentaire>[];
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -73,14 +73,22 @@ class LocataireDetailScreen extends StatelessWidget {
           ListView(
             padding: const EdgeInsets.only(bottom: 120),
             children: [
-              DetailHeroGallery(tone: appartement.tone),
+              AspectRatio(
+                aspectRatio: 1,
+                child: PhotoCarousel(
+                  paths: (appartement.photos ?? const [])
+                      .map((p) => p.path)
+                      .toList(),
+                  placeholder: ImgPh(tone: appartement.tone, radius: 0),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 20, 18, 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     DetailTitleBlock(
-                      type: 'Loft entier',
+                      type: _typeLabel,
                       title: appartement.titleSafe,
                       rating: appartement.rating,
                       reviews: appartement.reviewsCount,
@@ -90,9 +98,8 @@ class LocataireDetailScreen extends StatelessWidget {
                     const SizedBox(height: 18),
                     QuickSpecsCard(
                       beds: appartement.bedsCount,
+                      rooms: appartement.nbChambres ?? 0,
                       baths: appartement.bathsCount,
-                      surface: appartement.surfaceM2,
-                      travelers: appartement.bedsCount * 2,
                     ),
                     const SizedBox(height: 18),
                     HostCard(
@@ -105,12 +112,7 @@ class LocataireDetailScreen extends StatelessWidget {
                     const Text('À propos du logement',
                         style: AppTextStyles.h3),
                     const SizedBox(height: 8),
-                    Text(
-                      "Espace lumineux et calme au cœur de ${appartement.areaName}. "
-                      "Décoration soignée, équipements modernes, balcon avec "
-                      "vue dégagée. Idéal pour séjours d'affaires ou tourisme.",
-                      style: AppTextStyles.body,
-                    ),
+                    Text(_descriptionText, style: AppTextStyles.body),
                     const SizedBox(height: 22),
                     const Text('Équipements', style: AppTextStyles.h3),
                     const SizedBox(height: 8),
@@ -154,34 +156,50 @@ class LocataireDetailScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const Text(
-                          'Tout voir',
-                          style: TextStyle(
-                            color: AppColors.accent,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                        if (reviews.isNotEmpty)
+                          const Text(
+                            'Tout voir',
+                            style: TextStyle(
+                              color: AppColors.accent,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
                   ],
                 ),
               ),
-              SizedBox(
-                height: 200,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
+              if (reviews.isEmpty)
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 18),
-                  itemCount: _reviews.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (_, i) => ReviewCard(
-                    name: _reviews[i].name,
-                    text: _reviews[i].text,
-                    date: _reviews[i].date,
+                  child: EmptyState.inline(
+                    icon: Icons.chat_bubble_outline,
+                    title: 'Aucun avis pour le moment',
+                    body:
+                        'Soyez le premier à séjourner ici et à partager votre expérience.',
+                  ),
+                )
+              else
+                SizedBox(
+                  height: 200,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    itemCount: reviews.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (_, i) {
+                      final r = reviews[i];
+                      return ReviewCard(
+                        name: _reviewerName(r),
+                        text: r.contenu ?? '',
+                        date: formatDateMonth(r.createdAt),
+                        starCount: (r.note ?? 5).clamp(0, 5),
+                      );
+                    },
                   ),
                 ),
-              ),
               const SizedBox(height: 20),
             ],
           ),
@@ -234,15 +252,12 @@ class LocataireDetailScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class _ReviewData {
-  final String name;
-  final String text;
-  final String date;
-  const _ReviewData({
-    required this.name,
-    required this.text,
-    required this.date,
-  });
+  String _reviewerName(Commentaire c) {
+    final prenom = c.client?.prenom?.trim() ?? '';
+    final nom = c.client?.nom?.trim() ?? '';
+    final initial = nom.isNotEmpty ? ' ${nom[0]}.' : '';
+    if (prenom.isEmpty && nom.isEmpty) return 'Anonyme';
+    return '$prenom$initial'.trim();
+  }
 }

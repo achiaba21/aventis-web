@@ -2,58 +2,59 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:asfar/model/comptabilite/charge.dart';
 import 'package:asfar/util/calc/charge_period_filter.dart';
 
+/// Sémantique post-2026-05-13 : chaque charge en base = un paiement déjà
+/// enregistré. Le pivot temporel est `dateDebut` (fallback `createdAt`).
 Charge _c({
-  DateTime? datePaiement,
-  DateTime? dateEcheance,
   DateTime? dateDebut,
+  DateTime? dateEcheance,
+  DateTime? createdAt,
   bool estRecurrent = false,
 }) {
   final c = Charge();
-  c.datePaiement = datePaiement;
-  c.dateEcheance = dateEcheance;
   c.dateDebut = dateDebut;
+  c.dateEcheance = dateEcheance;
+  c.createdAt = createdAt;
   c.estRecurrent = estRecurrent;
   return c;
 }
 
 void main() {
   group('ChargePeriodFilter.includes', () {
-    test('charge sans datePaiement → false (RM8)', () {
-      final c = _c(dateEcheance: DateTime(2026, 5, 15));
-      expect(
-        ChargePeriodFilter.includes(c, year: 2026, month: 5),
-        isFalse,
-        reason: 'RM8 : non payée = exclue, même si échéance dans la période',
+    test('charge sans aucune date → false', () {
+      final c = _c();
+      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isFalse);
+    });
+
+    test('dateDebut dans le mois ciblé → true', () {
+      final c = _c(dateDebut: DateTime(2026, 5, 10));
+      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isTrue);
+    });
+
+    test('dateDebut le 1er du mois → true (borne incluse)', () {
+      final c = _c(dateDebut: DateTime(2026, 5, 1));
+      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isTrue);
+    });
+
+    test('dateDebut un mois différent → false', () {
+      final c = _c(dateDebut: DateTime(2026, 4, 28));
+      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isFalse);
+    });
+
+    test('dateDebut même mois mais année différente → false', () {
+      final c = _c(dateDebut: DateTime(2025, 5, 15));
+      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isFalse);
+    });
+
+    test('fallback createdAt si dateDebut absente', () {
+      final c = _c(createdAt: DateTime(2026, 5, 8));
+      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isTrue);
+    });
+
+    test('dateEcheance seule (récurrente future) ne suffit pas', () {
+      final c = _c(
+        dateEcheance: DateTime(2026, 5, 15),
+        estRecurrent: true,
       );
-    });
-
-    test('charge récurrente sans aucune date → false (RM8)', () {
-      final c = _c(estRecurrent: true);
-      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isFalse);
-    });
-
-    test('payée dans le mois ciblé → true', () {
-      final c = _c(datePaiement: DateTime(2026, 5, 10));
-      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isTrue);
-    });
-
-    test('payée le 1er du mois → true (borne incluse)', () {
-      final c = _c(datePaiement: DateTime(2026, 5, 1));
-      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isTrue);
-    });
-
-    test('payée le dernier jour du mois → true (borne incluse)', () {
-      final c = _c(datePaiement: DateTime(2026, 5, 31, 23, 59));
-      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isTrue);
-    });
-
-    test('payée un mois différent → false', () {
-      final c = _c(datePaiement: DateTime(2026, 4, 28));
-      expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isFalse);
-    });
-
-    test('payée même mois mais année différente → false', () {
-      final c = _c(datePaiement: DateTime(2025, 5, 15));
       expect(ChargePeriodFilter.includes(c, year: 2026, month: 5), isFalse);
     });
   });
@@ -62,40 +63,40 @@ void main() {
     final q2Start = DateTime(2026, 4, 1);
     final q2End = DateTime(2026, 6, 30, 23, 59);
 
-    test('charge sans datePaiement → false', () {
-      final c = _c(dateEcheance: DateTime(2026, 5, 15));
+    test('charge sans dateDebut ni createdAt → false', () {
+      final c = _c();
       expect(
         ChargePeriodFilter.includesInRange(c, start: q2Start, end: q2End),
         isFalse,
       );
     });
 
-    test('payée au milieu du trimestre → true', () {
-      final c = _c(datePaiement: DateTime(2026, 5, 10));
+    test('dateDebut au milieu du trimestre → true', () {
+      final c = _c(dateDebut: DateTime(2026, 5, 10));
       expect(
         ChargePeriodFilter.includesInRange(c, start: q2Start, end: q2End),
         isTrue,
       );
     });
 
-    test('payée le jour de début (borne) → true', () {
-      final c = _c(datePaiement: DateTime(2026, 4, 1));
+    test('dateDebut le jour de début (borne) → true', () {
+      final c = _c(dateDebut: DateTime(2026, 4, 1));
       expect(
         ChargePeriodFilter.includesInRange(c, start: q2Start, end: q2End),
         isTrue,
       );
     });
 
-    test('payée avant la période → false', () {
-      final c = _c(datePaiement: DateTime(2026, 3, 31));
+    test('dateDebut avant la période → false', () {
+      final c = _c(dateDebut: DateTime(2026, 3, 31));
       expect(
         ChargePeriodFilter.includesInRange(c, start: q2Start, end: q2End),
         isFalse,
       );
     });
 
-    test('payée après la période → false', () {
-      final c = _c(datePaiement: DateTime(2026, 7, 1));
+    test('dateDebut après la période → false', () {
+      final c = _c(dateDebut: DateTime(2026, 7, 1));
       expect(
         ChargePeriodFilter.includesInRange(c, start: q2Start, end: q2End),
         isFalse,

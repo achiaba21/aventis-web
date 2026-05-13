@@ -23,8 +23,24 @@ extension AppartementDisplay on Appartement {
   /// Prix arrondi en int (FCFA).
   int get priceAmount => (prix ?? 0).round();
 
-  /// Note d'évaluation (alias de `note`).
-  double get rating => note;
+  /// Note d'évaluation. Priorité : `note` persistée (backend) → moyenne des
+  /// `commentaires` (fallback Flutter) → `0.0` si aucune source.
+  ///
+  /// Reste non-nullable pour préserver la rétro-compat des callers qui font
+  /// `>= 4.8`. Pour distinguer "pas de note" de "0", utiliser `ratingOrNull`.
+  double get rating {
+    final r = ratingOrNull;
+    return r ?? 0.0;
+  }
+
+  /// Variante nullable : `null` si aucune source de note disponible.
+  double? get ratingOrNull {
+    if (note != null) return note;
+    final cs = commentaires ?? const [];
+    if (cs.isEmpty) return null;
+    final sum = cs.fold<double>(0, (s, c) => s + (c.note ?? 0).toDouble());
+    return sum / cs.length;
+  }
 
   /// Nombre d'avis.
   int get reviewsCount => commentaires?.length ?? 0;
@@ -46,4 +62,20 @@ extension AppartementDisplay on Appartement {
 
   /// URL d'image à afficher (imgUrl racine, fallback null → ImgPh tone).
   String? get displayImageUrl => imgUrl;
+
+  /// Premier path de photo affichable.
+  ///
+  /// Priorité : 1re photo non-vide de `photos` → fallback `imgUrl` racine.
+  /// Le path peut être relatif (sera résolu par `DomainImage`) ou absolu.
+  /// Retourne `null` si aucune source.
+  String? get firstPhotoPath {
+    final list = photos ?? const [];
+    for (final p in list) {
+      final path = p.path;
+      if (path != null && path.trim().isNotEmpty) return path;
+    }
+    final fallback = imgUrl;
+    if (fallback != null && fallback.trim().isNotEmpty) return fallback;
+    return null;
+  }
 }

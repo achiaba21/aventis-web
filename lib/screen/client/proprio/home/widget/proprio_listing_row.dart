@@ -7,6 +7,7 @@ import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/badge/badge_tone.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Ligne compacte d'annonce — Dashboard propriétaire section « Mes annonces ».
@@ -48,7 +49,11 @@ class ProprioListingRow extends StatelessWidget {
               SizedBox(
                 width: 64,
                 height: 64,
-                child: ImgPh(tone: appartement.tone, radius: 12),
+                child: DomainImage(
+                  path: appartement.firstPhotoPath,
+                  placeholder: ImgPh(tone: appartement.tone, radius: 12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

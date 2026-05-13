@@ -2,30 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Hero photo du `ProprioListingEditScreen`.
 ///
-/// Consomme directement [Appartement]. Reproduit le proto
-/// `proprietaire.jsx::ProprietaireListingEdit` (lignes 468-477) : `ImgPh`
-/// ratio 16:10 + badge en bottom-right blur 10 avec icon image + nb photos.
+/// Affiche la 1re photo backend (`appartement.photos[0].path`) si dispo,
+/// fallback `ImgPh(tone)` sinon. Le badge bottom-right reflète le nombre
+/// réel de photos en base.
 class ListingEditHero extends StatelessWidget {
   final Appartement appartement;
-  final int photoCount;
 
-  const ListingEditHero({
-    super.key,
-    required this.appartement,
-    this.photoCount = 8,
-  });
+  const ListingEditHero({super.key, required this.appartement});
+
+  int get _photoCount {
+    final list = appartement.photos ?? const [];
+    return list.where((p) => (p.path ?? '').isNotEmpty).length;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final url = appartement.firstPhotoPath;
     return AspectRatio(
       aspectRatio: 16 / 10,
       child: Stack(
         children: [
-          Positioned.fill(child: ImgPh(tone: appartement.tone, radius: 0)),
+          Positioned.fill(
+            child: DomainImage(
+              path: url,
+              placeholder: ImgPh(tone: appartement.tone, radius: 0),
+            ),
+          ),
           Positioned(
             bottom: 12,
             right: 12,
@@ -42,7 +49,9 @@ class ListingEditHero extends StatelessWidget {
                       size: 14, color: Colors.white),
                   const SizedBox(width: 6),
                   Text(
-                    '$photoCount photos',
+                    _photoCount == 0
+                        ? 'Aucune photo'
+                        : '$_photoCount photo${_photoCount > 1 ? 's' : ''}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

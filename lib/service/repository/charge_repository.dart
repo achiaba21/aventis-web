@@ -69,22 +69,6 @@ class ChargeRepository {
     }).toList();
   }
 
-  /// Récupère les charges avec alertes (en retard ou échéance proche)
-  Future<List<Charge>> getChargesAvecAlertes() async {
-    final allCharges = getAllCharges();
-    return allCharges
-        .where((c) => c.estEnRetard || c.echeanceProche)
-        .toList()
-      ..sort((a, b) {
-        // Trier par urgence: en retard d'abord, puis par date d'échéance
-        if (a.estEnRetard && !b.estEnRetard) return -1;
-        if (!a.estEnRetard && b.estEnRetard) return 1;
-        if (a.dateEcheance == null) return 1;
-        if (b.dateEcheance == null) return -1;
-        return a.dateEcheance!.compareTo(b.dateEcheance!);
-      });
-  }
-
   /// Ajoute une nouvelle charge
   Future<Charge> addCharge(Charge charge) async {
     try {
@@ -145,30 +129,6 @@ class ChargeRepository {
       deboger(['[ChargeRepository] Charge supprimée: $chargeId']);
     } catch (e) {
       deboger(['[ChargeRepository] Erreur deleteCharge: $e']);
-      rethrow;
-    }
-  }
-
-  /// Marque une charge comme payée
-  Future<void> markAsPaid(int chargeId, {DateTime? datePaiement}) async {
-    try {
-      final allCharges = getAllCharges();
-
-      final index = allCharges.indexWhere((c) => c.id == chargeId);
-      if (index == -1) {
-        throw Exception('Charge non trouvée: $chargeId');
-      }
-
-      allCharges[index] = allCharges[index].copyWith(
-        estPaye: true,
-        datePaiement: datePaiement ?? DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-      await _saveCharges(allCharges);
-      deboger(['[ChargeRepository] Charge marquée comme payée: $chargeId']);
-    } catch (e) {
-      deboger(['[ChargeRepository] Erreur markAsPaid: $e']);
       rethrow;
     }
   }

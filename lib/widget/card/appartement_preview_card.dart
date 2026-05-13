@@ -9,7 +9,7 @@ import 'package:asfar/widget/badge/certified_badge.dart';
 import 'package:asfar/widget/card/spec_chip.dart';
 import 'package:asfar/widget/img/floating_heart_button.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
-import 'package:asfar/widget/img/photo_dots.dart';
+import 'package:asfar/widget/img/photo_carousel.dart';
 
 /// Card de logement plein largeur — équivalent `ListingCard` du proto.
 ///
@@ -56,7 +56,14 @@ class AppartementPreviewCard extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: ImgPh(tone: appartement.tone, radius: 0),
+                      child: PhotoCarousel(
+                        paths: (appartement.photos ?? const [])
+                            .map((p) => p.path)
+                            .toList(),
+                        placeholder:
+                            ImgPh(tone: appartement.tone, radius: 0),
+                        showCounter: false,
+                      ),
                     ),
                     Positioned(
                       top: 12,
@@ -72,12 +79,6 @@ class AppartementPreviewCard extends StatelessWidget {
                         left: 12,
                         child: CertifiedBadge(),
                       ),
-                    const Positioned(
-                      bottom: 12,
-                      left: 0,
-                      right: 0,
-                      child: PhotoDots(active: 0, count: 4),
-                    ),
                   ],
                 ),
               ),

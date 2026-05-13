@@ -3,17 +3,24 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
+import 'package:asfar/bloc/calendar_plage_bloc/calendar_plage_bloc.dart';
+import 'package:asfar/bloc/calendar_plage_bloc/calendar_plage_event.dart';
+import 'package:asfar/bloc/calendar_plage_bloc/calendar_plage_state.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_bloc.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_event.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_state.dart';
+import 'package:asfar/model/calendar/calendar_plage.dart';
 import 'package:asfar/model/request/demarcheur_reservation_req.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/new_referral_listing_radio_item.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/recap_line.dart';
+import 'package:asfar/screen/client/proprio/appartements/widget/calendar_legend.dart';
+import 'package:asfar/screen/client/proprio/appartements/widget/mini_calendar_grid.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/calc/calendar_availability.dart';
 import 'package:asfar/util/calc/demarcheur_stats_calculator.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/util/navigation.dart';
@@ -59,6 +66,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
 
   late DateTime _arrival;
   late DateTime _departure;
+  late DateTime _calendarMonth;
 
   String? _generatedRef;
   bool _submitting = false;
@@ -79,6 +87,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
     _departure = _arrival.add(
       const Duration(days: ReferralCommissionHelper.defaultNights),
     );
+    _calendarMonth = DateTime(now.year, now.month, 1);
     _arrivalCtrl = TextEditingController(text: _formatDate(_arrival));
     _departureCtrl = TextEditingController(text: _formatDate(_departure));
     final initial = widget.initialAppartement;
@@ -89,15 +98,48 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AppartementBloc>().add(LoadAppartements());
+      final selected = _selectedAppartement;
+      if (selected?.id != null) _loadCalendar(selected!.id!);
     });
   }
 
+  void _loadCalendar(int appartId) {
+    final now = DateTime.now();
+    context.read<CalendarPlageBloc>().add(
+          LoadCalendarPlages(
+            appartId: appartId,
+            debut: DateTime(now.year, now.month, 1),
+            fin: DateTime(now.year + 1, now.month, 0),
+            isDemarcheur: true,
+          ),
+        );
+  }
+
+  void _onSelectAppart(Appartement appart) {
+    setState(() => _selectedAppartement = appart);
+    if (appart.id != null) _loadCalendar(appart.id!);
+  }
+
+  List<CalendarPlage> _plagesForSelected() {
+    final state = context.read<CalendarPlageBloc>().state;
+    if (state is CalendarPlagesLoaded &&
+        state.appartId == _selectedAppartement?.id) {
+      return state.plages;
+    }
+    return const [];
+  }
+
   Future<void> _pickArrival() async {
+    final plages = _plagesForSelected();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _arrival,
+      initialDate: CalendarAvailability.isDayAvailable(_arrival, plages)
+          ? _arrival
+          : DateTime.now(),
       firstDate: DateTime.now().subtract(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      selectableDayPredicate: (day) =>
+          CalendarAvailability.isDayAvailable(day, plages),
     );
     if (picked == null) return;
     setState(() {
@@ -111,17 +153,27 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
   }
 
   Future<void> _pickDeparture() async {
+    final plages = _plagesForSelected();
+    final minDeparture = _arrival.add(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
-      initialDate: _departure,
-      firstDate: _arrival.add(const Duration(days: 1)),
+      initialDate: _departure.isBefore(minDeparture) ? minDeparture : _departure,
+      firstDate: minDeparture,
       lastDate: _arrival.add(const Duration(days: 365)),
+      selectableDayPredicate: (day) =>
+          CalendarAvailability.isRangeAvailable(_arrival, day, plages),
     );
     if (picked == null) return;
     setState(() {
       _departure = picked;
       _departureCtrl.text = _formatDate(_departure);
     });
+  }
+
+  bool get _datesAvailable {
+    final plages = _plagesForSelected();
+    if (plages.isEmpty) return true;
+    return CalendarAvailability.isRangeAvailable(_arrival, _departure, plages);
   }
 
   int get _stayNights {
@@ -287,9 +339,7 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
                 NewReferralListingRadioItem(
                   appart: a,
                   selectedListingId: _selectedAppartement?.displayId,
-                  onSelect: (appart) => setState(() {
-                    _selectedAppartement = appart;
-                  }),
+                  onSelect: _onSelectAppart,
                 ),
                 const SizedBox(height: 12),
               ],
@@ -297,6 +347,14 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
           );
         },
       ),
+      if (_selectedAppartement != null) ...[
+        const SizedBox(height: 8),
+        const Text('Disponibilités', style: AppTextStyles.h3),
+        const SizedBox(height: 10),
+        _buildConsultativeCalendar(),
+        const SizedBox(height: 10),
+        const CalendarLegend(),
+      ],
       const SizedBox(height: 12),
       CustomButton(
         text: 'Suivant',
@@ -305,6 +363,47 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
         block: true,
       ),
     ];
+  }
+
+  Widget _buildConsultativeCalendar() {
+    return BlocBuilder<CalendarPlageBloc, CalendarPlageState>(
+      builder: (context, state) {
+        final plages =
+            state is CalendarPlagesLoaded ? state.plages : const <CalendarPlage>[];
+        return MiniCalendarGrid(
+          currentMonth: _calendarMonth,
+          bookedDays: _daysOfMonthForStatut(plages, PlageStatut.occupe),
+          pendingDays: _daysOfMonthForStatut(plages, PlageStatut.enAttente),
+          onPrevMonth: () => setState(() {
+            _calendarMonth =
+                DateTime(_calendarMonth.year, _calendarMonth.month - 1, 1);
+          }),
+          onNextMonth: () => setState(() {
+            _calendarMonth =
+                DateTime(_calendarMonth.year, _calendarMonth.month + 1, 1);
+          }),
+        );
+      },
+    );
+  }
+
+  List<int> _daysOfMonthForStatut(
+    List<CalendarPlage> plages,
+    PlageStatut statut,
+  ) {
+    final days = <int>{};
+    for (final p in plages.where((p) => p.statut == statut)) {
+      var cursor = DateTime(p.debut.year, p.debut.month, p.debut.day);
+      final end = DateTime(p.fin.year, p.fin.month, p.fin.day);
+      while (cursor.isBefore(end)) {
+        if (cursor.year == _calendarMonth.year &&
+            cursor.month == _calendarMonth.month) {
+          days.add(cursor.day);
+        }
+        cursor = cursor.add(const Duration(days: 1));
+      }
+    }
+    return days.toList()..sort();
   }
 
   List<Appartement> _filterApparts(List<Appartement> apparts, String query) {
@@ -370,10 +469,22 @@ class _NewReferralScreenState extends State<NewReferralScreen> {
             'Commission estimée ${FcfaFormatter.full(_commissionEstimate)}',
         body: '10 % du séjour · versée après paiement client.',
       ),
+      if (!_datesAvailable) ...[
+        const SizedBox(height: 14),
+        const InfoBanner(
+          icon: Icons.error_outline,
+          title: 'Dates indisponibles',
+          body:
+              'Cette période chevauche une réservation déjà active. Choisissez une autre plage.',
+          color: AppColors.danger,
+        ),
+      ],
       const SizedBox(height: 22),
       CustomButton(
         text: _submitting ? 'Envoi…' : 'Envoyer la demande',
-        onPressed: (_step2Valid && !_submitting) ? _onSubmit : null,
+        onPressed: (_step2Valid && _datesAvailable && !_submitting)
+            ? _onSubmit
+            : null,
         size: ButtonSize.lg,
         block: true,
       ),
