@@ -25,6 +25,7 @@ class StepLocationAndCapacity extends StatefulWidget {
   final Address? address;
   final String? title;
   final String? description;
+  final int lits;
   final int chambres;
   final int douches;
   final bool isLoadingGeo;
@@ -36,6 +37,7 @@ class StepLocationAndCapacity extends StatefulWidget {
     required this.address,
     required this.title,
     required this.description,
+    required this.lits,
     required this.chambres,
     required this.douches,
     required this.isLoadingGeo,
@@ -80,6 +82,7 @@ class _StepLocationAndCapacityState extends State<StepLocationAndCapacity> {
           address: widget.address,
           title: widget.title,
           description: widget.description,
+          lits: widget.lits,
           chambres: widget.chambres,
           douches: widget.douches,
           isLoadingGeo: widget.isLoadingGeo,
@@ -127,6 +130,7 @@ class _StepLocationContent extends StatelessWidget {
   final Address? address;
   final String? title;
   final String? description;
+  final int lits;
   final int chambres;
   final int douches;
   final bool isLoadingGeo;
@@ -141,6 +145,7 @@ class _StepLocationContent extends StatelessWidget {
     required this.address,
     required this.title,
     required this.description,
+    required this.lits,
     required this.chambres,
     required this.douches,
     required this.isLoadingGeo,
@@ -218,6 +223,16 @@ class _StepLocationContent extends StatelessWidget {
         const SizedBox(height: 14),
         Row(
           children: [
+            Expanded(
+              child: WizardStepperRow(
+                label: 'Lits',
+                value: lits,
+                min: 0,
+                max: 20,
+                onChange: (v) => onFieldChange('nbLits', v),
+              ),
+            ),
+            const SizedBox(width: 10),
             Expanded(
               child: WizardStepperRow(
                 label: 'Chambres',

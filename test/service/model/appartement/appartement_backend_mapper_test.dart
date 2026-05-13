@@ -3,6 +3,9 @@ import 'package:asfar/model/locolite/address.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/service/model/appartement/appartement_backend_mapper.dart';
 
+/// Tests post-migration 2026-05-13 : le payload est désormais **flat**
+/// (plus de shape `residence` virtuelle), seul `geoLat/geoLongi` sont
+/// retirés de l'address au create/update car calculés serveur.
 Appartement _appart({String? titre, Address? address, double? prix}) {
   return Appartement(
     titre: titre,
@@ -23,19 +26,17 @@ void main() {
   final mapper = AppartementBackendMapper.instance;
 
   group('AppartementBackendMapper.toCreatePayload', () {
-    test('sans address → residence shape minimale, address absente du root', () {
+    test('sans address → payload sans shape résidence', () {
       final appart = _appart(titre: 'Loft Plateau', prix: 65000);
       final payload = mapper.toCreatePayload(appart);
 
-      expect(payload['address'], isNull);
-      expect(payload['residence'], isA<Map>());
-      expect(payload['residence']['nom'], isNotNull);
-      expect(payload['residence'].containsKey('address'), isFalse);
+      expect(payload.containsKey('residence'), isFalse,
+          reason: 'Plus de shape résidence depuis migration backend');
       expect(payload['titre'], 'Loft Plateau');
       expect(payload['prix'], 65000);
     });
 
-    test('avec address → embarquée dans residence + geoLat/geoLongi retirés', () {
+    test('avec address → address racine présente, geoLat/geoLongi retirés', () {
       final address = _address(
         geoLat: 5.31,
         geoLongi: -4.02,
@@ -44,9 +45,8 @@ void main() {
       final appart = _appart(titre: 'Studio', address: address);
       final payload = mapper.toCreatePayload(appart);
 
-      expect(payload['address'], isNull);
-      expect(payload['residence']['address'], isA<Map>());
-      final addrMap = payload['residence']['address'] as Map;
+      expect(payload['address'], isA<Map>());
+      final addrMap = payload['address'] as Map;
       expect(addrMap.containsKey('geoLat'), isFalse,
           reason: 'geoLat est calculé backend, ne doit pas être envoyé');
       expect(addrMap.containsKey('geoLongi'), isFalse,
@@ -54,33 +54,51 @@ void main() {
       expect(addrMap['nom'], 'Quartier centre');
     });
 
-    test('residence shape sans id à la création (id absent)', () {
+    test('id absent du payload à la création', () {
       final appart = _appart(titre: 'Test');
       final payload = mapper.toCreatePayload(appart);
-      expect(payload['residence'].containsKey('id'), isFalse);
+      expect(payload['id'], isNull);
     });
   });
 
   group('AppartementBackendMapper.toUpdatePayload', () {
-    test('avec backendResidenceId → id présent dans residence + au top-level', () {
+    test('backendResidenceId ignoré (compat ascendante)', () {
       final appart = _appart(titre: 'Studio Cocody');
       final payload = mapper.toUpdatePayload(appart, backendResidenceId: 42);
 
-      expect(payload['residence']['id'], 42);
-      expect(payload['residenceId'], 42);
-      expect(payload['address'], isNull);
+      expect(payload.containsKey('residence'), isFalse);
+      expect(payload.containsKey('residenceId'), isFalse);
+      expect(payload['titre'], 'Studio Cocody');
     });
 
-    test('sans backendResidenceId → id absent du residence shape', () {
-      final appart = _appart(titre: 'Sans id');
+    test('payload flat identique au create', () {
+      final address = _address(geoLat: 1, geoLongi: 2, nom: 'X');
+      final appart = _appart(titre: 'Sans id', address: address);
       final payload = mapper.toUpdatePayload(appart);
-      expect(payload['residence'].containsKey('id'), isFalse);
-      expect(payload.containsKey('residenceId'), isFalse);
+      expect(payload['address'], isA<Map>());
+      final addr = payload['address'] as Map;
+      expect(addr.containsKey('geoLat'), isFalse);
+      expect(addr.containsKey('geoLongi'), isFalse);
     });
   });
 
   group('AppartementBackendMapper.fromBackendDto', () {
-    test('fusionne residence.address → appart.address', () {
+    test('lit address racine du DTO flat', () {
+      final json = <String, dynamic>{
+        'id': 12,
+        'titre': 'Bien moderne',
+        'address': {
+          'nom': 'Plateau',
+        },
+      };
+      final appart = mapper.fromBackendDto(json);
+      expect(appart.id, 12);
+      expect(appart.titre, 'Bien moderne');
+      expect(appart.address, isNotNull);
+      expect(appart.address!.nom, 'Plateau');
+    });
+
+    test('fusion défensive residence.address (DTO legacy)', () {
       final json = <String, dynamic>{
         'id': 12,
         'titre': 'Bien legacy',
@@ -93,39 +111,29 @@ void main() {
       };
       final appart = mapper.fromBackendDto(json);
       expect(appart.id, 12);
-      expect(appart.titre, 'Bien legacy');
-      expect(appart.address, isNotNull);
-      expect(appart.address!.nom, 'Plateau');
-    });
-
-    test('retire residence et residenceId du JSON parsé', () {
-      final json = <String, dynamic>{
-        'id': 1,
-        'titre': 'X',
-        'residence': {'id': 9, 'address': {'nom': 'C'}},
-        'residenceId': 9,
-      };
-      final appart = mapper.fromBackendDto(json);
-      // L'appart parsé ne doit pas porter ces champs (ils ne sont pas du modèle).
-      expect(appart.toJson().containsKey('residence'), isFalse);
-      expect(appart.toJson().containsKey('residenceId'), isFalse);
+      // Le modèle Appartement.fromJson fait la fusion défensive depuis
+      // residence.address tant qu'un caller envoie cette shape legacy.
+      expect(appart.address?.nom, 'Plateau');
     });
   });
 
-  group('AppartementBackendMapper.extractBackendResidenceId', () {
-    test('depuis residence.id', () {
+  group('AppartementBackendMapper.extractBackendResidenceId (deprecated)', () {
+    test('depuis residence.id (fixture legacy)', () {
+      // ignore: deprecated_member_use_from_same_package
       final id = mapper.extractBackendResidenceId({
         'residence': {'id': 99},
       });
       expect(id, 99);
     });
 
-    test('depuis flat residenceId', () {
+    test('depuis flat residenceId (fixture legacy)', () {
+      // ignore: deprecated_member_use_from_same_package
       final id = mapper.extractBackendResidenceId({'residenceId': 77});
       expect(id, 77);
     });
 
     test('null si aucun des deux présents', () {
+      // ignore: deprecated_member_use_from_same_package
       final id = mapper.extractBackendResidenceId({'id': 1, 'titre': 'X'});
       expect(id, isNull);
     });

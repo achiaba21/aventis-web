@@ -42,8 +42,6 @@ class StepPricing extends StatelessWidget {
         const SizedBox(height: 18),
         _PriceCard(price: price, onPriceChange: onPriceChange),
         const SizedBox(height: 14),
-        const _CleaningFeePlaceholder(),
-        const SizedBox(height: 14),
         _RulesCard(
           rules: rules,
           rulesOrder: _rulesOrder,
@@ -157,64 +155,6 @@ class _PriceCardState extends State<_PriceCard> {
             const SizedBox(height: 14),
             PricingCommissionPreview(pricePerNight: widget.price!),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-/// Frais de ménage : pas de champ dédié dans `Appartement` (V9.1 MVP).
-/// Placeholder visuel proto-fidèle, donnée non persistée — à implémenter
-/// quand le modèle backend expose un champ dédié.
-class _CleaningFeePlaceholder extends StatelessWidget {
-  const _CleaningFeePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgElev1,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: AppColors.line, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('FRAIS DE MÉNAGE (OPTIONNEL)', style: AppTextStyles.eyebrow),
-          const SizedBox(height: 8),
-          TextField(
-            keyboardType: TextInputType.number,
-            style: AppTextStyles.mono(const TextStyle(
-              fontSize: 14,
-              color: AppColors.text,
-            )),
-            decoration: InputDecoration(
-              hintText: '5 000',
-              filled: true,
-              fillColor: AppColors.bgElev2,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadii.sm),
-                borderSide:
-                    const BorderSide(color: AppColors.line, width: 1),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadii.sm),
-                borderSide:
-                    const BorderSide(color: AppColors.line, width: 1),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadii.sm),
-                borderSide:
-                    const BorderSide(color: AppColors.accent, width: 1.5),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 12,
-              ),
-            ),
-          ),
         ],
       ),
     );

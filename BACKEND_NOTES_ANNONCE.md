@@ -162,7 +162,102 @@ et `surface` enrichiraient la fiche mais ne bloquent rien.
 
 ---
 
-## 5. Récapitulatif
+## 5. Frais de ménage — 💡 V2 SI METIER LE DEMANDE
+
+### Contexte
+Le wizard de création (step 5 Prix) affichait jusqu'à la session 2026-05-13
+un placeholder visuel "FRAIS DE MÉNAGE (OPTIONNEL)" avec un TextField, sans
+aucune persistance (UI menteuse). Le placeholder a été **retiré** côté
+Flutter en attendant une décision métier.
+
+### Demande backend (si retenu)
+Ajouter un champ optionnel sur `Appartement` :
+```java
+private Integer fraisMenage;  // ex: 5000 — FCFA, optionnel
+```
+
+### Côté Flutter (après migration)
+- Ajouter `fraisMenage: int?` dans `Appartement`
+- Réafficher le step 5 avec liaison réelle au draft
+- Afficher dans `LocataireDetailScreen.PriceDetailCard` (ligne supplémentaire)
+- Inclure dans le calcul `_total` du tunnel de réservation
+
+### Priorité
+**Faible** — le proprio peut intégrer les frais de ménage dans son prix de
+base. À reconsidérer si retour utilisateur demande la séparation.
+
+---
+
+## 6. Commodités normalisées par id — 💡 V2 PROPRETÉ DATA
+
+### Constat
+Aujourd'hui le wizard envoie pour les équipements :
+```dart
+Offre(commodite: Commodite(nom: 'WiFi fibre'))
+```
+Aucun `id` n'est fourni — c'est une chaîne libre. Selon la politique du
+backend, ça peut créer :
+- Des **doublons** si plusieurs proprios saisissent différemment ("WiFi",
+  "Wifi", "WIFI", "Wifi fibre")
+- Une **dépendance fragile** : si le backend renomme "WiFi" → "Internet
+  haut débit", les références existantes pointent dans le vide
+
+### Demande backend
+Exposer un endpoint dictionnaire :
+```
+GET /api/commodites
+→ [
+    { "id": 1, "nom": "WiFi", "iconCode": "wifi" },
+    { "id": 2, "nom": "Clim", "iconCode": "ac_unit" },
+    ...
+  ]
+```
+
+### Côté Flutter (après migration)
+- Picker `StepAmenities` charge la liste backend au build
+- Toggle envoie `Offre(commodite: Commodite(id: 1))` (avec id, pas nom)
+- Cohérence garantie + risque doublons éliminé
+
+### Priorité
+**Moyenne** — pas bloquant tant que la base reste petite et qu'un admin
+nettoie les doublons régulièrement.
+
+---
+
+## 7. Règles structurées — ✅ V1 ALIGNÉ
+
+### Contexte historique
+Jusqu'à la session 2026-05-13, le wizard sérialisait les toggles
+(Démarcheurs/Caution/Animaux) dans une chaîne technique stockée dans
+`Appartement.regles` :
+```
+"demarcheurs=true;caution=true;animaux=false"
+```
+Pendant ce temps, la collection structurée `appartementRules: List<AppartementRule>`
+côté backend (avec `iconName/text/isAllowed`) n'était **jamais remplie**.
+
+### V1 livrée
+Le wizard remplit désormais `appart.rules` (mappé sur `appartementRules`
+backend) avec une `List<Rule>` typée :
+```dart
+[
+  Rule(iconName: 'handshake', text: 'Démarcheurs acceptés', isAllowed: true),
+  Rule(iconName: 'shield',    text: 'Caution remboursable', isAllowed: true),
+  Rule(iconName: 'pets',      text: 'Animaux',              isAllowed: false),
+]
+```
+Le champ `regles` (texte libre) reste vide à la création — le proprio
+pourra l'éditer ensuite via `ListingRulesTab` pour ajouter des règles
+custom non couvertes par les toggles.
+
+### V2 amélioration possible
+Si le backend veut exposer un dictionnaire de "règles types" (comme pour
+les commodités, cf. §6), passer à un système d'`id` plutôt que des
+chaînes `iconName/text` libres.
+
+---
+
+## 8. Récapitulatif
 
 | Demande | Priorité | Statut |
 |---------|----------|--------|
@@ -170,4 +265,7 @@ et `surface` enrichiraient la fiche mais ne bloquent rien.
 | Règle de visibilité unifiée | Haute | ⏳ Décision métier requise |
 | Pagination cursor-based | Faible | V2 quand >500 annonces |
 | `nbVoyageursMax` + `surfaceM2` | Moyenne | V2 (3 colonnes honnêtes en V1) |
-| Suppression `AppartementBackendMapper` (legacy) | Bloquant V2 | ⏳ Migration `BACKEND-FLAT-APPART` à mener |
+| Champ `fraisMenage` | Faible | À décider métier |
+| `GET /api/commodites` (id-based) | Moyenne | V2 propreté data |
+| Règles structurées `appartementRules` | ✅ V1 | Wizard livre la collection 2026-05-13 |
+| Suppression `AppartementBackendMapper` legacy | ✅ V1 | Mapper simplifié 2026-05-13 (payload flat) |

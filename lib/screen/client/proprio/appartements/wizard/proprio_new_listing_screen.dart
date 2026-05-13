@@ -14,6 +14,7 @@ import 'package:asfar/model/forms/uploaded_image.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/residence/commodite/commodite.dart';
 import 'package:asfar/model/residence/offre.dart';
+import 'package:asfar/model/residence/rule.dart';
 import 'package:asfar/screen/client/proprio/appartements/wizard/widget/resume_draft_dialog.dart';
 import 'package:asfar/screen/client/proprio/appartements/wizard/widget/step_amenities.dart';
 import 'package:asfar/screen/client/proprio/appartements/wizard/widget/step_location_capacity.dart';
@@ -69,15 +70,34 @@ class _ProprioNewListingViewState extends State<_ProprioNewListingView> {
   bool _publishStarted = false;
   bool _resumeDialogShown = false;
 
-  // V9.1 MVP : les règles (Démarcheurs/Caution/Animaux) n'ont pas de champ
-  // dédié dans `Appartement` côté Flutter — état local + sérialisation JSON
-  // dans `Appartement.regles` au moment du publish. À nettoyer V10 quand
-  // le backend expose des champs typés.
+  // Toggles règles structurées — convertis en List<Rule> au publish
+  // (mappés sur `Appartement.rules` qui hydrate `appartementRules` backend).
   final Map<String, bool> _rules = {
     'demarcheurs': true,
     'caution': true,
     'animaux': false,
   };
+
+  /// Mapping toggle → libellé/icône utilisé pour `AppartementRule`.
+  static const Map<String, ({String iconName, String text})> _ruleMeta = {
+    'demarcheurs': (iconName: 'handshake', text: 'Démarcheurs acceptés'),
+    'caution': (iconName: 'shield', text: 'Caution remboursable'),
+    'animaux': (iconName: 'pets', text: 'Animaux'),
+  };
+
+  List<Rule> _buildRules() {
+    final result = <Rule>[];
+    _rules.forEach((key, allowed) {
+      final meta = _ruleMeta[key];
+      if (meta == null) return;
+      result.add(Rule(
+        iconName: meta.iconName,
+        text: meta.text,
+        isAllowed: allowed,
+      ));
+    });
+    return result;
+  }
 
   @override
   void dispose() {
@@ -170,16 +190,10 @@ class _ProprioNewListingViewState extends State<_ProprioNewListingView> {
     if (state.currentStep < state.totalSteps) {
       context.read<AppartementWizardBloc>().add(NextStep());
     } else {
-      // Sérialiser les règles dans Appartement.regles avant publish.
-      final rulesJson =
-          'demarcheurs=${_rules['demarcheurs']};caution=${_rules['caution']};animaux=${_rules['animaux']}';
-      context
-          .read<AppartementWizardBloc>()
-          .add(UpdateField('description', state.draft.description));
-      final updated = state.draft.copyWith(regles: rulesJson);
-      // Patch direct (pas via _applyField qui ne gère pas 'regles' string générique)
-      // → on dispatch un UpdateField sur un champ dédié si supporté, sinon
-      // c'est l'écran qui passe le draft mis à jour au repository.
+      // Construit la liste structurée `appartementRules` côté backend.
+      // Le champ `regles` (texte libre) reste vide à la création — le proprio
+      // pourra l'éditer ensuite via `ListingRulesTab`.
+      final updated = state.draft.copyWith(rules: _buildRules());
       _appartWithRules = updated;
       context.read<AppartementWizardBloc>().add(PublishAppartement());
     }
@@ -352,6 +366,7 @@ class _StepContent extends StatelessWidget {
           address: state.draft.address,
           title: state.draft.titre,
           description: state.draft.description,
+          lits: state.draft.nbLits ?? 1,
           chambres: state.draft.nbChambres ?? 1,
           douches: state.draft.nbDouches ?? 1,
           isLoadingGeo: state.isLoadingGeo,
