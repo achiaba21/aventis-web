@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/screen/client/demarcheur/home/widget/mini_stats_inline.dart';
+import 'package:asfar/screen/client/demarcheur/home/widget/wallet_month_selector.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
@@ -7,17 +8,23 @@ import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/badge/badge_tone.dart';
 
 /// Hero card du Dashboard démarcheur — gradient bleu-nuit + halo radial bleu
-/// + montant 32 px + delta + mini-stats inline.
+/// + sélecteur mois + montant 32 px + delta + mini-stats inline.
 ///
 /// Reproduit fidèlement le proto `demarcheur.jsx::DemarcheurDashboard`
 /// (lignes 30-72) : gradient 3 stops `[#1A2A4A → #0E1626 → #060A14]`,
-/// border bleue translucide, padding 18, radius 22.
+/// border bleue translucide, padding 18, radius 22. L'eyebrow statique
+/// d'origine a été remplacé par un `WalletMonthSelector` pour naviguer
+/// dans l'historique (sans dépasser le mois courant).
 class WalletHeroCard extends StatelessWidget {
   final int monthCommission;
   final int deltaPercent;
   final int totalCommission;
   final int pendingCommission;
   final int clientsCount;
+  final String monthLabel;
+  final String previousMonthLabel;
+  final VoidCallback? onPrevMonth;
+  final VoidCallback? onNextMonth;
 
   const WalletHeroCard({
     super.key,
@@ -26,6 +33,10 @@ class WalletHeroCard extends StatelessWidget {
     required this.totalCommission,
     required this.pendingCommission,
     required this.clientsCount,
+    required this.monthLabel,
+    required this.previousMonthLabel,
+    this.onPrevMonth,
+    this.onNextMonth,
   });
 
   @override
@@ -68,11 +79,10 @@ class WalletHeroCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'MES COMMISSIONS CE MOIS',
-                      style: AppTextStyles.eyebrow.copyWith(
-                        color: AppColors.walletBlueAccent,
-                      ),
+                    WalletMonthSelector(
+                      label: monthLabel,
+                      onPrev: onPrevMonth,
+                      onNext: onNextMonth,
                     ),
                     const Icon(Icons.account_balance_wallet_outlined,
                         size: 18, color: AppColors.walletBlueAccent),
@@ -92,12 +102,15 @@ class WalletHeroCard extends StatelessWidget {
                 Row(
                   children: [
                     BadgeStatus(
-                      text: '↑ $deltaPercent%',
-                      tone: BadgeTone.success,
+                      text: '${deltaPercent >= 0 ? '↑' : '↓'} '
+                          '${deltaPercent.abs()}%',
+                      tone: deltaPercent >= 0
+                          ? BadgeTone.success
+                          : BadgeTone.danger,
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'vs. octobre',
+                      'vs. $previousMonthLabel',
                       style: AppTextStyles.small.copyWith(
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.6),

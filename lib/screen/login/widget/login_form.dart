@@ -11,8 +11,9 @@ import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/input/input_field.dart';
+import 'package:asfar/widget/input/phone_input_field.dart';
 
-/// Formulaire de connexion : identifiant (email ou téléphone) + mot de passe.
+/// Formulaire de connexion : téléphone + mot de passe.
 ///
 /// Dispatch [LoginUser] sur le [UserBloc]. Affiche le statut via [BlocConsumer] :
 /// - [UserLoading] → bouton en loading
@@ -27,37 +28,40 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final _identifierCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  String _fullPhone = '';
+  String? _phoneError;
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _identifierCtrl.dispose();
+    _phoneCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
   }
 
-  String? _validateIdentifier(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Renseigne un email ou un téléphone';
-    }
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) return 'Mot de passe requis';
+    if (value.length < 4) return 'Au moins 4 caractères';
     return null;
   }
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Mot de passe requis';
-    if (value.length < 6) return 'Au moins 6 caractères';
-    return null;
+  bool _isPhoneValid() {
+    final digits = _fullPhone.replaceAll(RegExp(r'[^\d]'), '');
+    return digits.length >= 11;
   }
 
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    final identifier = _identifierCtrl.text.trim();
-    final isEmail = identifier.contains('@');
+    final formOk = _formKey.currentState?.validate() ?? false;
+    if (!_isPhoneValid()) {
+      setState(() => _phoneError = 'Numéro de téléphone invalide');
+      return;
+    }
+    setState(() => _phoneError = null);
+    if (!formOk) return;
     final user = User(
-      email: isEmail ? identifier : null,
-      telephone: isEmail ? null : identifier,
+      telephone: _fullPhone,
       password: _passwordCtrl.text,
     );
     context.read<UserBloc>().add(LoginUser(user));
@@ -98,14 +102,16 @@ class _LoginFormState extends State<LoginForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              InputField(
-                controller: _identifierCtrl,
-                eyebrow: 'EMAIL OU TÉLÉPHONE',
-                hintText: 'votre@email.com ou +225…',
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                validator: _validateIdentifier,
-                leadingIcon: Icons.person_outline,
+              PhoneInputField(
+                controller: _phoneCtrl,
+                eyebrow: 'TÉLÉPHONE',
+                errorText: _phoneError,
+                onChanged: (full) {
+                  _fullPhone = full;
+                  if (_phoneError != null) {
+                    setState(() => _phoneError = null);
+                  }
+                },
               ),
               const SizedBox(height: 14),
               InputField(

@@ -11,6 +11,7 @@ import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/input/input_field.dart';
+import 'package:asfar/widget/input/phone_input_field.dart';
 
 /// Formulaire d'inscription.
 ///
@@ -34,6 +35,8 @@ class _SignupFormState extends State<SignupForm> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
+  String _fullPhone = '';
+  String? _telError;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
@@ -53,13 +56,6 @@ class _SignupFormState extends State<SignupForm> {
     return null;
   }
 
-  String? _validateTelephone(String? v) {
-    if (v == null || v.trim().isEmpty) return 'Téléphone requis';
-    final digits = v.replaceAll(RegExp(r'\D'), '');
-    if (digits.length < 8) return 'Au moins 8 chiffres';
-    return null;
-  }
-
   String? _validateEmail(String? v) {
     if (v == null || v.trim().isEmpty) return 'Email requis';
     if (!v.contains('@')) return 'Email invalide';
@@ -68,7 +64,7 @@ class _SignupFormState extends State<SignupForm> {
 
   String? _validatePassword(String? v) {
     if (v == null || v.isEmpty) return 'Mot de passe requis';
-    if (v.length < 6) return 'Au moins 6 caractères';
+    if (v.length < 4) return 'Au moins 4 caractères';
     return null;
   }
 
@@ -81,7 +77,7 @@ class _SignupFormState extends State<SignupForm> {
     final req = UserReq()
       ..nom = _nomCtrl.text.trim()
       ..prenom = _prenomCtrl.text.trim()
-      ..telephone = _telCtrl.text.trim()
+      ..telephone = _fullPhone
       ..email = _emailCtrl.text.trim()
       ..password = _passwordCtrl.text
       ..type = widget.role
@@ -89,9 +85,21 @@ class _SignupFormState extends State<SignupForm> {
     return req;
   }
 
+  bool _isPhoneValid() {
+    final digits = _fullPhone.replaceAll(RegExp(r'[^\d]'), '');
+    // +225 (3 chiffres) + 10 chiffres national CI = 13 chiffres au total.
+    return digits.length >= 11;
+  }
+
   void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    context.read<UserBloc>().add(SendOtp(_telCtrl.text.trim()));
+    final formOk = _formKey.currentState?.validate() ?? false;
+    if (!_isPhoneValid()) {
+      setState(() => _telError = 'Numéro de téléphone invalide');
+      return;
+    }
+    setState(() => _telError = null);
+    if (!formOk) return;
+    context.read<UserBloc>().add(SendOtp(_fullPhone));
   }
 
   @override
@@ -147,14 +155,16 @@ class _SignupFormState extends State<SignupForm> {
                 ],
               ),
               const SizedBox(height: 14),
-              InputField(
+              PhoneInputField(
                 controller: _telCtrl,
                 eyebrow: 'TÉLÉPHONE',
-                hintText: '+225 07 84 21 …',
-                keyboardType: TextInputType.phone,
-                textInputAction: TextInputAction.next,
-                validator: _validateTelephone,
-                leadingIcon: Icons.phone_outlined,
+                errorText: _telError,
+                onChanged: (full) {
+                  _fullPhone = full;
+                  if (_telError != null) {
+                    setState(() => _telError = null);
+                  }
+                },
               ),
               const SizedBox(height: 14),
               InputField(

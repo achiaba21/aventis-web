@@ -138,10 +138,7 @@ class _PartenariatCardBody extends StatelessWidget {
     if (d == null) return '';
     // Si l'user courant est démarcheur → afficher nom proprio.
     if (currentUserType == 'demarcheur') {
-      final prenom = d.proprietaire['prenom'] as String? ?? '';
-      final nom = d.proprietaire['nom'] as String? ?? '';
-      final full = '$prenom $nom'.trim();
-      return full.isNotEmpty ? full : 'Propriétaire';
+      return d.nomProprietaire;
     }
     // Si l'user courant est proprio → afficher nom démarcheur.
     return d.nomDemarcheur;

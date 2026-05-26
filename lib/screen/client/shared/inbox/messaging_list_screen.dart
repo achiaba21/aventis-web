@@ -14,7 +14,6 @@ import 'package:asfar/screen/client/shared/inbox/widget/messaging_search_bar.dar
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
-import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 import 'package:asfar/model/user/user.dart';
 
@@ -42,15 +41,6 @@ class _MessagingListScreenState extends State<MessagingListScreen> {
     });
   }
 
-  void _onEditTap() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Nouvelle conversation bientôt'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   List<Conversation> _filtered(List<Conversation> all, User? me) {
     final q = _searchQuery.trim().toLowerCase();
     if (q.isEmpty) return all;
@@ -73,12 +63,8 @@ class _MessagingListScreenState extends State<MessagingListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: DynamicAppBar(
+      appBar: const DynamicAppBar(
         title: 'Messages',
-        trailing: IconBoutton(
-          icon: Icons.edit_outlined,
-          onPressed: _onEditTap,
-        ),
       ),
       body: BlocBuilder<UserBloc, UserState>(
         builder: (context, userState) {

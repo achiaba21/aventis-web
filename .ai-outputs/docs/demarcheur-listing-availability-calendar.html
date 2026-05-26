@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier disponibilités démarcheur · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-24">
+    <meta name="updated" content="2026-05-24">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+            --wallet-blue: #8B9AFF;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+        .eyebrow {
+            color: var(--accent);
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 38px; letter-spacing: -1px;
+            font-weight: 700; line-height: 1.05;
+            margin-bottom: 0.75rem;
+        }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 {
+            font-size: 22px; font-weight: 700;
+            letter-spacing: -0.4px;
+            margin: 2.5rem 0 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        h3 {
+            font-size: 17px; font-weight: 600;
+            letter-spacing: -0.2px;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text);
+        }
+        p, li {
+            color: var(--text-2);
+            font-size: 15px; line-height: 1.6;
+        }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta {
+            color: var(--text-3); font-size: 13px;
+            display: flex; flex-wrap: wrap; gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        nav ul {
+            display: flex; flex-wrap: wrap; gap: 1rem;
+            list-style: none; padding: 1rem 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 2rem;
+        }
+        nav a {
+            color: var(--accent); text-decoration: none;
+            font-size: 13px; font-weight: 500;
+        }
+        nav a:hover { text-decoration: underline; }
+        .card {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .card-calendar {
+            background: linear-gradient(135deg, #1A2612 0%, #0E1A0A 60%, #060A04 100%);
+            border-color: rgba(74,222,128,0.18);
+            position: relative; overflow: hidden;
+        }
+        .card-calendar::before {
+            content: ""; position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(74,222,128,0.12), transparent 70%);
+        }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge {
+            display: inline-flex; align-items: center;
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        .badge-blue { background: rgba(139,154,255,0.14); color: var(--wallet-blue); }
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 1rem 0; font-size: 14px;
+        }
+        th, td {
+            text-align: left; padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+        }
+        th {
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--text-3);
+            background: var(--bg-elev-2);
+        }
+        td { color: var(--text-2); }
+        td code, p code, li code {
+            background: var(--bg-elev-2);
+            padding: 2px 6px; border-radius: 6px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            color: var(--text);
+        }
+        pre {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            margin: 1rem 0;
+        }
+        pre code {
+            background: none; padding: 0; font-size: inherit;
+            color: var(--text);
+        }
+        .check { color: var(--success); }
+        .cross { color: var(--danger); }
+        .arrow { color: var(--accent); }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .stat-cell {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            text-align: center;
+        }
+        .stat-cell .num {
+            font-size: 28px; font-weight: 700;
+            color: var(--accent);
+            font-feature-settings: "tnum";
+        }
+        .stat-cell .lab {
+            font-size: 12px; color: var(--text-3);
+            margin-top: 0.25rem; letter-spacing: 0.4px;
+        }
+        .timeline {
+            border-left: 2px solid var(--line);
+            padding: 0.5rem 0 0.5rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .timeline-step {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        .timeline-step::before {
+            content: ""; position: absolute;
+            left: -1.95rem; top: 6px;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        .timeline-step.done::before { background: var(--success); }
+        .timeline-step.upcoming::before { background: var(--bg-elev-3); }
+        .quote {
+            border-left: 3px solid var(--accent);
+            padding-left: 1rem;
+            color: var(--text-2);
+            font-style: italic;
+            margin: 1rem 0;
+        }
+        footer {
+            border-top: 1px solid var(--line);
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            color: var(--text-3);
+            font-size: 13px;
+            text-align: center;
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* Calendar preview widget */
+        .cal-preview {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin: 1rem 0;
+            max-width: 280px;
+        }
+        .cal-day {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 500;
+        }
+        .cal-day.header { color: var(--text-3); font-size: 10px; font-weight: 600; }
+        .cal-day.free { background: var(--bg-elev-2); color: var(--text-2); }
+        .cal-day.booked { background: var(--accent-soft); color: var(--accent); }
+        .cal-day.empty { background: transparent; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="eyebrow">Démarcheur · Flow Nouvelle Demande</div>
+            <h1>Calendrier disponibilités <em>inline</em></h1>
+            <p>Ajout d'un calendrier de disponibilités inline dans l'écran de choix de logement du tunnel démarcheur — visibilité immédiate des créneaux libres sans quitter le flow.</p>
+            <div class="meta">
+                <span>Livrée le 24 mai 2026</span>
+                <span>Version 1.0</span>
+                <span>Score audit 87/100</span>
+                <span>3 fichiers impactés (1 créé, 2 modifiés)</span>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#contexte">Contexte</a></li>
+                <li><a href="#solution">Solution</a></li>
+                <li><a href="#parcours">Parcours utilisateur</a></li>
+                <li><a href="#decisions">Décisions architecturales</a></li>
+                <li><a href="#fichiers">Fichiers livrés</a></li>
+                <li><a href="#qualite">Qualité</a></li>
+                <li><a href="#suite">Suite</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section class="card card-calendar">
+                <div class="badges">
+                    <span class="badge badge-success">Réservé</span>
+                    <span class="badge badge-neutral">Libre</span>
+                </div>
+                <div class="cal-preview">
+                    <div class="cal-day header">L</div>
+                    <div class="cal-day header">M</div>
+                    <div class="cal-day header">M</div>
+                    <div class="cal-day header">J</div>
+                    <div class="cal-day header">V</div>
+                    <div class="cal-day header">S</div>
+                    <div class="cal-day header">D</div>
+                    <div class="cal-day empty"></div>
+                    <div class="cal-day empty"></div>
+                    <div class="cal-day free">1</div>
+                    <div class="cal-day free">2</div>
+                    <div class="cal-day booked">3</div>
+                    <div class="cal-day booked">4</div>
+                    <div class="cal-day booked">5</div>
+                    <div class="cal-day free">6</div>
+                    <div class="cal-day free">7</div>
+                    <div class="cal-day booked">8</div>
+                    <div class="cal-day booked">9</div>
+                    <div class="cal-day free">10</div>
+                    <div class="cal-day free">11</div>
+                    <div class="cal-day free">12</div>
+                </div>
+                <p style="color: rgba(255,255,255,0.55); font-size: 13px; margin-top: 0.5rem;">
+                    Aperçu du <code>ListingAvailabilityCalendar</code> — jours réservés en accent or, libres en gris neutre, shimmer pendant le chargement.
+                </p>
+            </section>
+
+            <section id="contexte">
+                <h2>Contexte</h2>
+                <p>
+                    Dans le flow "Nouvelle demande" démarcheur, l'écran <code>DemarcheurListingsScreen</code> permettait déjà de choisir un logement parmi ceux proposés en partenariat. Cependant, aucune information sur la disponibilité du logement n'était accessible à cet instant.
+                </p>
+                <p>
+                    Le démarcheur devait soit mémoriser les créneaux libres, soit revenir en arrière ou consulter une autre source, ce qui brisait le flow et augmentait le risque d'envoyer un client sur un logement déjà occupé.
+                </p>
+                <div class="quote">
+                    « Je dois pouvoir savoir si le logement est libre avant d'envoyer mon client — sinon je peux me retrouver à faire une promesse que je ne peux pas tenir. »
+                </div>
+            </section>
+
+            <section id="solution">
+                <h2>Solution implémentée</h2>
+
+                <h3>Interaction de sélection</h3>
+                <p>
+                    Tap sur un logement dans la liste → sélection radio activée + chargement inline du calendrier de disponibilités directement sous la card. L'utilisateur reste dans l'écran de choix, sans navigation supplémentaire.
+                </p>
+
+                <h3>Navigation mensuelle</h3>
+                <p>
+                    Chevrons précédent / suivant pour naviguer entre les mois. Borne minimale = mois courant (impossible de revenir dans le passé). Le titre du mois se met à jour dynamiquement.
+                </p>
+
+                <h3>Légende et affichage</h3>
+                <ul>
+                    <li>Jours <strong>réservés</strong> : fond accent/or — couvrent toutes les plages <code>CONFIRME</code> et <code>EN_ATTENTE</code> du <code>CalendarResponse</code></li>
+                    <li>Jours <strong>libres</strong> : fond neutre discret</li>
+                    <li>Légende intégrée sous le calendrier : pastilles "Réservé" et "Libre"</li>
+                    <li>État shimmer pendant le chargement réseau (pattern existant Asfar)</li>
+                    <li>Hint texte contextuel si aucune donnée disponible</li>
+                </ul>
+
+                <h3>Bouton Continuer sticky</h3>
+                <p>
+                    Un bouton "Continuer" apparaît en bas de l'écran, fixe (sticky), dès qu'un logement est sélectionné. Il reste visible même lors du scroll de la liste. Implémenté via <code>Column + Expanded</code>, sans <code>Stack</code> ni <code>Positioned</code>.
+                </p>
+
+                <h3>Titre écran</h3>
+                <p>
+                    Le titre de l'écran a été changé de son ancien libellé vers <strong>"Choisir un logement"</strong> — formulation active, cohérente avec l'intention du flow.
+                </p>
+            </section>
+
+            <section id="parcours">
+                <h2>Parcours utilisateur</h2>
+
+                <ol class="timeline" style="list-style: none; padding-left: 1.5rem;">
+                    <li class="timeline-step done"><strong>Dashboard démarcheur</strong> → tap CTA "Envoyer un client" → <code>DemarcheurListingsScreen</code></li>
+                    <li class="timeline-step done"><strong>Titre "Choisir un logement"</strong> · liste des logements partenaires</li>
+                    <li class="timeline-step done"><strong>Tap sur un logement</strong> → <code>_RadioIndicator</code> passe de cercle vide à coche accent · bordure accent 1.5px activée</li>
+                    <li class="timeline-step done"><strong>Chargement inline</strong> → shimmer animé sous la card · <code>CalendarService.getCalendar(appartId, month)</code> appelé</li>
+                    <li class="timeline-step done"><strong>Calendrier affiché</strong> → mois courant · jours réservés/libres · légende · navigation mois</li>
+                    <li class="timeline-step done"><strong>Navigation mois</strong> → chevron suivant chargement mois+1 · chevron précédent désactivé si mois courant (borne min)</li>
+                    <li class="timeline-step done"><strong>Bouton "Continuer" sticky</strong> visible en bas → tap → étape suivante du tunnel (infos client)</li>
+                </ol>
+
+                <h3>Cas : changement de sélection</h3>
+                <p>
+                    Si le démarcheur tape sur un autre logement alors qu'un premier est déjà sélectionné : la sélection se déplace, le calendrier se recharge pour le nouveau logement. Le cache en mémoire évite un appel réseau si le logement avait déjà été consulté pour le même mois.
+                </p>
+
+                <h3>Cas : logement déjà consulté (cache hit)</h3>
+                <p>
+                    Si le démarcheur re-sélectionne un logement déjà chargé pour le mois en cours, le calendrier s'affiche instantanément depuis le <code>_calendarCache</code> (Map en mémoire), sans indicateur de chargement.
+                </p>
+            </section>
+
+            <section id="decisions">
+                <h2>Décisions architecturales</h2>
+
+                <h3>1. Pas de nouveau BLoC — état UI éphémère dans le State</h3>
+                <p>
+                    L'état de sélection (<code>_selectedId</code>), le mois affiché (<code>_calendarMonth</code>), le cache (<code>_calendarCache</code>) et les indicateurs de chargement (<code>_loadingIds</code>) sont gérés directement dans le <code>State</code> de <code>DemarcheurListingsScreen</code>. Ce choix est cohérent avec le pattern existant du tunnel (état éphémère du flow "Nouvelle demande", non persisté).
+                </p>
+                <p>
+                    Un BLoC dédié aurait été surdimensionné pour un état purement local à cet écran, sans besoin de persistance ni de partage entre plusieurs widgets.
+                </p>
+
+                <h3>2. CalendarService appelé directement</h3>
+                <p>
+                    <code>CalendarService.getCalendar()</code> est appelé directement depuis le State, sans passer par un BLoC intermédiaire. Ce pattern est cohérent avec les autres écrans du projet qui appellent des services directement lorsque l'état n'a pas besoin d'être partagé.
+                </p>
+
+                <h3>3. Réutilisation totale de MiniCalendarGrid</h3>
+                <p>
+                    Le widget <code>MiniCalendarGrid</code> existant est wrappé par <code>ListingAvailabilityCalendar</code> sans aucune duplication de logique de rendu calendaire. Le nouveau widget se charge uniquement de :
+                </p>
+                <ul>
+                    <li>Convertir <code>CalendarResponse.plages</code> en <code>bookedDays</code> et <code>pendingDays</code> pour le mois cible</li>
+                    <li>Afficher le shimmer pendant le chargement</li>
+                    <li>Rendre la légende Réservé / Libre</li>
+                    <li>Afficher le hint texte si aucune donnée</li>
+                </ul>
+                <p>
+                    Zéro duplication de la grille calendaire — règle DRY strictement respectée.
+                </p>
+
+                <h3>4. Cache en mémoire simple (V1)</h3>
+                <p>
+                    Un <code>Map&lt;int, CalendarResponse&gt;</code> indexé par <code>appartId</code> sert de cache mémoire pour le mois affiché. Ce cache est non invalidé en V1 (durée de vie = durée de vie de l'écran). La navigation vers un autre mois vide le calendrier affiché mais ne purge pas le cache des autres logements.
+                </p>
+                <div class="quote">
+                    Décision actée en V1 : cache invalidation et navigation multi-mois par logement sont des améliorations documentées pour une vague ultérieure.
+                </div>
+
+                <h3>5. Layout sticky "Continuer" via Column + Expanded</h3>
+                <p>
+                    Le bouton "Continuer" est rendu sticky en bas grâce à un <code>Column</code> avec <code>Expanded</code> wrappant la liste scrollable — évite tout recours à <code>Stack</code> ou <code>Positioned</code> qui causeraient des conflits avec le layout iOS 26 (bug <code>Container + alignment</code> documenté en mémoire projet).
+                </p>
+            </section>
+
+            <section id="fichiers">
+                <h2>Fichiers livrés</h2>
+
+                <div class="stat-grid">
+                    <div class="stat-cell"><div class="num">1</div><div class="lab">FICHIER CRÉÉ</div></div>
+                    <div class="stat-cell"><div class="num">2</div><div class="lab">FICHIERS MODIFIÉS</div></div>
+                    <div class="stat-cell"><div class="num">6/6</div><div class="lab">CRITÈRES VALIDÉS</div></div>
+                    <div class="stat-cell"><div class="num">87</div><div class="lab">SCORE AUDIT</div></div>
+                </div>
+
+                <h3>Structure</h3>
+                <pre><code>lib/screen/client/demarcheur/listings/
+├── demarcheur_listings_screen.dart        ← MODIFIÉ
+│   ├── State: _selectedId, _calendarMonth, _calendarCache, _loadingIds
+│   ├── _selectListing() — null-guard, select, cache, appel CalendarService
+│   ├── _onPrevMonth() — borne min mois courant
+│   ├── _ContinueButton (widget dédié, sticky via Column+Expanded)
+│   └── titre "Choisir un logement"
+└── widget/
+    ├── partner_listing_card.dart          ← MODIFIÉ
+    │   ├── Prop: isSelected, calendarWidget
+    │   ├── _RadioIndicator (cercle → coche accent)
+    │   └── Bordure accent + width 1.5 si sélectionné
+    └── listing_availability_calendar.dart ← CRÉÉ
+        ├── Widget lecture seule, wraps MiniCalendarGrid
+        ├── Convertit CalendarResponse.plages → bookedDays/pendingDays
+        ├── Shimmer pendant chargement
+        └── Légende Réservé/Libre + hint texte</code></pre>
+
+                <h3>Détail des modifications</h3>
+                <table>
+                    <thead>
+                        <tr><th>Fichier</th><th>Type</th><th>Changements</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>listing_availability_calendar.dart</code></td>
+                            <td><span class="badge badge-success">CRÉÉ</span></td>
+                            <td>Widget autonome lecture seule · wraps <code>MiniCalendarGrid</code> · conversion plages → jours · shimmer · légende</td>
+                        </tr>
+                        <tr>
+                            <td><code>partner_listing_card.dart</code></td>
+                            <td><span class="badge badge-info">MODIFIÉ</span></td>
+                            <td>Props <code>isSelected</code> + <code>calendarWidget</code> · <code>_RadioIndicator</code> · bordure accent conditionnelle</td>
+                        </tr>
+                        <tr>
+                            <td><code>demarcheur_listings_screen.dart</code></td>
+                            <td><span class="badge badge-info">MODIFIÉ</span></td>
+                            <td>State éphémère · <code>_selectListing()</code> · <code>_onPrevMonth()</code> · <code>_ContinueButton</code> sticky · titre mis à jour</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Dépendances réutilisées (0 duplication)</h3>
+                <ul>
+                    <li><code>MiniCalendarGrid</code> — grille calendaire existante, wrappée sans modification</li>
+                    <li><code>CalendarService</code> — service existant, appelé selon le pattern projet</li>
+                    <li><code>CalendarResponse</code> — modèle existant, consommé tel quel</li>
+                    <li>Shimmer pattern — cohérent avec le reste de l'app</li>
+                </ul>
+            </section>
+
+            <section id="qualite">
+                <h2>Qualité</h2>
+
+                <div class="stat-grid">
+                    <div class="stat-cell"><div class="num">87<span style="font-size:18px;">/100</span></div><div class="lab">SCORE AUDIT</div></div>
+                    <div class="stat-cell"><div class="num">6/6</div><div class="lab">CRITÈRES ACCEPTATION</div></div>
+                    <div class="stat-cell"><div class="num">3</div><div class="lab">POINTS MINEURS</div></div>
+                </div>
+
+                <h3>Critères d'acceptation — 6/6 validés</h3>
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>Critère</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>Tap logement → sélection radio + calendrier inline chargé</td><td><span class="check">✅</span></td></tr>
+                        <tr><td>2</td><td>Navigation mois prev/next · borne min = mois courant</td><td><span class="check">✅</span></td></tr>
+                        <tr><td>3</td><td>Jours réservés accent/or · jours libres · légende intégrée</td><td><span class="check">✅</span></td></tr>
+                        <tr><td>4</td><td>Shimmer pendant le chargement</td><td><span class="check">✅</span></td></tr>
+                        <tr><td>5</td><td>Bouton "Continuer" sticky quand un logement est sélectionné</td><td><span class="check">✅</span></td></tr>
+                        <tr><td>6</td><td>Titre écran changé en "Choisir un logement"</td><td><span class="check">✅</span></td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Audit qualité — 6 dimensions</h3>
+                <table>
+                    <thead>
+                        <tr><th>Dimension</th><th>Score</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Complexité</td><td>—</td><td><span class="badge badge-success">✅</span> Conforme · State éphémère simple, pas de surarchitecture</td></tr>
+                        <tr><td>Lisibilité</td><td>—</td><td><span class="badge badge-success">✅</span> Noms explicites, méthodes courtes</td></tr>
+                        <tr><td>DRY</td><td>—</td><td><span class="badge badge-success">✅</span> 0 duplication · <code>MiniCalendarGrid</code> wrappé, pas recopié</td></tr>
+                        <tr><td>Documentation</td><td>—</td><td><span class="badge badge-warn">⚠️</span> Minor : docs constructeurs manquants sur 2 widgets</td></tr>
+                        <tr><td>SOLID</td><td>—</td><td><span class="badge badge-success">✅</span> Responsabilités séparées · 1 widget = 1 fichier respecté</td></tr>
+                        <tr><td>Dette technique</td><td>—</td><td><span class="badge badge-warn">⚠️</span> Minor : cache invalidation V1 + log fallback non bloquant</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Points mineurs non bloquants (3)</h3>
+                <ul>
+                    <li><strong>Cache invalidation V1</strong> — le cache mémoire <code>Map&lt;int, CalendarResponse&gt;</code> n'est pas invalidé lors d'un refresh. Comportement attendu en V1, documenté pour vague ultérieure.</li>
+                    <li><strong>Log fallback</strong> — l'erreur réseau dans <code>_selectListing()</code> est silencieuse (catch sans log). Amélioration mineure pour le debugging.</li>
+                    <li><strong>Docs constructeurs</strong> — les constructeurs de <code>ListingAvailabilityCalendar</code> et <code>_ContinueButton</code> n'ont pas de commentaires doc. Impact lisibilité uniquement.</li>
+                </ul>
+            </section>
+
+            <section id="suite">
+                <h2>Suite — TODO documentés</h2>
+                <ul>
+                    <li>
+                        <strong>Cache invalidation</strong> → <span class="badge badge-warn">vague ultérieure</span> · invalider <code>_calendarCache</code> au pull-to-refresh ou à l'entrée dans l'écran
+                    </li>
+                    <li>
+                        <strong>Navigation multi-mois par logement</strong> → <span class="badge badge-warn">vague ultérieure</span> · le cache V1 stocke uniquement le dernier mois chargé par logement ; étendre à <code>Map&lt;int, Map&lt;int, CalendarResponse&gt;&gt;</code> (appartId → mois → response)
+                    </li>
+                    <li>
+                        <strong>Log fallback</strong> → <span class="badge badge-info">amélioration mineure</span> · ajouter un <code>debugPrint</code> dans le catch de <code>_selectListing()</code>
+                    </li>
+                    <li>
+                        <strong>Docs constructeurs</strong> → <span class="badge badge-info">amélioration mineure</span> · ajouter commentaires <code>///</code> sur les constructeurs de <code>ListingAvailabilityCalendar</code> et <code>_ContinueButton</code>
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Références</h2>
+                <ul>
+                    <li><a href="vague-6-demarcheur.html">Vague 6 — Démarcheur (contexte complet du module)</a></li>
+                    <li><a href="../specs/demarcheur-listing-availability-calendar/business-spec.md">Spec métier (BA)</a></li>
+                    <li><a href="../specs/demarcheur-listing-availability-calendar/architecture.md">Architecture technique</a></li>
+                    <li><a href="../specs/demarcheur-listing-availability-calendar/audit-report.md">Rapport d'audit (87/100)</a></li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Historique</h2>
+                <table>
+                    <thead>
+                        <tr><th>Version</th><th>Date</th><th>Changements</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1.0</td>
+                            <td>2026-05-24</td>
+                            <td>Livraison initiale — 1 widget créé, 2 fichiers modifiés, score 87/100, 6/6 critères d'acceptation validés</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+
+        <footer>
+            <p>Asfar — Calendrier disponibilités démarcheur · Flow Nouvelle Demande</p>
+            <p style="margin-top: 4px;">Documentation générée le 24 mai 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

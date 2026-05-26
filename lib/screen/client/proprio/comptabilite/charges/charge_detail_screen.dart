@@ -40,7 +40,7 @@ class ChargeDetailScreen extends StatelessWidget {
         bloc.add(LoadCharge(charge));
         return bloc;
       },
-      child: const _ChargeDetailView(),
+      child: _ChargeDetailView(),
     );
   }
 }

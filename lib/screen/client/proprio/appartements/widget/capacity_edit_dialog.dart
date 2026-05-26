@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/outlined_custom_button.dart';
-import 'package:asfar/widget/input/input_field.dart';
+import 'package:asfar/widget/input/number_input_field.dart';
 
 /// Résultat retourné par `CapacityEditDialog.show()`.
 class CapacityResult {
@@ -119,28 +118,25 @@ class _CapacityEditDialogState extends State<CapacityEditDialog> {
               style: AppTextStyles.small.copyWith(fontSize: 12),
             ),
             const SizedBox(height: 16),
-            InputField(
+            NumberInputField(
               controller: _bedsCtrl,
               eyebrow: 'NOMBRE DE LITS',
               hintText: '2',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxDigits: 2,
             ),
             const SizedBox(height: 12),
-            InputField(
+            NumberInputField(
               controller: _roomsCtrl,
               eyebrow: 'NOMBRE DE CHAMBRES',
               hintText: '1',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxDigits: 2,
             ),
             const SizedBox(height: 12),
-            InputField(
+            NumberInputField(
               controller: _bathsCtrl,
               eyebrow: 'SALLES DE BAIN',
               hintText: '1',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxDigits: 2,
             ),
             if (_error != null) ...[
               const SizedBox(height: 10),

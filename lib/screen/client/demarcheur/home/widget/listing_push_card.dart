@@ -8,7 +8,7 @@ import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
-/// Card 200 px du carrousel « Logements à pousser » du Dashboard démarcheur.
+/// Card 200 px du carrousel « Logements partenaires » du Dashboard démarcheur.
 ///
 /// Consomme directement [Appartement]. Img tone 4:3 + titre + lieu + commission
 /// estimée accent or. Design proto `demarcheur.jsx::DemarcheurDashboard`.

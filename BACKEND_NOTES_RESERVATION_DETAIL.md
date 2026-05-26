@@ -1,8 +1,56 @@
 # 📄 Notes Backend — Page Détail Réservation
 
-> **Date initiale :** 2026-05-12
-> **Feature liée :** `reservation-detail-screen` (page unique multi-rôle)
+> **Date initiale :** 2026-05-12 (extension réservation manuelle 2026-05-15)
+> **Feature liée :** `reservation-detail-screen` + `calendrier-bookings-proprio`
 > **Statut V1 Flutter :** ✅ livré sans dépendance backend bloquante
+
+---
+
+## 0. Création réservation manuelle — payload étendu — 💡 COORDINATION REQUISE
+
+### Contexte
+
+Depuis la feature `calendrier-bookings-proprio` (2026-05-15), le wizard de création de réservation manuelle envoie 3 champs supplémentaires sur l'endpoint existant `createManualReservation` :
+
+- `source: string` (enum `CLIENT_DIRECT` ou `DEMARCHEUR_PARTENAIRE`)
+- `moyenPaiement: string` (enum `ESPECES` / `WAVE` / `OM` / `VIREMENT` — tracking proprio)
+- `demarcheurId: int?` (requis uniquement si `source == DEMARCHEUR_PARTENAIRE`)
+
+### Comportement actuel (V1)
+
+Si le backend ignore silencieusement ces champs (parser tolérant), tout fonctionne :
+- La réservation est créée comme avant côté serveur.
+- Côté Flutter, les champs `source` et `moyenPaiement` ne sont pour l'instant pas relus depuis le DTO retourné. Le proprio voit la réservation comme avant. Aucune dégradation.
+
+### Demande backend
+
+1. **Accepter ces 3 nouveaux champs** dans le payload `POST /api/user/reservations/owner/manual/create` (ou équivalent) sans erreur.
+2. **Persister `source` et `moyenPaiement`** sur `ReservationManuelle` côté base (colonnes `source: enum`, `moyen_paiement: enum`).
+3. **Si `source == DEMARCHEUR_PARTENAIRE`** :
+   - Persister `demarcheur_id` (FK Démarcheur)
+   - Calculer `montantCommission = montant × 0.10` côté serveur (vérification du taux à confirmer)
+   - Émettre la résa avec `type = DEMARCHEUR` au lieu de `MANUELLE` ? À discuter avec l'équipe métier.
+4. **Si `source == CLIENT_DIRECT`** : aucune commission, type `MANUELLE` actuel.
+
+### Format JSON envoyé par Flutter
+
+```json
+{
+  "appartId": 12,
+  "debut": "2026-11-16T00:00:00.000",
+  "dure": 1,
+  "clientNom": "Madame Touré",
+  "clientTelephone": "+225 07 12 34 56",
+  "montant": 68000,
+  "source": "CLIENT_DIRECT",
+  "moyenPaiement": "WAVE",
+  "demarcheurId": null
+}
+```
+
+### Priorité
+
+**Moyenne** — la livraison Flutter fonctionne d'ores et déjà (champs supplémentaires ignorés tant que non implémentés). Devient nécessaire dès que la commission démarcheur sur résa manuelle devient un cas réel.
 
 ---
 

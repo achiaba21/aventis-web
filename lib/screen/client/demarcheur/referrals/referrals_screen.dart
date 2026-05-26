@@ -4,7 +4,7 @@ import 'package:asfar/bloc/demarcheur_bloc/demarcheur_bloc.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_event.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_state.dart';
 import 'package:asfar/model/reservation/reservation.dart';
-import 'package:asfar/screen/client/demarcheur/referrals/new_referral_screen.dart';
+import 'package:asfar/screen/client/demarcheur/listings/demarcheur_listings_screen.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/referral_detail_screen.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_display.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_filter_chips.dart';
@@ -13,8 +13,7 @@ import 'package:asfar/screen/client/demarcheur/referrals/widget/referrals_loadin
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
-import 'package:asfar/widget/button/button_size.dart';
-import 'package:asfar/widget/button/custom_button.dart';
+import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 
 /// Écran « Mes demandes » du Démarcheur — onglet Referrals.
@@ -65,7 +64,8 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
     }
   }
 
-  void _onOpenNew() => pushScreen(context, const NewReferralScreen());
+  void _onOpenNew() =>
+      pushScreen(context, const DemarcheurListingsScreen());
 
   void _onOpenDetail(Reservation reservation) {
     pushScreen(
@@ -88,17 +88,33 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.of(context).canPop();
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: DynamicAppBar(
         title: 'Mes demandes',
-        trailing: SizedBox(
-          width: 96,
-          child: CustomButton(
-            text: 'Nouvelle',
-            onPressed: _onOpenNew,
-            size: ButtonSize.sm,
-            block: true,
+        leading: canPop
+            ? IconBoutton(
+                icon: Icons.arrow_back_ios_new,
+                onPressed: () => back(context),
+              )
+            : null,
+      ),
+      floatingActionButton: Padding(
+        // Compense uniquement la safe area + un mini gap (8pt). Le FAB se
+        // retrouve juste à la limite haute de la BottomNav du shell — visuel
+        // « collé » sans flotter en hauteur.
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom + 8,
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: _onOpenNew,
+          backgroundColor: AppColors.accent,
+          foregroundColor: AppColors.onAccent,
+          icon: const Icon(Icons.add),
+          label: const Text(
+            'Nouvelle',
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ),
@@ -115,7 +131,7 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
                     .add(LoadDemarcheurReservations()),
               );
             }
-            final reservations = state is DemarcheurReservationsLoaded
+            final reservations = state is DemarcheurDataLoaded
                 ? state.reservations
                 : <Reservation>[];
             final wanted = _statusForFilter(_filter);

@@ -1,5 +1,7 @@
 import 'package:latlong2/latlong.dart';
 
+import 'package:asfar/model/enumeration/appartement_type_location.dart';
+
 /// Pin individuel d'un appartement sur la carte locataire — V9.7b.
 ///
 /// Granularité : 1 marker = 1 appartement (la notion de "résidence" comme
@@ -35,7 +37,7 @@ class MapAppartement {
 
   // Métadonnées pour le marker + bottom sheet preview
   int? price;
-  String? typeAppart;
+  AppartementTypeLocation? typeAppart;
   int? nbChambres;
   String? imgUrl;
 
@@ -69,7 +71,12 @@ class MapAppartement {
     realLongi = json['realLongi']?.toDouble();
     final priceRaw = json['price'] ?? json['prix'];
     price = priceRaw is num ? priceRaw.toInt() : null;
-    typeAppart = json['typeAppart'] ?? json['typeLocation'];
+    final rawType = (json['typeAppart'] ?? json['typeLocation']) as String?;
+    final rawChambres = json['nbChambres'] as int?;
+    typeAppart = AppartementTypeLocation.fromBackend(rawType) ??
+        (rawType != null && rawType.isNotEmpty
+            ? AppartementTypeLocation.fromLegacy(rawType, rawChambres)
+            : null);
     nbChambres = json['nbChambres'];
     imgUrl = json['imgUrl'];
     communeName = json['communeName'];
@@ -86,7 +93,7 @@ class MapAppartement {
       'realLat': realLat,
       'realLongi': realLongi,
       'price': price,
-      'typeAppart': typeAppart,
+      'typeAppart': typeAppart?.value,
       'nbChambres': nbChambres,
       'imgUrl': imgUrl,
       'communeName': communeName,

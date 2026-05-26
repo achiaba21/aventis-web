@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/contact/contact.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/commission_card.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_client_card.dart';
@@ -7,18 +8,27 @@ import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_status_
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_timeline.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/host_card.dart';
 import 'package:asfar/screen/client/locataire/booking/widget/listing_summary_card.dart';
+import 'package:asfar/service/contact/contact_availability.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/calc/contact_target_resolver.dart';
+import 'package:asfar/util/calc/reservation_actions_resolver.dart';
+import 'package:asfar/util/function.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
+import 'package:asfar/widget/contact/contact_sheet.dart';
 
 /// Détail d'une référence client — `ReferralDetailScreen`.
 ///
 /// Consomme directement le modèle métier [Reservation] (côté démarcheur,
 /// création pour client). Timeline + statuts + commission + client + host
 /// dérivés depuis la Reservation et son extension `ReferralDisplay`.
+///
+/// Actions de contact branchées sur la couche unifiée
+/// (`ContactSheet` + `CallButton`). Côté démarcheur, les actions sont
+/// **toujours actives** quel que soit le statut (cf. business-spec §4.3).
 class ReferralDetailScreen extends StatelessWidget {
   final Reservation reservation;
 
@@ -88,6 +98,7 @@ class ReferralDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = reservation.referralStatus;
+    _logReservationDetails();
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: DynamicAppBar(
@@ -126,21 +137,22 @@ class ReferralDetailScreen extends StatelessWidget {
                 ListingSummaryCard(appartement: reservation.appart!),
               ],
               const SizedBox(height: 22),
-              const Text('Client', style: AppTextStyles.h3),
-              const SizedBox(height: 10),
-              ReferralClientCard(
-                name: reservation.referralClientName,
-                phone: reservation.referralClientPhone,
-                onCall: () {},
-              ),
-              const SizedBox(height: 22),
+              if (!reservation.isClientConfidential) ...[
+                const Text('Client', style: AppTextStyles.h3),
+                const SizedBox(height: 10),
+                ReferralClientCard(
+                  name: reservation.referralClientName,
+                  phone: reservation.referralClientPhone,
+                ),
+                const SizedBox(height: 22),
+              ],
               const Text('Propriétaire', style: AppTextStyles.h3),
               const SizedBox(height: 10),
               HostCard(
                 hostName: _hostName(),
                 memberSince: _hostMemberSince(),
                 certified: true,
-                onContactTap: () {},
+                onContactTap: () => _onContactProprio(context),
               ),
               const SizedBox(height: 22),
               const Text('Commission', style: AppTextStyles.h3),
@@ -154,6 +166,99 @@ class ReferralDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _onContactProprio(BuildContext context) {
+    deboger('═════════════════════════════════════════');
+    deboger('🟡 [ReferralDetailScreen] TAP "Contacter"');
+    deboger('   reservation.id        = ${reservation.id}');
+    deboger('   reservation.reference = ${reservation.reference}');
+    deboger('   reservation.proprio   = ${reservation.proprio}');
+    if (reservation.proprio != null) {
+      final p = reservation.proprio!;
+      deboger('     ├─ id        = ${p.id}');
+      deboger('     ├─ prenom    = ${p.prenom}');
+      deboger('     ├─ nom       = ${p.nom}');
+      deboger('     ├─ telephone = ${p.telephone}');
+      deboger('     └─ email     = ${p.email}');
+    } else {
+      deboger('     ⚠️ reservation.proprio == null (backend ne l\'envoie pas)');
+    }
+
+    final resolvedContact = ContactTargetResolver.fromReservation(
+      reservation,
+      ReservationViewerRole.demarcheur,
+    );
+    deboger('   ContactTargetResolver.fromReservation → '
+        '${resolvedContact == null ? "null (fallback déclenché)" : "OK"}');
+
+    // Si `reservation.proprio` n'est pas chargé (dépendance backend
+    // actuellement absente — cf. note Reservation §47-49), on ouvre quand
+    // même la sheet avec un Contact "shell" : les 3 options seront alors
+    // grisées et le démarcheur voit clairement qu'aucun canal n'est dispo,
+    // au lieu de recevoir un SnackBar disparaissant.
+    final contact = resolvedContact ??
+        Contact(
+          displayName: _hostName(),
+          roleLabel: 'Propriétaire',
+        );
+    deboger('   contact final :');
+    deboger('     ├─ displayName = ${contact.displayName}');
+    deboger('     ├─ telephone   = ${contact.telephone}');
+    deboger('     ├─ userId      = ${contact.userId}');
+    deboger('     ├─ hasPhone    = ${contact.hasPhone}');
+    deboger('     ├─ hasWhatsApp = ${contact.hasWhatsApp}');
+    deboger('     └─ canChat     = ${contact.canChat}');
+
+    // Démarcheur → toujours actif, statut ignoré.
+    final availability = ContactAvailability.from(
+      contact: contact,
+      isTerminalStatus: false,
+      isDemarcheurViewer: true,
+    );
+    deboger('   availability :');
+    deboger('     ├─ callEnabled         = ${availability.callEnabled}');
+    deboger('     ├─ whatsAppEnabled     = ${availability.whatsAppEnabled}');
+    deboger('     ├─ chatEnabled         = ${availability.chatEnabled}');
+    deboger('     └─ contactButtonEnabled= ${availability.contactButtonEnabled}');
+    deboger('   → Ouverture ContactSheet.show()');
+    deboger('═════════════════════════════════════════');
+
+    ContactSheet.show(
+      context,
+      contact: contact,
+      availability: availability,
+    );
+  }
+
+  /// Log de diagnostic au build du screen — affiche tout ce qu'on a sur le
+  /// proprio attaché à cette réservation.
+  void _logReservationDetails() {
+    deboger('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    deboger('🔍 [ReferralDetailScreen] BUILD');
+    deboger('   reservation.id         = ${reservation.id}');
+    deboger('   reservation.reference  = ${reservation.reference}');
+    deboger('   reservation.statut     = ${reservation.statut}');
+    deboger('   reservation.type       = ${reservation.type}');
+    deboger('   reservation.proprio    = ${reservation.proprio}');
+    if (reservation.proprio != null) {
+      final p = reservation.proprio!;
+      deboger('     ├─ id           = ${p.id}');
+      deboger('     ├─ prenom       = ${p.prenom}');
+      deboger('     ├─ nom          = ${p.nom}');
+      deboger('     ├─ fullName     = ${p.fullName}');
+      deboger('     ├─ telephone    = ${p.telephone}');
+      deboger('     ├─ email        = ${p.email}');
+      deboger('     ├─ createdAt    = ${p.createdAt}');
+      deboger('     └─ imgUrl       = ${p.imgUrl}');
+    } else {
+      deboger('     ⚠️ reservation.proprio == null');
+    }
+    deboger('   reservation.appart     = ${reservation.appart?.id}');
+    deboger('   reservation.locataire  = ${reservation.locataire?.id}');
+    deboger('   clientExterneNom       = ${reservation.clientExterneNom}');
+    deboger('   clientExterneTelephone = ${reservation.clientExterneTelephone}');
+    deboger('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
 
   String _hostName() {

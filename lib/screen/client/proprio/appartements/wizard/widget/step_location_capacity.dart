@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:asfar/bloc/pays_bloc/pays_bloc.dart';
 import 'package:asfar/bloc/pays_bloc/pays_event.dart';
 import 'package:asfar/bloc/pays_bloc/pays_state.dart';
+import 'package:asfar/model/enumeration/appartement_type_location.dart';
 import 'package:asfar/model/locolite/address.dart';
 import 'package:asfar/model/locolite/lieux/commune.dart';
 import 'package:asfar/model/locolite/lieux/pays.dart';
@@ -28,6 +29,7 @@ class StepLocationAndCapacity extends StatefulWidget {
   final int lits;
   final int chambres;
   final int douches;
+  final AppartementTypeLocation? typeLocation;
   final bool isLoadingGeo;
   final void Function(String field, dynamic value) onFieldChange;
   final VoidCallback onRequestGps;
@@ -40,6 +42,7 @@ class StepLocationAndCapacity extends StatefulWidget {
     required this.lits,
     required this.chambres,
     required this.douches,
+    required this.typeLocation,
     required this.isLoadingGeo,
     required this.onFieldChange,
     required this.onRequestGps,
@@ -85,6 +88,7 @@ class _StepLocationAndCapacityState extends State<StepLocationAndCapacity> {
           lits: widget.lits,
           chambres: widget.chambres,
           douches: widget.douches,
+          typeLocation: widget.typeLocation,
           isLoadingGeo: widget.isLoadingGeo,
           onFieldChange: widget.onFieldChange,
           onRequestGps: widget.onRequestGps,
@@ -133,6 +137,7 @@ class _StepLocationContent extends StatelessWidget {
   final int lits;
   final int chambres;
   final int douches;
+  final AppartementTypeLocation? typeLocation;
   final bool isLoadingGeo;
   final void Function(String field, dynamic value) onFieldChange;
   final VoidCallback onRequestGps;
@@ -148,6 +153,7 @@ class _StepLocationContent extends StatelessWidget {
     required this.lits,
     required this.chambres,
     required this.douches,
+    required this.typeLocation,
     required this.isLoadingGeo,
     required this.onFieldChange,
     required this.onRequestGps,
@@ -220,40 +226,46 @@ class _StepLocationContent extends StatelessWidget {
           loading: isLoadingGeo,
           onCapture: onRequestGps,
         ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: WizardStepperRow(
-                label: 'Lits',
-                value: lits,
-                min: 0,
-                max: 20,
-                onChange: (v) => onFieldChange('nbLits', v),
+        // Capacité affichée UNIQUEMENT pour cinqPlus : pour Studio/2P/3P/4P,
+        // lits + chambres + sdb sont entièrement dérivés du type (pré-remplis
+        // par `AppartementTypeLocation.defaultNbLits/Douches` + dérivation
+        // chambres). On évite tout double-input.
+        if (typeLocation?.requiresFreeChambresInput == true) ...[
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: WizardStepperRow(
+                  label: 'Lits',
+                  value: lits,
+                  min: 0,
+                  max: 20,
+                  onChange: (v) => onFieldChange('nbLits', v),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: WizardStepperRow(
-                label: 'Chambres',
-                value: chambres,
-                min: 0,
-                max: 10,
-                onChange: (v) => onFieldChange('nbChambres', v),
+              const SizedBox(width: 10),
+              Expanded(
+                child: WizardStepperRow(
+                  label: 'Chambres',
+                  value: chambres,
+                  min: 4,
+                  max: 10,
+                  onChange: (v) => onFieldChange('nbChambres', v),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: WizardStepperRow(
-                label: 'SdB',
-                value: douches,
-                min: 0,
-                max: 10,
-                onChange: (v) => onFieldChange('nbDouches', v),
+              const SizedBox(width: 10),
+              Expanded(
+                child: WizardStepperRow(
+                  label: 'SdB',
+                  value: douches,
+                  min: 0,
+                  max: 10,
+                  onChange: (v) => onFieldChange('nbDouches', v),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
         const SizedBox(height: 14),
         _LabeledTextField(
           label: 'Description (optionnel)',

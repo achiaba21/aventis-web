@@ -3,21 +3,19 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/widget/button/button_size.dart';
-import 'package:asfar/widget/button/outlined_custom_button.dart';
+import 'package:asfar/widget/contact/call_button.dart';
 import 'package:asfar/widget/user/user_avatar.dart';
 
 /// Card client du `ReferralDetailScreen` — avatar + nom + téléphone +
-/// bouton « Appeler ».
+/// bouton « Appeler » (via `CallButton`, branché sur le service unifié).
 class ReferralClientCard extends StatelessWidget {
   final String name;
   final String phone;
-  final VoidCallback? onCall;
 
   const ReferralClientCard({
     super.key,
     required this.name,
     required this.phone,
-    this.onCall,
   });
 
   @override
@@ -55,11 +53,9 @@ class ReferralClientCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          OutlinedCustomButton(
-            text: 'Appeler',
-            onPressed: hasPhone ? onCall : null,
+          CallButton(
+            phone: phone,
             size: ButtonSize.sm,
-            leadingIcon: Icons.phone_outlined,
           ),
         ],
       ),

@@ -13,6 +13,8 @@ import 'package:asfar/screen/client/shared/reservations/reservation_scan_screen.
 import 'package:asfar/screen/client/shared/reservations/widget/reservation_detail_actions_bar.dart';
 import 'package:asfar/screen/client/shared/reservations/widget/reservation_detail_amounts_section.dart';
 import 'package:asfar/screen/client/shared/reservations/widget/reservation_detail_appart_card.dart';
+import 'package:asfar/model/reservation/reservation_manuelle.dart';
+import 'package:asfar/screen/client/shared/reservations/widget/reservation_detail_apporteur_externe_card.dart';
 import 'package:asfar/screen/client/shared/reservations/widget/reservation_detail_demarcheur_card.dart';
 import 'package:asfar/screen/client/shared/reservations/widget/reservation_detail_error_view.dart';
 import 'package:asfar/screen/client/shared/reservations/widget/reservation_detail_header.dart';
@@ -305,6 +307,12 @@ class _ReservationDetailBody extends StatelessWidget {
         ReservationContactResolver.demarcheurTargetFor(reservation) != null;
   }
 
+  bool get _shouldShowApporteurExterne {
+    if (role != ReservationViewerRole.proprietaire) return false;
+    final r = reservation;
+    return r is ReservationManuelle && r.hasApporteurExterne;
+  }
+
   @override
   Widget build(BuildContext context) {
     final partyTarget = ReservationContactResolver.targetFor(role, reservation);
@@ -338,6 +346,15 @@ class _ReservationDetailBody extends StatelessWidget {
             SectionWithEyebrow(
               label: 'DÉMARCHEUR SOURCE',
               child: ReservationDetailDemarcheurCard(reservation: reservation),
+            ),
+          ],
+          if (_shouldShowApporteurExterne) ...[
+            const SizedBox(height: 24),
+            SectionWithEyebrow(
+              label: "APPORTEUR D'AFFAIRES",
+              child: ReservationDetailApporteurExterneCard(
+                reservation: reservation as ReservationManuelle,
+              ),
             ),
           ],
           if (_shouldShowQr && code?.secretKey != null) ...[

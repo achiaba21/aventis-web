@@ -4,6 +4,7 @@ import 'package:asfar/bloc/map_bloc/map_event.dart';
 import 'package:asfar/bloc/map_bloc/map_state.dart';
 import 'package:asfar/model/filter/filter_criteria.dart';
 import 'package:asfar/model/map/map_appartement.dart';
+import 'package:asfar/model/map/map_filtered_response.dart';
 import 'package:asfar/service/model/map/map_service.dart';
 import 'package:asfar/util/function.dart';
 
@@ -29,6 +30,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<RefreshMapData>(_onRefreshMapData);
     on<ClearMapSelection>(_onClearMapSelection);
     on<RequestRealLocation>(_onRequestRealLocation);
+    on<SearchPlace>(_onSearchPlace);
     on<ResetMapState>(_onResetMapState);
   }
 
@@ -43,12 +45,14 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       _currentRadius = event.radiusKm;
       _currentFilter = event.filter;
 
-      final appartements = await _mapService.getFilteredMapAppartements(
+      final MapFilteredResponse response =
+          await _mapService.getFilteredMapAppartements(
         center: event.center,
         radiusKm: event.radiusKm,
         filter: event.filter,
       );
 
+      final appartements = response.appartements;
       _cachedAppartements = appartements;
 
       if (appartements.isEmpty) {
@@ -57,6 +61,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
           center: event.center,
           radiusKm: event.radiusKm,
           filter: event.filter,
+          zoneName: response.zoneName,
         ));
       } else {
         emit(MapAppartementsLoaded(
@@ -64,6 +69,7 @@ class MapBloc extends Bloc<MapEvent, MapState> {
           center: event.center,
           radiusKm: event.radiusKm,
           filter: event.filter,
+          zoneName: response.zoneName,
         ));
       }
     } catch (e) {
@@ -71,6 +77,22 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       emit(MapNetworkError(
         message: 'Erreur lors du chargement des appartements: $e',
       ));
+    }
+  }
+
+  Future<void> _onSearchPlace(
+    SearchPlace event,
+    Emitter<MapState> emit,
+  ) async {
+    emit(const MapPlaceSearchLoading());
+
+    try {
+      final result = await _mapService.searchPlace(event.query);
+      emit(MapPlaceSearchSuccess(result: result));
+    } catch (e) {
+      deboger('Erreur MapBloc.SearchPlace: $e');
+      final message = e.toString().replaceFirst('Exception: ', '');
+      emit(MapPlaceSearchError(message: message));
     }
   }
 

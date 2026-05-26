@@ -111,7 +111,7 @@ class _MapMarkerBottomSheetState extends State<MapMarkerBottomSheet> {
       parts.add(commune);
     }
 
-    final type = widget.appartement.typeAppart?.trim();
+    final type = widget.appartement.typeAppart?.label;
     if (type != null && type.isNotEmpty) {
       parts.add(type);
     }

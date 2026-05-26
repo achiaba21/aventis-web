@@ -1,3 +1,4 @@
+import 'package:asfar/model/enumeration/reservation_type.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/reservation/reservation_counted.dart';
 
@@ -43,15 +44,23 @@ extension ReferralDisplay on Reservation {
   /// Sous-total séjour (prix de la résa, qui correspond à nuits × prixNuit).
   int get referralSubtotal => (prix ?? 0).round();
 
+  /// True si le client de cette réservation doit rester confidentiel pour
+  /// le démarcheur (R4 : réservation MANUELLE → client externe du proprio,
+  /// infos personnelles non partagées avec le démarcheur).
+  bool get isClientConfidential => type == ReservationType.manuelle;
+
   String get referralClientName {
+    if (isClientConfidential) return 'Client confidentiel';
     final base = clientNom?.trim().isNotEmpty == true
         ? clientNom!
         : 'Client #${id ?? 0}';
     return base;
   }
 
-  String get referralClientPhone =>
-      clientExterneTelephone ?? locataire?.telephone ?? '';
+  String get referralClientPhone {
+    if (isClientConfidential) return '';
+    return clientExterneTelephone ?? locataire?.telephone ?? '';
+  }
 
   /// Identifiant affiché (codeReservation > reference > REF-id).
   String get referralIdLabel {

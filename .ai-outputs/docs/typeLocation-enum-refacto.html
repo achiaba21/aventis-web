@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>typeLocation — Enum strict avec dérivation nbChambres · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-14">
+    <meta name="updated" content="2026-05-14">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header { border-bottom: 1px solid var(--line); padding-bottom: 2rem; margin-bottom: 2rem; }
+        .eyebrow { color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 12px; }
+        h1 { font-size: 38px; letter-spacing: -1px; font-weight: 700; line-height: 1.05; margin-bottom: 0.75rem; }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin: 2.5rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; margin: 1.5rem 0 0.75rem; color: var(--text); }
+        p, li { color: var(--text-2); font-size: 15px; line-height: 1.6; }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta { color: var(--text-3); font-size: 13px; display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem; }
+        nav ul { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; padding: 1rem 0; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
+        nav a { color: var(--accent); text-decoration: none; font-size: 13px; font-weight: 500; }
+        nav a:hover { text-decoration: underline; }
+        .card { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 20px; padding: 1.25rem 1.5rem; margin: 1rem 0; }
+        .card-hero { background: linear-gradient(135deg, #2A1F0E 0%, #1A1206 60%, #0F0A04 100%); border-color: rgba(232,184,107,0.25); position: relative; overflow: hidden; }
+        .card-hero::before { content: ""; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(232,184,107,0.18), transparent 70%); }
+        .card-hero h2 { margin-top: 0; color: var(--accent); }
+        .card-warn { border-color: rgba(244,183,64,0.25); background: linear-gradient(135deg, rgba(244,183,64,0.06), rgba(244,183,64,0.02)); }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        .badge-new { background: rgba(74,222,128,0.14); color: var(--success); }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 14px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+        th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-3); background: var(--bg-elev-2); }
+        td { color: var(--text-2); vertical-align: top; }
+        td code, p code, li code { background: var(--bg-elev-2); padding: 2px 6px; border-radius: 6px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; color: var(--text); }
+        pre { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 14px; padding: 1rem; overflow-x: auto; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; margin: 1rem 0; }
+        pre code { background: none; padding: 0; font-size: inherit; color: var(--text); }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .stat-cell { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.25rem; text-align: center; }
+        .stat-cell .num { font-size: 28px; font-weight: 700; color: var(--accent); font-feature-settings: "tnum"; }
+        .stat-cell .lab { font-size: 12px; color: var(--text-3); margin-top: 0.25rem; letter-spacing: 0.4px; }
+        .quote { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--text-2); font-style: italic; margin: 1rem 0; }
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { counter-increment: step; padding-left: 36px; position: relative; margin-bottom: 12px; }
+        .step-list li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+        @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+        .col-block { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.25rem; }
+        .col-block.before { border-left: 3px solid var(--danger); }
+        .col-block.after { border-left: 3px solid var(--success); }
+        .col-block h4 { font-size: 13px; color: var(--text-3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.5rem; }
+        footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--line); color: var(--text-3); font-size: 12px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="eyebrow">Refacto modèle · Asfar Mobile</div>
+        <h1>typeLocation <em>enum strict + dérivation nbChambres</em></h1>
+        <p>Élimination d'un bug conceptuel : un champ <code>String?</code> portait deux sémantiques contradictoires (typologie de pièces côté wizard, type d'offre Airbnb-like côté édition), et le nombre de chambres était saisi deux fois sans cohérence croisée. Passage à un enum strict 5 valeurs, avec <code>nbChambres</code> dérivé du type sauf pour <code>CINQ_PLUS</code>.</p>
+        <div class="meta">
+            <span>Version : <strong>1.0</strong></span>
+            <span>Créée : 2026-05-14</span>
+            <span>Audit : <strong style="color:var(--accent)">98/100</strong></span>
+            <span>Pipeline : <strong>/feature full</strong></span>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#contexte">Contexte du bug</a></li>
+            <li><a href="#modele">Modèle métier</a></li>
+            <li><a href="#regles">Règles de cohérence</a></li>
+            <li><a href="#ui">Comportement UI</a></li>
+            <li><a href="#migration">Migration legacy</a></li>
+            <li><a href="#fichiers">Fichiers touchés</a></li>
+            <li><a href="#qualite">Qualité</a></li>
+            <li><a href="index.html">← Index</a></li>
+        </ul>
+    </nav>
+
+    <section class="card card-hero">
+        <h2>🔁 Le bug conceptuel résolu</h2>
+        <p>Avant cette refacto, <code>Appartement.typeLocation</code> était une <strong>chaîne libre</strong> recevant tantôt <code>"Studio"</code>, tantôt <code>"3 pièces"</code>, tantôt <code>"Appartement entier"</code>, tantôt <code>"Chambre privée"</code>, selon que le proprio passait par le wizard ou par l'écran d'édition. <strong>Aucun lien</strong> avec <code>nbChambres</code> qui était saisi en parallèle. Conséquence : un <em>Studio + 5 chambres</em> était publiable, et un proprio pouvait <em>écraser involontairement</em> "3 pièces" par "Appartement entier" en éditant son annonce.</p>
+        <div class="badges">
+            <span class="badge badge-success">✅ Enum strict 5 valeurs</span>
+            <span class="badge badge-success">✅ nbChambres dérivé du type</span>
+            <span class="badge badge-accent">★ UI inchangée step 1</span>
+            <span class="badge badge-info">/feature full pipeline</span>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="contexte">🧨 Contexte du bug</h2>
+
+        <div class="two-col">
+            <div class="col-block before">
+                <h4>Avant</h4>
+                <ul>
+                    <li><code>typeLocation: String?</code> en chaîne libre</li>
+                    <li>Wizard step 1 : enregistrait <code>"Studio"</code>, <code>"2 pièces"</code>, etc.</li>
+                    <li>Édition (<code>ListingInfosTab._editType</code>) : <code>TextFieldEditDialog</code> avec hint suggérant un autre vocabulaire (<em>Appartement entier / Studio / Chambre privée</em>)</li>
+                    <li>Step 2 du wizard redemandait <code>nbChambres</code> en stepper 0–10 libre</li>
+                    <li>Aucune validation croisée → publications incohérentes possibles</li>
+                </ul>
+            </div>
+            <div class="col-block after">
+                <h4>Après</h4>
+                <ul>
+                    <li><code>typeLocation: AppartementTypeLocation?</code> (enum strict 5 valeurs)</li>
+                    <li>Wizard step 1 inchangé visuellement, binding enum</li>
+                    <li>Édition : <code>TypeLocationEditDialog</code> picker enum (RadioGroup)</li>
+                    <li>Step 2 : stepper Chambres <strong>masqué</strong> sauf pour 5+ pièces (dérivation auto)</li>
+                    <li>Validator refuse toute paire (type, nbChambres) incohérente</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="modele">🧬 Modèle métier final</h2>
+
+        <h3>Enum <code>AppartementTypeLocation</code></h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Valeur</th>
+                    <th>value (JSON)</th>
+                    <th>label</th>
+                    <th>nbChambres dérivé</th>
+                    <th>Saisie libre ?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><code>studio</code></td><td><code>STUDIO</code></td><td>Studio</td><td>1 (forcé)</td><td>—</td></tr>
+                <tr><td><code>deuxPieces</code></td><td><code>DEUX_PIECES</code></td><td>2 pièces</td><td>1 (forcé)</td><td>—</td></tr>
+                <tr><td><code>troisPieces</code></td><td><code>TROIS_PIECES</code></td><td>3 pièces</td><td>2 (forcé)</td><td>—</td></tr>
+                <tr><td><code>quatrePieces</code></td><td><code>QUATRE_PIECES</code></td><td>4 pièces</td><td>3 (forcé)</td><td>—</td></tr>
+                <tr><td><code>cinqPlus</code></td><td><code>CINQ_PLUS</code></td><td>5+ pièces</td><td>≥ 4 (saisi)</td><td>✅</td></tr>
+            </tbody>
+        </table>
+
+        <p class="quote">Convention métier : <code>Studio</code> = pièce unique <em>sans salon</em>. À partir de <code>2 pièces</code> : 1 salon + <em>n</em> chambres. Le « salon » n'est pas un champ stocké : sa présence est implicite via l'enum.</p>
+
+        <h3>Helper <code>TypeLocationChambresPolicy</code></h3>
+        <p>Helper statique pur qui isole les deux règles métier critiques (SRP) :</p>
+        <pre><code>// Détermine la valeur à appliquer pour nbChambres selon le type :
+//   Studio / 2P / 3P / 4P  → derived strict (1, 1, 2, 3)
+//   CINQ_PLUS              → préserve current si ≥ 4, sinon force à 4
+TypeLocationChambresPolicy.resolveNbChambres(type, current)
+
+// Indique si une paire (type, nbChambres) est conforme aux règles :
+//   Studio / 2P / 3P / 4P  → nbChambres == derived
+//   CINQ_PLUS              → nbChambres >= 4
+//   nbChambres == null     → false toujours
+TypeLocationChambresPolicy.isCoherent(type, nbChambres)</code></pre>
+
+        <p>Utilisé par 3 consommateurs : <code>AppartementWizardBloc._applyField</code>, <code>ListingInfosTab._editType</code>, et <code>AppartementPublicationValidator</code>.</p>
+    </section>
+
+    <section>
+        <h2 id="regles">⚖️ Règles de cohérence (validator)</h2>
+
+        <table>
+            <thead><tr><th>typeLocation</th><th>nbChambres valide</th><th>Comportement publication</th></tr></thead>
+            <tbody>
+                <tr><td><code>STUDIO</code></td><td>= 1</td><td>✅ publiable</td></tr>
+                <tr><td><code>STUDIO</code></td><td>≠ 1</td><td>❌ refus : « Studio doit avoir 1 chambre »</td></tr>
+                <tr><td><code>DEUX_PIECES</code></td><td>= 1</td><td>✅ publiable</td></tr>
+                <tr><td><code>DEUX_PIECES</code></td><td>≠ 1</td><td>❌ refus</td></tr>
+                <tr><td><code>TROIS_PIECES</code></td><td>= 2</td><td>✅ publiable</td></tr>
+                <tr><td><code>TROIS_PIECES</code></td><td>≠ 2</td><td>❌ refus</td></tr>
+                <tr><td><code>QUATRE_PIECES</code></td><td>= 3</td><td>✅ publiable</td></tr>
+                <tr><td><code>QUATRE_PIECES</code></td><td>≠ 3</td><td>❌ refus</td></tr>
+                <tr><td><code>CINQ_PLUS</code></td><td>≥ 4</td><td>✅ publiable</td></tr>
+                <tr><td><code>CINQ_PLUS</code></td><td>&lt; 4</td><td>❌ refus : « Logement 5+ pièces doit avoir au moins 4 chambres »</td></tr>
+                <tr><td><code>null</code></td><td>—</td><td>❌ refus : « Le type de logement est obligatoire »</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2 id="ui">🎨 Comportement UI</h2>
+
+        <h3>Step 1 du wizard (inchangé visuellement)</h3>
+        <p>La grille 2 colonnes avec 5 <code>RoomsTypeCard</code> est conservée à l'identique. Seul le binding change : la sélection produit désormais une valeur enum typée au lieu d'une string libre. Le hint a été réécrit pour expliciter la nouvelle sémantique : <em>« Studio = pièce unique sans salon. À partir de 2 pièces : 1 salon + chambres. »</em></p>
+
+        <h3>Step 2 du wizard (Row capacité conditionnelle)</h3>
+        <p>Selon le type sélectionné au step 1 :</p>
+        <ul>
+            <li><strong>Studio / 2 pièces / 3 pièces / 4 pièces</strong> → stepper Chambres <strong>masqué</strong>. La Row devient <code>[Lits] [SdB]</code> en 2 colonnes. <code>nbChambres</code> est dérivé en arrière-plan par le BLoC.</li>
+            <li><strong>5+ pièces</strong> → stepper Chambres <strong>visible</strong> avec <code>min=4, max=10</code>. La Row reste à 3 colonnes <code>[Lits] [Chambres] [SdB]</code> comme avant.</li>
+        </ul>
+
+        <h3>Édition (nouveau picker)</h3>
+        <p>Dans <code>ListingInfosTab</code>, taper sur la FieldRow « TYPE » ouvre désormais <code>TypeLocationEditDialog</code> au lieu du <code>TextFieldEditDialog</code>. Le dialog est aligné sur <code>CapacityEditDialog</code> :</p>
+        <ul>
+            <li>Title « Type de logement » + subtitle court</li>
+            <li><code>RadioGroup</code> avec 5 <code>RadioListTile</code> (label + description courte)</li>
+            <li>Bouton « Enregistrer » + bouton « Annuler »</li>
+        </ul>
+        <p>À la sauvegarde, si <code>nbChambres</code> est ajusté automatiquement (par exemple lors d'un passage de <em>5+ pièces 6 chambres</em> vers <em>Studio</em>), une SnackBar informe le proprio : <em>« Type changé en Studio, nombre de chambres ajusté à 1. »</em></p>
+    </section>
+
+    <section>
+        <h2 id="migration">🔄 Migration des annonces existantes</h2>
+
+        <p>Le champ étant historiquement en chaîne libre, deux stratégies se combinent pour récupérer les annonces existantes :</p>
+
+        <h3>1. Compat descendante côté Flutter</h3>
+        <p><code>AppartementTypeLocation.fromBackend(raw)</code> tente d'abord un matching strict sur les 5 valeurs enum, puis retombe sur <code>fromLegacy(raw, nbChambres)</code> qui combine deux pistes :</p>
+        <ol>
+            <li><strong>Matching string</strong> (insensible casse) : détecte <code>"studio"</code>, <code>"2 pièces"</code>, <code>"2p"</code>, etc.</li>
+            <li><strong>Dérivation depuis nbChambres</strong> pour les valeurs custom (<code>"Chambre privée"</code>, <code>"Appartement entier"</code>, vide, null) :
+                <ul>
+                    <li><code>nbChambres ≥ 4</code> → <code>CINQ_PLUS</code></li>
+                    <li><code>nbChambres = 3</code> → <code>QUATRE_PIECES</code></li>
+                    <li><code>nbChambres = 2</code> → <code>TROIS_PIECES</code></li>
+                    <li>Autre (null, 0, 1) → <code>DEUX_PIECES</code> (default safe)</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>2. Migration backend (SQL one-shot)</h3>
+        <p>Le mapping détaillé est documenté dans <a href="../../BACKEND_NOTES_ANNONCE.md" style="color:var(--accent)"><code>BACKEND_NOTES_ANNONCE.md</code> §0</a>. Coordination requise — déploiement possible avant <em>ou</em> après le client grâce à la compat descendante.</p>
+
+        <div class="card card-warn">
+            <h3 style="margin-top:0">⚠️ Statut backend</h3>
+            <p>Côté Flutter : ✅ livré le 2026-05-14, compat assurée.<br>
+            Côté backend : ⏳ migration enum strict + règle de cohérence <code>nbChambres</code> serveur à coordonner. Tant que ce n'est pas fait, l'app affiche des labels parfois imprécis pour les anciennes annonces mais sans plantage.</p>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="fichiers">📂 Fichiers touchés</h2>
+
+        <h3>Créés (6)</h3>
+        <table>
+            <thead><tr><th>Fichier</th><th>Rôle</th></tr></thead>
+            <tbody>
+                <tr><td><code>lib/model/enumeration/appartement_type_location.dart</code></td><td>Enum 5 valeurs + label/description/derivedNbChambres + fromBackend / fromLegacy</td></tr>
+                <tr><td><code>lib/util/type_location_chambres_policy.dart</code></td><td>Helper statique resolveNbChambres + isCoherent</td></tr>
+                <tr><td><code>lib/screen/.../widget/type_location_edit_dialog.dart</code></td><td>Dialog picker enum (RadioGroup)</td></tr>
+                <tr><td><code>test/model/enumeration/appartement_type_location_test.dart</code></td><td>19 tests</td></tr>
+                <tr><td><code>test/util/type_location_chambres_policy_test.dart</code></td><td>9 tests</td></tr>
+                <tr><td><code>test/util/appartement_publication_validator_test.dart</code></td><td>10 tests</td></tr>
+                <tr><td><code>test/bloc/appartement_wizard_bloc_test.dart</code></td><td>5 tests</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Modifiés (13)</h3>
+        <ul>
+            <li><code>lib/model/residence/appart.dart</code> — champ <code>typeLocation</code> typé enum, <code>fromJson</code> avec fallback legacy, <code>toJson</code> via <code>.value</code></li>
+            <li><code>lib/model/map/map_appartement.dart</code> — <code>typeAppart</code> typé enum aussi (cohérence)</li>
+            <li><code>lib/util/appartement_publication_validator.dart</code> — règles croisées via la Policy + messages d'erreur explicites</li>
+            <li><code>lib/bloc/appartement_wizard_bloc/appartement_wizard_bloc.dart</code> — <code>_applyField('typeLocation')</code> auto-recalcule <code>nbChambres</code></li>
+            <li><code>lib/bloc/appartement_wizard_bloc/appartement_wizard_event.dart</code> — doc à jour du field <code>typeLocation</code></li>
+            <li><code>lib/screen/.../wizard/widget/step_rooms_type.dart</code> — binding enum, hint réécrit</li>
+            <li><code>lib/screen/.../wizard/widget/rooms_type_card.dart</code> — prop <code>type</code> (au lieu de label+subtitle strings)</li>
+            <li><code>lib/screen/.../wizard/widget/step_location_capacity.dart</code> — Row conditionnelle, stepper Chambres visible uniquement pour 5+</li>
+            <li><code>lib/screen/.../wizard/proprio_new_listing_screen.dart</code> — cast enum + binding</li>
+            <li><code>lib/screen/.../widget/listing_infos_tab.dart</code> — picker enum + toast d'ajustement</li>
+            <li><code>lib/screen/client/locataire/booking/detail_screen.dart</code> — <code>_typeLabel</code> simplifié via <code>enum.label</code></li>
+            <li><code>lib/screen/client/locataire/map/widget/map_marker_bottom_sheet.dart</code> — sublabel via <code>enum.label</code></li>
+            <li><code>BACKEND_NOTES_ANNONCE.md</code> — section §0 avec SQL de migration</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 id="qualite">📊 Qualité</h2>
+
+        <div class="stat-grid">
+            <div class="stat-cell"><div class="num">98</div><div class="lab">/ 100 audit</div></div>
+            <div class="stat-cell"><div class="num">120</div><div class="lab">tests verts</div></div>
+            <div class="stat-cell"><div class="num">43</div><div class="lab">nouveaux tests</div></div>
+            <div class="stat-cell"><div class="num">0</div><div class="lab">erreur analyzer</div></div>
+            <div class="stat-cell"><div class="num">12/12</div><div class="lab">critères acceptés</div></div>
+            <div class="stat-cell"><div class="num">10/10</div><div class="lab">règles Flutter</div></div>
+        </div>
+
+        <h3>Conformité contrat d'implémentation</h3>
+        <p>100 % des items du contrat <code>architecture.md §7</code> respectés (11 sections). Aucun problème critique, aucun problème majeur lors de l'audit. Deux améliorations mineures notées (complexité cyclomatique de <code>fromLegacy</code> à la limite haute, et triple expression de la sémantique « est-cinqPlus ») — non bloquantes, conservation acceptable.</p>
+
+        <h3>Points d'attention futurs (hors scope)</h3>
+        <ul>
+            <li>Filtre « type de logement » côté locataire (V2 si demande métier remonte)</li>
+            <li>Refonte de <code>Appartement.copyWith</code> pour permettre le clear-to-null d'un champ — problème global du modèle, non aggravé par cette feature</li>
+            <li>Si la base évolue vers d'autres typologies (penthouse, duplex, villa…), il suffit d'ajouter une valeur à l'enum et Dart force la mise à jour exhaustive des switches</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>🔗 Features liées</h2>
+        <ul>
+            <li><a href="v9-1-wizard-creation-appart.html" style="color:var(--accent)">V9.1 — Wizard création appartement</a> : la base du wizard 5 étapes refondé ici sur le step 1 et step 2</li>
+            <li><a href="refonte-enregistrement-appartement.html" style="color:var(--accent)">Refonte enregistrement appartement</a> : refonte associée du modèle backend (annonces flat, suppression entité Residence)</li>
+        </ul>
+    </section>
+
+    <footer>
+        Pipeline : <code>/feature full</code> (BA → Architecture → UI/UX → Dev → Audit → Doc) ·
+        Spec source : <code>.ai-outputs/specs/typeLocation-enum-refacto/</code>
+    </footer>
+</div>
+</body>
+</html>

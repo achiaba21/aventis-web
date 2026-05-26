@@ -19,6 +19,7 @@ import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/input/input_field.dart';
+import 'package:asfar/widget/input/phone_input_field.dart';
 
 /// Écran d'édition d'une réservation manuelle — proprio uniquement.
 ///
@@ -48,13 +49,15 @@ class _ReservationEditManuelleScreenState
   late DateTime? _debut;
   late DateTime? _fin;
   String? _error;
+  String _fullPhone = '';
 
   @override
   void initState() {
     super.initState();
     final r = widget.reservation;
     _nomCtrl = TextEditingController(text: r.clientExterneNom ?? '');
-    _telCtrl = TextEditingController(text: r.clientExterneTelephone ?? '');
+    _telCtrl = TextEditingController();
+    _fullPhone = r.clientExterneTelephone ?? '';
     _emailCtrl = TextEditingController(text: r.clientExterneEmail ?? '');
     _debut = r.debut;
     _fin = r.fin;
@@ -124,7 +127,7 @@ class _ReservationEditManuelleScreenState
     final r = widget.reservation;
     final apartId = r.appart?.id;
     final nom = _nomCtrl.text.trim();
-    final tel = _telCtrl.text.trim();
+    final tel = _fullPhone;
     final email = _emailCtrl.text.trim();
     final debut = _debut;
     final fin = _fin;
@@ -254,12 +257,11 @@ class _ReservationEditManuelleScreenState
                     leadingIcon: Icons.person_outline,
                   ),
                   const SizedBox(height: 12),
-                  InputField(
+                  PhoneInputField(
                     controller: _telCtrl,
                     eyebrow: 'Téléphone',
-                    hintText: '+225 07 12 34 56',
-                    keyboardType: TextInputType.phone,
-                    leadingIcon: Icons.phone_outlined,
+                    initialValue: widget.reservation.clientExterneTelephone,
+                    onChanged: (full) => _fullPhone = full,
                   ),
                   const SizedBox(height: 12),
                   InputField(

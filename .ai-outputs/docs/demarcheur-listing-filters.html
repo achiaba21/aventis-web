@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filtres & Calendrier Listings Démarcheur · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-24">
+    <meta name="updated" content="2026-05-24">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+            --wallet-blue: #8B9AFF;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+        .eyebrow {
+            color: var(--accent);
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 38px; letter-spacing: -1px;
+            font-weight: 700; line-height: 1.05;
+            margin-bottom: 0.75rem;
+        }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 {
+            font-size: 22px; font-weight: 700;
+            letter-spacing: -0.4px;
+            margin: 2.5rem 0 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        h3 {
+            font-size: 17px; font-weight: 600;
+            letter-spacing: -0.2px;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text);
+        }
+        p, li {
+            color: var(--text-2);
+            font-size: 15px; line-height: 1.6;
+        }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta {
+            color: var(--text-3); font-size: 13px;
+            display: flex; flex-wrap: wrap; gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        nav ul {
+            display: flex; flex-wrap: wrap; gap: 1rem;
+            list-style: none; padding: 1rem 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 2rem;
+        }
+        nav a {
+            color: var(--accent); text-decoration: none;
+            font-size: 13px; font-weight: 500;
+        }
+        nav a:hover { text-decoration: underline; }
+        .card {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge {
+            display: inline-flex; align-items: center;
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        .badge-blue { background: rgba(139,154,255,0.14); color: var(--wallet-blue); }
+        .badge-r14 { background: rgba(244,183,64,0.14); color: var(--warn); }
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 1rem 0; font-size: 14px;
+        }
+        th, td {
+            text-align: left; padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+        }
+        th {
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--text-3);
+            background: var(--bg-elev-2);
+        }
+        td { color: var(--text-2); }
+        td code, p code, li code {
+            background: var(--bg-elev-2);
+            padding: 2px 6px; border-radius: 6px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            color: var(--text);
+        }
+        pre {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 1.25rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 13px;
+            color: var(--text-2);
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            line-height: 1.7;
+        }
+        .rule-block {
+            border-left: 3px solid var(--accent);
+            padding: 0.75rem 1rem;
+            background: var(--bg-elev-1);
+            border-radius: 0 10px 10px 0;
+            margin: 0.75rem 0;
+        }
+        .rule-block.r14 {
+            border-left-color: var(--warn);
+        }
+        .rule-block p { margin: 0; }
+        .rule-id {
+            font-size: 11px; font-weight: 700;
+            color: var(--accent); letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .rule-id.warn { color: var(--warn); }
+        .flow-step {
+            display: flex; gap: 1rem;
+            align-items: flex-start;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--line);
+        }
+        .flow-step:last-child { border-bottom: none; }
+        .flow-num {
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 12px; font-weight: 700;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .flow-content { flex: 1; }
+        .flow-content strong { color: var(--text); font-size: 14px; }
+        .flow-content p { margin-top: 2px; font-size: 13px; }
+        .file-row {
+            display: flex; gap: 0.75rem;
+            align-items: flex-start;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--line);
+        }
+        .file-row:last-child { border-bottom: none; }
+        .file-icon {
+            background: var(--bg-elev-2);
+            padding: 4px 8px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+            color: var(--text-3);
+            flex-shrink: 0; margin-top: 2px;
+        }
+        .file-icon.new { background: rgba(74,222,128,0.14); color: var(--success); }
+        .file-icon.modified { background: rgba(96,165,250,0.14); color: var(--info); }
+        .file-desc { flex: 1; }
+        .file-desc strong { color: var(--text); font-size: 14px; }
+        .file-desc p { margin-top: 2px; font-size: 13px; color: var(--text-3); }
+        footer {
+            border-top: 1px solid var(--line);
+            padding-top: 2rem;
+            margin-top: 3rem;
+            color: var(--text-3);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <div class="eyebrow">Module Démarcheur · Feature</div>
+        <h1>Filtres &amp; Calendrier <em>Listings</em></h1>
+        <p style="color: var(--text-2); font-size: 16px; margin-top: 0.5rem; max-width: 640px;">
+            Système de filtres combinables (Pièces × Partenaire × Zone) et calendrier de disponibilités inline dans l'écran "Choisir un logement" du tunnel Nouvelle Demande.
+        </p>
+        <div class="meta">
+            <span>Version 1.0</span>
+            <span>Créé le 24 mai 2026</span>
+            <span>Audit : 78/100 ✅ VALIDÉ</span>
+            <span>0 issue <code>flutter analyze</code></span>
+        </div>
+        <div class="badges" style="margin-top: 1rem;">
+            <span class="badge badge-success">Livré</span>
+            <span class="badge badge-accent">Côté client</span>
+            <span class="badge badge-info">7 fichiers créés</span>
+            <span class="badge badge-info">3 fichiers modifiés</span>
+            <span class="badge badge-r14">R14 Vue carte — backend requis</span>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#description">Description</a></li>
+            <li><a href="#regles">Règles métier</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#api">API / Classes</a></li>
+            <li><a href="#carte">Vue Carte R14</a></li>
+            <li><a href="#qualite">Qualité</a></li>
+            <li><a href="#references">Références</a></li>
+            <li><a href="#changelog">Historique</a></li>
+        </ul>
+    </nav>
+
+    <main>
+
+        <!-- DESCRIPTION -->
+        <section id="description">
+            <h2>📋 Description</h2>
+            <p>
+                Cette feature couvre deux améliorations de l'écran <code>DemarcheurListingsScreen</code>
+                (flow "Nouvelle demande" — sélection d'un logement partenaire) :
+            </p>
+
+            <h3>A — Calendrier de disponibilités inline</h3>
+            <p>
+                Quand le démarcheur tape sur une card de logement, cette dernière se sélectionne (indicateur radio → coche)
+                et un mini-calendrier apparaît en dessous, montrant les jours réservés et libres du mois courant.
+                La navigation mois précédent/suivant est disponible, avec un plancher au mois en cours.
+                Réutilise <code>MiniCalendarGrid</code> sans duplication.
+            </p>
+
+            <h3>B — Système de filtres</h3>
+            <p>
+                Un bouton "Filtrer" dans l'AppBar ouvre l'écran <code>ListingFilterScreen</code> avec 3 sections
+                dynamiques : Pièces (chips multi-select), Partenaire (bottom-sheet picker), Zone (bottom-sheet picker).
+                Les filtres se combinent en logique AND et un badge numérique sur le bouton indique le nombre de filtres actifs.
+            </p>
+
+            <h3>C — Infrastructure vue carte (R14 — backend requis)</h3>
+            <p>
+                Le widget <code>ListingMapView</code> (FlutterMap) est câblé et conditionné par le flag
+                <code>_showMap = false</code>. L'activation ne requiert qu'un changement de valeur côté mobile
+                une fois que le backend expose <code>lat</code>/<code>lon</code> dans le DTO.
+            </p>
+        </section>
+
+        <!-- RÈGLES MÉTIER -->
+        <section id="regles">
+            <h2>📐 Règles métier</h2>
+
+            <h3>Filtres</h3>
+            <div class="rule-block">
+                <div class="rule-id">R1</div>
+                <p>Bouton "Filtrer" dans l'AppBar → ouvre <code>ListingFilterScreen</code> (page complète, pas bottom-sheet).</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">R2</div>
+                <p>Filtres combinables en AND : seuls les logements vérifiant TOUS les filtres actifs s'affichent.</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">R3</div>
+                <p>Pièces : chips <code>AppartementTypeLocation</code> présents dans le dataset — sélection multiple (OR intra-section).</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">R4</div>
+                <p>Partenaire : liste des <code>proprietaire</code> uniques — sélection unique.</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">R5</div>
+                <p>Zone : liste des <code>communeNom</code> uniques — sélection unique.</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">R6</div>
+                <p>Badge numérique sur "Filtrer" si au moins 1 filtre actif (1 par section, max 3).</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">R7</div>
+                <p>Bouton "Réinitialiser" dans l'AppBar de <code>ListingFilterScreen</code> visible uniquement si <code>!_draft.isEmpty</code>.</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">R8</div>
+                <p>0 résultat après filtres → <code>EmptyState.inline</code> + CTA "Réinitialiser les filtres" (pas EmptyState.hero).</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">R9 — Sections dynamiques</div>
+                <p>Une section est masquée si le dataset ne contient aucune valeur distincte pour ce filtre.</p>
+            </div>
+
+            <h3>Calendrier inline</h3>
+            <div class="rule-block">
+                <div class="rule-id">RC1</div>
+                <p>Tap sur un logement → sélection radio + chargement du calendrier via <code>CalendarService().getDemarcheurCalendar(id)</code>.</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">RC2</div>
+                <p>Résultats mis en cache : <code>_calendarCache[id]</code> — un seul appel réseau par logement par session.</p>
+            </div>
+            <div class="rule-block">
+                <div class="rule-id">RC3</div>
+                <p>Borne min : mois courant — la navigation "mois précédent" est désactivée si on est déjà sur le mois courant.</p>
+            </div>
+
+            <h3>Vue carte (R14)</h3>
+            <div class="rule-block r14">
+                <div class="rule-id warn">R13</div>
+                <p>Vue carte masquée (<code>_showMap = false</code>) jusqu'à ce que le backend expose <code>lat</code>/<code>lon</code>.</p>
+            </div>
+            <div class="rule-block r14">
+                <div class="rule-id warn">R14</div>
+                <p>Le backend doit ajouter <code>lat</code> et <code>lon</code> obfusqués dans <code>AppartementForDemarcheurDto</code> — <code>GET /api/demarcheur/appartements</code>.</p>
+            </div>
+            <div class="rule-block r14">
+                <div class="rule-id warn">R15</div>
+                <p>Coordonnées obfusquées (comme <code>MapAppartement</code>), pas les coordonnées réelles.</p>
+            </div>
+        </section>
+
+        <!-- ARCHITECTURE -->
+        <section id="architecture">
+            <h2>🏗️ Architecture</h2>
+
+            <h3>Fichiers créés</h3>
+            <div class="card">
+                <div class="file-row">
+                    <div class="file-icon new">CRÉÉ</div>
+                    <div class="file-desc">
+                        <strong>listing_availability_calendar.dart</strong>
+                        <p>Widget lecture seule wrappant <code>MiniCalendarGrid</code>. Convertit <code>CalendarResponse.plages</code> en <code>bookedDays</code>/<code>pendingDays</code> pour le mois affiché. Shimmer si <code>isLoading</code>. Légende Réservé / Libre.</p>
+                    </div>
+                </div>
+                <div class="file-row">
+                    <div class="file-icon new">CRÉÉ</div>
+                    <div class="file-desc">
+                        <strong>listing_filters.dart</strong>
+                        <p>Value object immuable <code>ListingFilters</code>. <code>apply()</code> AND-logic, <code>activeCount</code> pour badge, <code>copyWith</code> avec sentinel pattern (<code>proprietaireId</code> et <code>communeNom</code> nullable → sentinel <code>Object()</code> pour distinguer "non fourni" de "null").</p>
+                    </div>
+                </div>
+                <div class="file-row">
+                    <div class="file-icon new">CRÉÉ</div>
+                    <div class="file-desc">
+                        <strong>listing_filter_screen.dart</strong>
+                        <p>Écran pleine page StatefulWidget. 3 sections dynamiques (masquées si dataset vide). Comptage live <code>_resultCount</code>. Retourne <code>ListingFilters</code> via <code>Navigator.pop</code>.</p>
+                    </div>
+                </div>
+                <div class="file-row">
+                    <div class="file-icon new">CRÉÉ</div>
+                    <div class="file-desc">
+                        <strong>listing_partenaire_picker.dart</strong>
+                        <p>Bottom-sheet picker pour <code>ParticipantMini</code>. Retourne <code>int?</code> (id propriétaire), <code>null</code> = "Tous les partenaires".</p>
+                    </div>
+                </div>
+                <div class="file-row">
+                    <div class="file-icon new">CRÉÉ</div>
+                    <div class="file-desc">
+                        <strong>listing_zone_picker.dart</strong>
+                        <p>Bottom-sheet picker pour <code>String communeNom</code>. Retourne <code>String?</code>, <code>null</code> = "Toutes les zones".</p>
+                    </div>
+                </div>
+                <div class="file-row">
+                    <div class="file-icon new">CRÉÉ</div>
+                    <div class="file-desc">
+                        <strong>listing_picker_tile.dart</strong>
+                        <p>Widget partagé (DRY) entre les deux pickers. <code>ListingPickerTile(label, selected, onTap)</code> — tile avec coche accent si sélectionné.</p>
+                    </div>
+                </div>
+                <div class="file-row">
+                    <div class="file-icon new">CRÉÉ</div>
+                    <div class="file-desc">
+                        <strong>listing_map_view.dart</strong>
+                        <span class="badge badge-r14" style="margin-left: 8px; font-size: 10px;">R14 — masqué</span>
+                        <p>Vue carte <code>FlutterMap</code> avec <code>MapPriceMarker</code> par logement. Filtre les appartements sans coords. Fallback Abidjan <code>LatLng(5.345, -4.024)</code>. Conditionné par <code>_showMap = false</code> dans le screen.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Fichiers modifiés</h3>
+            <div class="card">
+                <div class="file-row">
+                    <div class="file-icon modified">MODIFIÉ</div>
+                    <div class="file-desc">
+                        <strong>partner_listing_card.dart</strong>
+                        <p>Ajout de <code>isSelected: bool</code>, <code>calendarWidget: Widget?</code>, indicateur radio→coche (<code>_RadioIndicator</code>), bordure accent 1.5px quand sélectionné. <code>calendarWidget</code> affiché sous la card-row quand sélectionné.</p>
+                    </div>
+                </div>
+                <div class="file-row">
+                    <div class="file-icon modified">MODIFIÉ</div>
+                    <div class="file-desc">
+                        <strong>demarcheur_listings_screen.dart</strong>
+                        <p>Ajout état calendrier (<code>_selectedId</code>, <code>_calendarMonth</code>, <code>_calendarCache</code>, <code>_loadingIds</code>), état filtres (<code>_activeFilters</code>, <code>_openFilters()</code>), <code>_FilterButton</code> avec badge, flag carte (<code>_showMap = false</code>). Le body conditionne <code>_showMap ? ListingMapView : (filteredEmpty ? EmptyState : ListView)</code>.</p>
+                    </div>
+                </div>
+                <div class="file-row">
+                    <div class="file-icon modified">MODIFIÉ</div>
+                    <div class="file-desc">
+                        <strong>lib/model/residence/appart.dart</strong>
+                        <p>Ajout <code>double? lat</code> et <code>double? lon</code> (nullable, rétro-compatible). Présents dans constructeur, <code>fromJson</code> (<code>(json['lat'] as num?)?.toDouble()</code>), <code>copyWith</code>, <code>toJson</code>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Flux de données — Filtres</h3>
+            <div class="card">
+                <div class="flow-step">
+                    <div class="flow-num">1</div>
+                    <div class="flow-content">
+                        <strong>DemarcheurBloc → DemarcheurDataLoaded</strong>
+                        <p>Les appartements sont déjà en mémoire (chargés au <code>initState</code>).</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">2</div>
+                    <div class="flow-content">
+                        <strong>Tap "Filtrer" → _openFilters()</strong>
+                        <p>Lit le BLoC à l'instant du tap pour extraire <code>allApparts</code>. <code>pushScreen&lt;ListingFilters&gt;</code> vers <code>ListingFilterScreen</code>.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">3</div>
+                    <div class="flow-content">
+                        <strong>ListingFilterScreen → retour ListingFilters</strong>
+                        <p>L'utilisateur ajuste les filtres, tape "Appliquer" → <code>Navigator.pop(_draft)</code>.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">4</div>
+                    <div class="flow-content">
+                        <strong>setState → _activeFilters = result</strong>
+                        <p><code>_activeFilters.apply(allApparts)</code> produit la liste filtrée. Badge mis à jour via <code>_activeFilters.activeCount</code>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Flux de données — Calendrier inline</h3>
+            <div class="card">
+                <div class="flow-step">
+                    <div class="flow-num">1</div>
+                    <div class="flow-content">
+                        <strong>Tap sur PartnerListingCard → _selectListing(appart)</strong>
+                        <p>Guard <code>if (id == null) return</code>. setState <code>_selectedId = id</code>.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">2</div>
+                    <div class="flow-content">
+                        <strong>Cache miss → CalendarService().getDemarcheurCalendar(id)</strong>
+                        <p>Appel réseau uniquement si <code>!_calendarCache.containsKey(id)</code>. Ajoute <code>id</code> à <code>_loadingIds</code> pendant le chargement.</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="flow-num">3</div>
+                    <div class="flow-content">
+                        <strong>Résultat → _calendarCache[id] = response</strong>
+                        <p>setState retire l'id de <code>_loadingIds</code>. La card sélectionnée reçoit <code>calendarWidget: ListingAvailabilityCalendar(data: _calendarCache[id])</code>.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- API / CLASSES -->
+        <section id="api">
+            <h2>📡 API / Classes</h2>
+
+            <h3>ListingFilters</h3>
+            <pre><code>class ListingFilters {
+  final Set&lt;AppartementTypeLocation&gt; typeLocations;
+  final int? proprietaireId;        // null = tous
+  final String? communeNom;         // null = toutes zones
+
+  bool get isEmpty;                 // true si aucun filtre actif
+  int get activeCount;              // 0..3 — pour le badge
+
+  List&lt;Appartement&gt; apply(List&lt;Appartement&gt; source);
+  // AND entre sections, OR intra-Pièces
+
+  ListingFilters copyWith({
+    Set&lt;AppartementTypeLocation&gt;? typeLocations,
+    Object? proprietaireId,         // sentinel: _sentinel = omit, null = effacer
+    Object? communeNom,             // idem
+  });
+}</code></pre>
+
+            <h3>ListingAvailabilityCalendar</h3>
+            <pre><code>class ListingAvailabilityCalendar extends StatelessWidget {
+  final DateTime currentMonth;
+  final CalendarResponse? data;     // null → shimmer ou état vide
+  final bool isLoading;
+  final VoidCallback? onPrev;
+  final VoidCallback? onNext;
+  // Lecture seule — pas de onDayTap
+}</code></pre>
+
+            <h3>ListingFilterScreen</h3>
+            <pre><code>class ListingFilterScreen extends StatefulWidget {
+  final List&lt;Appartement&gt; allApparts;  // dataset complet pour extraire les options
+  final ListingFilters current;          // état initial du draft
+
+  // Retourne ListingFilters via Navigator.pop ou null si annulé
+}</code></pre>
+
+            <h3>ListingPartenairePicker / ListingZonePicker</h3>
+            <pre><code>// Partenaire
+static Future&lt;int?&gt; ListingPartenairePicker.show(
+  BuildContext context, {
+  required List&lt;ParticipantMini&gt; partenaires,
+  required int? selectedId,
+});
+// Retourne null → "Tous les partenaires"
+
+// Zone
+static Future&lt;String?&gt; ListingZonePicker.show(
+  BuildContext context, {
+  required List&lt;String&gt; zones,
+  required String? selected,
+});
+// Retourne null → "Toutes les zones"</code></pre>
+
+            <h3>ListingMapView</h3>
+            <pre><code>class ListingMapView extends StatefulWidget {
+  final List&lt;Appartement&gt; appartements;
+  final int? selectedId;
+  final void Function(Appartement) onTap;
+  // Filtre automatiquement les appartements sans lat/lon
+  // Fallback Abidjan si aucun point mappable
+}</code></pre>
+
+            <h3>PartnerListingCard — nouveaux paramètres</h3>
+            <pre><code>PartnerListingCard(
+  appartement: Appartement,
+  estimatedCommission: double,
+  isSelected: bool,           // NOUVEAU — bordure accent + coche
+  calendarWidget: Widget?,    // NOUVEAU — affiché sous la card si sélectionné
+  onTap: VoidCallback,
+)</code></pre>
+
+            <h3>Appartement — nouveaux champs</h3>
+            <pre><code>double? lat;  // latitude obfusquée — null jusqu'à R14
+double? lon;  // longitude obfusquée — null jusqu'à R14</code></pre>
+        </section>
+
+        <!-- VUE CARTE R14 -->
+        <section id="carte">
+            <h2>🗺️ Vue Carte — Activation R14</h2>
+
+            <div class="card" style="border-color: rgba(244,183,64,0.3); background: rgba(244,183,64,0.04);">
+                <p style="color: var(--warn); font-weight: 600; margin-bottom: 0.75rem;">⚠️ Vue masquée — backend requis</p>
+                <p>Le widget <code>ListingMapView</code> est implémenté et câblé. Il reste inactif via le flag <code>_showMap = false</code> dans <code>DemarcheurListingsScreen</code>.</p>
+            </div>
+
+            <h3>Ce que le backend doit livrer</h3>
+            <table>
+                <thead>
+                    <tr><th>Champ</th><th>Type</th><th>Endpoint</th><th>Note</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>lat</code></td><td><code>Double</code></td><td><code>GET /api/demarcheur/appartements</code></td><td>Obfusqué ±0.005°</td></tr>
+                    <tr><td><code>lon</code></td><td><code>Double</code></td><td><code>GET /api/demarcheur/appartements</code></td><td>Obfusqué ±0.005°</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Activation côté mobile (1 changement)</h3>
+            <pre><code>// demarcheur_listings_screen.dart — ligne 44
+// Avant :
+final bool _showMap = false;
+// Après (une fois lat/lon dispo) :
+bool _showMap = false;
+// + décommenter le toggle AppBar pour basculer liste ↔ carte</code></pre>
+
+            <h3>Pattern d'obfuscation recommandé (backend)</h3>
+            <p>Même approche que <code>MapAppartement</code> pour les logements du module locataire : appliquer un offset pseudo-aléatoire déterministe par appart_id (±0.003° à ±0.007°) pour préserver la cohérence carte-à-carte tout en masquant l'adresse exacte.</p>
+        </section>
+
+        <!-- QUALITÉ -->
+        <section id="qualite">
+            <h2>✅ Qualité</h2>
+
+            <h3>Audit — Score 78/100</h3>
+            <table>
+                <thead>
+                    <tr><th>Dimension</th><th>Score</th><th>Statut</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Complexité cyclomatique</td><td>18/20</td><td><span class="badge badge-success">✅</span></td></tr>
+                    <tr><td>Lisibilité</td><td>17/20</td><td><span class="badge badge-success">✅</span></td></tr>
+                    <tr><td>DRY</td><td>13/20</td><td><span class="badge badge-warn">⚠️ corrigé post-audit</span></td></tr>
+                    <tr><td>Documentation</td><td>17/20</td><td><span class="badge badge-success">✅</span></td></tr>
+                    <tr><td>SOLID</td><td>7/10</td><td><span class="badge badge-success">✅</span></td></tr>
+                    <tr><td>Dette technique</td><td>6/10</td><td><span class="badge badge-warn">⚠️ corrigé post-audit</span></td></tr>
+                    <tr><td><strong>Global</strong></td><td><strong>78/100</strong></td><td><span class="badge badge-success">VALIDÉ</span></td></tr>
+                </tbody>
+            </table>
+
+            <h3>Corrections appliquées post-audit</h3>
+            <ul>
+                <li><strong>DRY critique</strong> — <code>_PickerTile</code> et <code>_ZoneTile</code> fusionnés en <code>ListingPickerTile</code> (fichier dédié <code>listing_picker_tile.dart</code>).</li>
+                <li><strong>Toggle carte câblé</strong> — <code>ListingMapView</code> importé et conditionné par <code>_showMap</code> dans le screen. Activer la carte = changer 1 valeur.</li>
+            </ul>
+
+            <h3>flutter analyze</h3>
+            <p>
+                <strong>0 issue</strong> sur le dossier <code>lib/screen/client/demarcheur/listings/</code> après corrections post-audit.
+            </p>
+
+            <h3>Critères d'acceptation — 10/10</h3>
+            <table>
+                <thead>
+                    <tr><th>Critère</th><th>Statut</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Bouton "Filtrer" avec badge dynamique</td><td><span class="badge badge-success">PASS</span></td></tr>
+                    <tr><td>Écran filtre — section Pièces (chips multi-select)</td><td><span class="badge badge-success">PASS</span></td></tr>
+                    <tr><td>Écran filtre — section Partenaire (picker)</td><td><span class="badge badge-success">PASS</span></td></tr>
+                    <tr><td>Écran filtre — section Zone (picker)</td><td><span class="badge badge-success">PASS</span></td></tr>
+                    <tr><td>Sections masquées si dataset vide</td><td><span class="badge badge-success">PASS</span></td></tr>
+                    <tr><td>Filtres combinables AND</td><td><span class="badge badge-success">PASS</span></td></tr>
+                    <tr><td>Réinitialisation complète</td><td><span class="badge badge-success">PASS</span></td></tr>
+                    <tr><td>Infrastructure carte câblée (<code>_showMap = false</code>)</td><td><span class="badge badge-success">PASS</span></td></tr>
+                    <tr><td>lat/lon ajoutés sur Appartement (nullable)</td><td><span class="badge badge-success">PASS</span></td></tr>
+                    <tr><td>EmptyState.inline si 0 résultat filtré</td><td><span class="badge badge-success">PASS</span></td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- RÉFÉRENCES -->
+        <section id="references">
+            <h2>📚 Références</h2>
+            <ul>
+                <li><a href="../specs/demarcheur-listing-filters/business-spec.md" style="color: var(--accent);">Spec métier (BA)</a></li>
+                <li><a href="../specs/demarcheur-listing-filters/architecture.md" style="color: var(--accent);">Architecture technique</a></li>
+                <li><a href="../specs/demarcheur-listing-filters/ui-proposal.md" style="color: var(--accent);">Proposition UI/UX (option B — page filtre + pickers)</a></li>
+                <li><a href="../specs/demarcheur-listing-filters/audit-report.md" style="color: var(--accent);">Rapport d'audit (78/100)</a></li>
+                <li><a href="demarcheur-listing-availability-calendar.html" style="color: var(--accent);">Feature connexe — Calendrier disponibilités démarcheur</a></li>
+                <li><a href="vague-6-demarcheur.html" style="color: var(--accent);">Vague 6 — Module Démarcheur (contexte)</a></li>
+            </ul>
+        </section>
+
+        <!-- CHANGELOG -->
+        <section id="changelog">
+            <h2>📜 Historique</h2>
+            <table>
+                <thead>
+                    <tr><th>Version</th><th>Date</th><th>Changements</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1.0</td>
+                        <td>2026-05-24</td>
+                        <td>Livraison initiale — 7 fichiers créés, 3 modifiés. Système de filtres AND (Pièces × Partenaire × Zone), calendrier inline, infrastructure carte R14. Score audit 78/100. Post-audit : DRY fix <code>ListingPickerTile</code> + câblage <code>_showMap</code>. 0 issue flutter analyze.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Asfar — Filtres &amp; Calendrier Listings Démarcheur · Module Démarcheur</p>
+        <p style="margin-top: 4px;">Documentation générée le 24 mai 2026</p>
+    </footer>
+
+</div>
+</body>
+</html>

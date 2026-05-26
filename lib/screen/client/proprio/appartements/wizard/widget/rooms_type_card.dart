@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/enumeration/appartement_type_location.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 
-/// Card sélectionnable pour le choix du nombre de pièces — étape 1 wizard
-/// V9.1. Reproduit `proprietaire-extras.jsx::step 1` cards (lignes 72-87).
+/// Card sélectionnable pour le choix du type de logement — étape 1 wizard.
+///
+/// Lit directement `label` et `description` depuis [AppartementTypeLocation]
+/// pour garantir la cohérence avec le picker d'édition.
 class RoomsTypeCard extends StatelessWidget {
-  final String label;
-  final String subtitle;
+  final AppartementTypeLocation type;
   final bool active;
   final VoidCallback onTap;
 
   const RoomsTypeCard({
     super.key,
-    required this.label,
-    required this.subtitle,
+    required this.type,
     required this.active,
     required this.onTap,
   });
@@ -41,7 +42,7 @@ class RoomsTypeCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                label,
+                type.label,
                 style: AppTextStyles.mono(TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -51,7 +52,7 @@ class RoomsTypeCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                subtitle,
+                type.description,
                 style: AppTextStyles.small.copyWith(
                   fontSize: 11,
                   height: 1.4,

@@ -26,45 +26,57 @@ class Commodite {
     return Commodite.fromJson(json);
   }
 
-  /// Retourne l'icône correspondant à la commodité
-  /// Basé sur le mapping avec AmenitiesGrid.amenities
+  /// Retourne l'icône correspondant à la commodité.
   ///
-  /// PRINCIPE SOLID - Single Responsibility (S) :
-  /// Cette méthode a la responsabilité de mapper les valeurs backend vers les icônes Flutter
+  /// Le mapping `value → IconData` reste côté Flutter (les icônes ne viennent
+  /// pas du backend). Aligné sur le référentiel `GET /auth/commodites` qui
+  /// expose 16 chips wizard + variantes legacy.
   IconData getIcon() {
-    // Mapping des valeurs de commodités vers les icônes Material
     switch (value?.toLowerCase()) {
-      case 'pool':
-        return Icons.pool;
-      case 'carpark':
-      case 'parking':
-        return Icons.local_parking;
-      case 'gym':
-      case 'fitness':
-        return Icons.fitness_center;
-      case 'kitchen':
-      case 'cuisine':
-        return Icons.kitchen;
-      case 'water_flow':
-      case 'water':
-        return Icons.water_drop;
       case 'wifi':
+      case 'wifi_fibre':
         return Icons.wifi;
       case 'ac':
       case 'climatisation':
       case 'climatiseur':
         return Icons.ac_unit;
-      case 'balcony':
-      case 'balcon':
-        return Icons.balcony;
+      case 'hot_water':
+      case 'water_flow':
+      case 'water':
+        return Icons.water_drop;
+      case 'kitchen_eq':
+      case 'kitchen':
+      case 'cuisine':
+        return Icons.kitchen_outlined;
       case 'washing_machine':
       case 'machine_a_laver':
         return Icons.local_laundry_service;
+      case 'fridge':
+        return Icons.kitchen;
+      case 'tv':
+        return Icons.tv;
+      case 'carpark':
+      case 'parking':
+        return Icons.local_parking;
+      case 'security':
+        return Icons.security;
+      case 'pool':
+        return Icons.pool;
+      case 'gym':
+      case 'fitness':
+        return Icons.fitness_center;
+      case 'elevator':
+        return Icons.elevator;
+      case 'sea_view':
+      case 'lagoon_view':
+        return Icons.waves;
+      case 'balcony':
+      case 'balcon':
+        return Icons.balcony;
       case 'heater':
       case 'chauffe_eau':
         return Icons.water_damage;
       default:
-        // Icône par défaut pour les commodités non reconnues
         return Icons.check_circle_outline;
     }
   }

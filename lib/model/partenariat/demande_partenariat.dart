@@ -1,11 +1,17 @@
 import 'package:asfar/model/partenariat/statut_partenariat.dart';
+import 'package:asfar/model/user/participant_mini.dart';
 
+/// Demande de partenariat entre un démarcheur et un propriétaire.
+///
+/// Modèle aligné sur le DTO backend uniforme depuis 2026-05-17 — les 2 sous-
+/// objets (`demarcheur`, `proprietaire`) sont garantis typés `ParticipantMini`
+/// sur tous les endpoints.
 class DemandePartenariat {
   final int id;
   final DateTime createdAt;
   final DateTime? updatedAt;
-  final Map<String, dynamic> demarcheur;
-  final Map<String, dynamic> proprietaire;
+  final ParticipantMini demarcheur;
+  final ParticipantMini proprietaire;
   final StatutPartenariat statut;
   final DateTime? repondueAt;
 
@@ -26,8 +32,12 @@ class DemandePartenariat {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)
           : null,
-      demarcheur: json['demarcheur'] as Map<String, dynamic>? ?? {},
-      proprietaire: json['proprietaire'] as Map<String, dynamic>? ?? {},
+      demarcheur: ParticipantMini.fromJson(
+        Map<String, dynamic>.from(json['demarcheur'] as Map),
+      ),
+      proprietaire: ParticipantMini.fromJson(
+        Map<String, dynamic>.from(json['proprietaire'] as Map),
+      ),
       statut: StatutPartenariat.fromString(json['statut'] as String? ?? ''),
       repondueAt: json['repondueAt'] != null
           ? DateTime.parse(json['repondueAt'] as String)
@@ -35,31 +45,16 @@ class DemandePartenariat {
     );
   }
 
-  String get nomDemarcheur {
-    final prenom = demarcheur['prenom'] as String? ?? '';
-    final nom = demarcheur['nom'] as String? ?? '';
-    return '$prenom $nom'.trim().isNotEmpty ? '$prenom $nom'.trim() : 'Démarcheur';
-  }
+  String get nomDemarcheur =>
+      demarcheur.fullName == 'Utilisateur' ? 'Démarcheur' : demarcheur.fullName;
+  String get telephoneDemarcheur => demarcheur.telephone;
+  String get initDemarcheur =>
+      demarcheur.prenom.isNotEmpty ? demarcheur.initiale : 'D';
 
-  String get telephoneDemarcheur =>
-      demarcheur['telephone'] as String? ?? '';
-
-  String get initDemarcheur {
-    final prenom = demarcheur['prenom'] as String? ?? '';
-    return prenom.isNotEmpty ? prenom[0].toUpperCase() : 'D';
-  }
-
-  String get nomProprietaire {
-    final prenom = proprietaire['prenom'] as String? ?? '';
-    final nom = proprietaire['nom'] as String? ?? '';
-    return '$prenom $nom'.trim().isNotEmpty ? '$prenom $nom'.trim() : 'Propriétaire';
-  }
-
-  String get telephoneProprietaire =>
-      proprietaire['telephone'] as String? ?? '';
-
-  String get initProprietaire {
-    final prenom = proprietaire['prenom'] as String? ?? '';
-    return prenom.isNotEmpty ? prenom[0].toUpperCase() : 'P';
-  }
+  String get nomProprietaire => proprietaire.fullName == 'Utilisateur'
+      ? 'Propriétaire'
+      : proprietaire.fullName;
+  String get telephoneProprietaire => proprietaire.telephone;
+  String get initProprietaire =>
+      proprietaire.prenom.isNotEmpty ? proprietaire.initiale : 'P';
 }

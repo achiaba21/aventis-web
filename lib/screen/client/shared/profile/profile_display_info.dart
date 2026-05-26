@@ -65,17 +65,19 @@ class ProfileDisplayInfo {
             label: "Vérification d'identité",
             value: 'Vérifié',
             onTap: cb.onComingSoon),
-        ProfileSettingsItem(
-            icon: Icons.account_balance_wallet_outlined,
-            label: 'Méthodes de paiement',
-            value: '3 actives',
-            onTap: cb.onComingSoon),
+        if (false)
+          ProfileSettingsItem(
+              icon: Icons.account_balance_wallet_outlined,
+              label: 'Méthodes de paiement',
+              value: '3 actives',
+              onTap: cb.onComingSoon),
         ProfileSettingsItem(
             icon: Icons.notifications_outlined,
             label: 'Notifications',
             onTap: cb.onNotifications),
-        ProfileSettingsItem(
-            icon: Icons.tune, label: 'Préférences', onTap: cb.onComingSoon),
+        if (false)
+          ProfileSettingsItem(
+              icon: Icons.tune, label: 'Préférences', onTap: cb.onComingSoon),
       ];
 
   static List<ProfileSettingsItem> _demarcheurSettings(
@@ -94,17 +96,19 @@ class ProfileDisplayInfo {
             label: "Vérification d'identité",
             value: 'Vérifié',
             onTap: cb.onComingSoon),
-        ProfileSettingsItem(
-            icon: Icons.account_balance_outlined,
-            label: 'Méthode de retrait',
-            value: 'Orange Money',
-            onTap: cb.onComingSoon),
+        if (false)
+          ProfileSettingsItem(
+              icon: Icons.account_balance_outlined,
+              label: 'Méthode de retrait',
+              value: 'Orange Money',
+              onTap: cb.onComingSoon),
         ProfileSettingsItem(
             icon: Icons.notifications_outlined,
             label: 'Notifications',
             onTap: cb.onNotifications),
-        ProfileSettingsItem(
-            icon: Icons.tune, label: 'Préférences', onTap: cb.onComingSoon),
+        if (false)
+          ProfileSettingsItem(
+              icon: Icons.tune, label: 'Préférences', onTap: cb.onComingSoon),
       ];
 
   static List<ProfileSettingsItem> _proprietaireSettings(
@@ -123,16 +127,18 @@ class ProfileDisplayInfo {
             label: "Vérification d'identité",
             value: 'Vérifié',
             onTap: cb.onComingSoon),
-        ProfileSettingsItem(
-            icon: Icons.account_balance_wallet_outlined,
-            label: 'Méthodes de paiement',
-            value: '3 actives',
-            onTap: cb.onComingSoon),
+        if (false)
+          ProfileSettingsItem(
+              icon: Icons.account_balance_wallet_outlined,
+              label: 'Méthodes de paiement',
+              value: '3 actives',
+              onTap: cb.onComingSoon),
         ProfileSettingsItem(
             icon: Icons.notifications_outlined,
             label: 'Notifications',
             onTap: cb.onNotifications),
-        ProfileSettingsItem(
-            icon: Icons.tune, label: 'Préférences', onTap: cb.onComingSoon),
+        if (false)
+          ProfileSettingsItem(
+              icon: Icons.tune, label: 'Préférences', onTap: cb.onComingSoon),
       ];
 }

@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/screen/client/demarcheur/home/dashboard_screen.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/referrals_screen.dart';
-import 'package:asfar/screen/client/demarcheur/wallet/wallet_screen.dart';
 import 'package:asfar/screen/client/shared/inbox/messaging_list_screen.dart';
 import 'package:asfar/screen/client/shared/profile/client_profile_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/widget/bottom_nav/bottom_nav.dart';
 import 'package:asfar/widget/bottom_nav/bottom_nav_tabs.dart';
 
-/// Shell du rôle Démarcheur — BottomNav 5 onglets + IndexedStack.
+/// Shell du rôle Démarcheur — BottomNav + IndexedStack.
 ///
-/// Onglets : Accueil / Demandes / Gains / Messages / Profil.
-/// Aligné sur `BottomNavTabs.demarcheur` (Vague 2) et le proto
-/// `app.jsx::tabsByRole.demarcheur`.
+/// Onglets : Accueil / Demandes / Messages / Profil. Le démarcheur touche
+/// sa commission dès l'acceptation de la demande par le propriétaire — il
+/// n'y a pas d'écran wallet ni de mécanisme de retrait dans l'app.
 class DemarcheurShell extends StatefulWidget {
   const DemarcheurShell({super.key, this.firstName});
 
@@ -25,13 +24,16 @@ class DemarcheurShell extends StatefulWidget {
 class _DemarcheurShellState extends State<DemarcheurShell> {
   int _index = 0;
 
+  void _switchTo(int i) => setState(() => _index = i);
+
   @override
   Widget build(BuildContext context) {
-    final firstName = widget.firstName ?? 'Diallo';
     final pages = <Widget>[
-      DemarcheurDashboard(firstName: firstName),
+      DemarcheurDashboard(
+        firstName: widget.firstName,
+        onSwitchTab: _switchTo,
+      ),
       const DemarcheurReferralsScreen(),
-      const DemarcheurWalletScreen(),
       const MessagingListScreen(),
       const ClientProfileScreen(),
     ];
@@ -48,4 +50,3 @@ class _DemarcheurShellState extends State<DemarcheurShell> {
     );
   }
 }
-

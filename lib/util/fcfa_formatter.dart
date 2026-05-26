@@ -56,6 +56,10 @@ class FcfaFormatter {
   /// Groupe les milliers avec un espace insécable (U+00A0).
   ///
   /// Ex. : 1900000 → "1 900 000".
+  /// Helper public : groupe les milliers avec un espace insécable.
+  /// Exposé pour les widgets d'input qui formatent la saisie live.
+  static String groupThousands(int value) => _groupThousands(value);
+
   static String _groupThousands(int value) {
     final s = value.toString();
     final buffer = StringBuffer();

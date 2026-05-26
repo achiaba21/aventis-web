@@ -49,11 +49,7 @@ class LocataireDetailScreen extends StatelessWidget {
     pushScreen(context, LocataireReserveScreen(appartement: appartement));
   }
 
-  String get _typeLabel {
-    final t = appartement.typeLocation;
-    if (t == null || t.isEmpty) return 'Logement';
-    return t[0].toUpperCase() + t.substring(1).toLowerCase();
-  }
+  String get _typeLabel => appartement.typeLocation?.label ?? 'Logement';
 
   String get _descriptionText {
     final d = appartement.description;

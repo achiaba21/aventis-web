@@ -1,32 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/screen/client/proprio/appartements/wizard/widget/asfar_toggle.dart';
+import 'package:asfar/model/remise/condition.dart';
 import 'package:asfar/screen/client/proprio/appartements/wizard/widget/pricing_commission_preview.dart';
+import 'package:asfar/screen/client/proprio/appartements/wizard/widget/wizard_remises_card.dart';
+import 'package:asfar/screen/client/proprio/appartements/wizard/widget/wizard_rules_card.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/widget/input/number_input_field.dart';
 
-/// Étape 5 du wizard — prix & conditions. Reproduit
-/// `proprietaire-extras.jsx::step 5` (lignes 219-269).
+/// Étape 5 du wizard — prix & conditions.
+///
+/// 3 sections :
+/// - Prix par nuit + preview commission (taux backend dynamique)
+/// - Remises long séjour (paliers, optionnels)
+/// - Règles de la maison (référentiel backend `GET /auth/rules`)
 class StepPricing extends StatelessWidget {
   final int? price;
-  final Map<String, bool> rules;
+
+  /// Sélection des règles par `ruleId → allowed`.
+  final Map<int, bool> rulesByRuleId;
+  final List<Condition> remises;
   final ValueChanged<int?> onPriceChange;
-  final void Function(String key, bool value) onRuleToggle;
+  final void Function(int ruleId, bool allowed) onRuleToggle;
+  final void Function(Condition added) onRemiseAdd;
+  final void Function(Condition oldValue, Condition newValue) onRemiseUpdate;
+  final void Function(Condition removed) onRemiseDelete;
 
   const StepPricing({
     super.key,
     required this.price,
-    required this.rules,
+    required this.rulesByRuleId,
+    required this.remises,
     required this.onPriceChange,
     required this.onRuleToggle,
+    required this.onRemiseAdd,
+    required this.onRemiseUpdate,
+    required this.onRemiseDelete,
   });
-
-  static const _rulesOrder = ['demarcheurs', 'caution', 'animaux'];
-  static const _rulesLabels = {
-    'demarcheurs': 'Accepter les démarcheurs (commission 10% sur séjour)',
-    'caution': 'Caution remboursable',
-    'animaux': 'Animaux acceptés',
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -36,16 +46,21 @@ class StepPricing extends StatelessWidget {
         Text('Prix & conditions', style: AppTextStyles.h2),
         const SizedBox(height: 6),
         Text(
-          'Asfar prélève 8% par réservation. Vous gardez le reste.',
+          'Le taux Asfar est affiché en preview. Vous gardez le reste.',
           style: AppTextStyles.body,
         ),
         const SizedBox(height: 18),
         _PriceCard(price: price, onPriceChange: onPriceChange),
         const SizedBox(height: 14),
-        _RulesCard(
-          rules: rules,
-          rulesOrder: _rulesOrder,
-          rulesLabels: _rulesLabels,
+        WizardRemisesCard(
+          conditions: remises,
+          onAdd: onRemiseAdd,
+          onUpdate: onRemiseUpdate,
+          onDelete: onRemiseDelete,
+        ),
+        const SizedBox(height: 14),
+        WizardRulesCard(
+          rulesByRuleId: rulesByRuleId,
           onToggle: onRuleToggle,
         ),
       ],
@@ -78,12 +93,6 @@ class _PriceCardState extends State<_PriceCard> {
     super.dispose();
   }
 
-  void _onChanged(String v) {
-    final cleaned = v.replaceAll(RegExp(r'\D'), '');
-    final int? parsed = cleaned.isEmpty ? null : int.tryParse(cleaned);
-    widget.onPriceChange(parsed);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -97,142 +106,23 @@ class _PriceCardState extends State<_PriceCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('PRIX PAR NUIT', style: AppTextStyles.eyebrow),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _ctrl,
-                  keyboardType: TextInputType.number,
-                  onChanged: _onChanged,
-                  style: AppTextStyles.mono(const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.text,
-                  )),
-                  decoration: InputDecoration(
-                    hintText: '45 000',
-                    hintStyle: AppTextStyles.mono(const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text3,
-                    )),
-                    filled: true,
-                    fillColor: AppColors.bgElev2,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadii.sm),
-                      borderSide:
-                          const BorderSide(color: AppColors.line, width: 1),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadii.sm),
-                      borderSide:
-                          const BorderSide(color: AppColors.line, width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadii.sm),
-                      borderSide:
-                          const BorderSide(color: AppColors.accent, width: 1.5),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'FCFA / nuit',
-                style: TextStyle(fontSize: 14, color: AppColors.text3),
-              ),
-            ],
+          NumberInputField(
+            controller: _ctrl,
+            eyebrow: 'PRIX PAR NUIT',
+            hintText: '45 000',
+            formatThousands: true,
+            suffix: 'FCFA / nuit',
+            textStyle: AppTextStyles.mono(const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: AppColors.text,
+            )),
+            onChanged: widget.onPriceChange,
           ),
           if (widget.price != null && widget.price! > 0) ...[
             const SizedBox(height: 14),
             PricingCommissionPreview(pricePerNight: widget.price!),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _RulesCard extends StatelessWidget {
-  final Map<String, bool> rules;
-  final List<String> rulesOrder;
-  final Map<String, String> rulesLabels;
-  final void Function(String key, bool value) onToggle;
-
-  const _RulesCard({
-    required this.rules,
-    required this.rulesOrder,
-    required this.rulesLabels,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.bgElev1,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        border: Border.all(color: AppColors.line, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('RÈGLES', style: AppTextStyles.eyebrow),
-          const SizedBox(height: 12),
-          for (int i = 0; i < rulesOrder.length; i++) ...[
-            if (i > 0)
-              const Divider(height: 1, color: AppColors.line, thickness: 1),
-            _RuleRow(
-              label: rulesLabels[rulesOrder[i]]!,
-              value: rules[rulesOrder[i]] ?? false,
-              onChanged: (v) => onToggle(rulesOrder[i], v),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _RuleRow extends StatelessWidget {
-  final String label;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _RuleRow({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.text,
-                height: 1.4,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          AsfarToggle(value: value, onChanged: onChanged),
         ],
       ),
     );

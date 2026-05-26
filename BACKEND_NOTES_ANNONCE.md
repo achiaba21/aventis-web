@@ -1,8 +1,109 @@
 # 📄 Notes Backend — Système Annonces (Appartements)
 
-> **Date :** 2026-05-12
-> **Feature liée :** `annonces-refacto`
+> **Date :** 2026-05-12 (refonte `typeLocation` ajoutée le 2026-05-14)
+> **Feature liée :** `annonces-refacto` + `typeLocation-enum-refacto`
 > **Statut V1 Flutter :** ✅ livré sans dépendance backend bloquante
+
+---
+
+## 0. Type de logement (`typeLocation`) — enum strict — 🚨 COORDINATION REQUISE
+
+### Contexte
+
+Côté Flutter, `Appartement.typeLocation` était une string libre utilisée avec deux sémantiques contradictoires :
+- À la création (wizard step 1) : `"Studio" / "2 pièces" / "3 pièces" / "4 pièces" / "5+ pièces"`
+- À l'édition : hint suggérant `"Appartement entier / Studio / Chambre privée"` en saisie libre
+
+Refacto livrée le 2026-05-14 : le champ devient un **enum strict 5 valeurs** côté Flutter, et `nbChambres` est désormais **dérivé du type** (sauf pour `CINQ_PLUS` où le proprio le saisit).
+
+### Format JSON attendu
+
+```json
+{
+  "id": 12,
+  "titre": "Loft Plateau",
+  "typeLocation": "TROIS_PIECES",   // ← enum strict (5 valeurs possibles)
+  "nbChambres": 2
+}
+```
+
+Valeurs autorisées pour `typeLocation` :
+| Valeur | nbChambres dérivé |
+|--------|-------------------|
+| `STUDIO` | 1 (forcé) |
+| `DEUX_PIECES` | 1 (forcé) |
+| `TROIS_PIECES` | 2 (forcé) |
+| `QUATRE_PIECES` | 3 (forcé) |
+| `CINQ_PLUS` | ≥ 4 (saisie libre, min 4) |
+
+### Règle backend à implémenter
+
+Lors du `POST` ou `PUT` d'un Appartement, le backend doit :
+1. Refuser un payload où `typeLocation` n'est pas dans `{STUDIO, DEUX_PIECES, TROIS_PIECES, QUATRE_PIECES, CINQ_PLUS}` (HTTP 400).
+2. **Forcer** `nbChambres` à la valeur dérivée pour `STUDIO`/`DEUX_PIECES` (= 1), `TROIS_PIECES` (= 2), `QUATRE_PIECES` (= 3).
+3. Pour `CINQ_PLUS`, refuser si `nbChambres < 4` (HTTP 400).
+
+### Migration des annonces existantes (one-shot SQL)
+
+Pour chaque ligne en base avec un `typeLocation` legacy en string libre :
+
+**Étape 1 — Matching direct par string (insensible casse) :**
+```sql
+-- "Studio" → STUDIO + nbChambres = 1
+UPDATE appartement
+SET type_location = 'STUDIO', nb_chambres = 1
+WHERE LOWER(type_location) LIKE '%studio%';
+
+-- "2 pièces", "2p" → DEUX_PIECES + nbChambres = 1
+UPDATE appartement
+SET type_location = 'DEUX_PIECES', nb_chambres = 1
+WHERE LOWER(type_location) ~ '^(2 ?pi.ces|2p)';
+
+-- "3 pièces", "3p" → TROIS_PIECES + nbChambres = 2
+UPDATE appartement
+SET type_location = 'TROIS_PIECES', nb_chambres = 2
+WHERE LOWER(type_location) ~ '^(3 ?pi.ces|3p)';
+
+-- "4 pièces", "4p" → QUATRE_PIECES + nbChambres = 3
+UPDATE appartement
+SET type_location = 'QUATRE_PIECES', nb_chambres = 3
+WHERE LOWER(type_location) ~ '^(4 ?pi.ces|4p)';
+
+-- "5+ pièces", "5+" → CINQ_PLUS + nbChambres conservé si ≥ 4, sinon 4
+UPDATE appartement
+SET type_location = 'CINQ_PLUS', nb_chambres = GREATEST(COALESCE(nb_chambres, 0), 4)
+WHERE LOWER(type_location) ~ '^(5\+|5 ?pi.ces)';
+```
+
+**Étape 2 — Pour les autres valeurs legacy (`"Appartement entier"`, `"Chambre privée"`, custom, NULL, vide), dérivation depuis `nbChambres` :**
+```sql
+UPDATE appartement
+SET type_location = CASE
+    WHEN nb_chambres >= 4 THEN 'CINQ_PLUS'
+    WHEN nb_chambres = 3 THEN 'QUATRE_PIECES'
+    WHEN nb_chambres = 2 THEN 'TROIS_PIECES'
+    ELSE 'DEUX_PIECES'  -- default safe (cas le plus courant)
+  END,
+  nb_chambres = CASE
+    WHEN nb_chambres >= 4 THEN nb_chambres
+    WHEN nb_chambres = 3 THEN 3
+    WHEN nb_chambres = 2 THEN 2
+    ELSE 1
+  END
+WHERE type_location NOT IN ('STUDIO', 'DEUX_PIECES', 'TROIS_PIECES', 'QUATRE_PIECES', 'CINQ_PLUS');
+```
+
+### Compat descendante côté Flutter (déjà en place)
+
+`AppartementTypeLocation.fromBackend(raw)` accepte les anciennes strings legacy via un fallback `fromLegacy(raw, nbChambres)`. Donc :
+- Si le backend déploie cette refacto **avant** Flutter → OK, Flutter sait lire l'enum strict.
+- Si le backend déploie **après** Flutter → OK aussi, Flutter sait encore lire les strings libres.
+
+→ Le déploiement peut être désynchronisé sans casse client.
+
+### Priorité
+
+**Haute** — la livraison côté Flutter est faite mais l'app affichera des labels parfois imprécis tant que la migration backend n'est pas faite. Toute nouvelle annonce créée côté Flutter envoie déjà l'enum strict.
 
 ---
 
@@ -261,6 +362,7 @@ chaînes `iconName/text` libres.
 
 | Demande | Priorité | Statut |
 |---------|----------|--------|
+| `typeLocation` enum strict + migration | **Haute** | ⏳ Coordination 2026-05-14 (compat Flutter assurée) |
 | Champ `note` exposé direct | Moyenne | V2 (fallback Flutter en place) |
 | Règle de visibilité unifiée | Haute | ⏳ Décision métier requise |
 | Pagination cursor-based | Faible | V2 quand >500 annonces |

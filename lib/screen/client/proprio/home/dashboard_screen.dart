@@ -15,6 +15,8 @@ import 'package:asfar/util/calc/monthly_revenue_calculator.dart';
 import 'package:asfar/screen/client/proprio/appartements/listing_edit_screen.dart';
 import 'package:asfar/screen/client/proprio/appartements/listings_screen.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/finances_screen.dart';
+import 'package:asfar/screen/client/proprio/calendrier/calendar_bookings_screen.dart';
+import 'package:asfar/screen/client/proprio/home/widget/calendar_bookings_card.dart';
 import 'package:asfar/screen/client/proprio/home/widget/proprio_cashflow_section.dart';
 import 'package:asfar/screen/client/proprio/home/widget/proprio_kpi_grid.dart';
 import 'package:asfar/screen/client/proprio/home/widget/proprio_listings_section.dart';
@@ -23,6 +25,7 @@ import 'package:asfar/screen/client/proprio/home/widget/revenue_hero_card.dart';
 import 'package:asfar/screen/client/proprio/reservations/proprio_reservations_screen.dart';
 import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
 import 'package:asfar/screen/client/shared/reservations/reservation_detail_screen.dart';
+import 'package:asfar/util/calc/active_bookings_counter.dart';
 import 'package:asfar/util/calc/reservation_actions_resolver.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/calc/cashflow_aggregator.dart';
@@ -191,31 +194,61 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                         .where((r) => r.statut == ReservationStatus.enAttente)
                         .toList(growable: false);
 
+                    // Masquage temporaire du hero revenus + KPI grid en
+                      // attendant validation produit. Bascule à `true` pour
+                      // réafficher (code conservé, calculs amont préservés).
+                      const bool showHeroAndKpis = true;
                     return SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(18, 8, 18, 100),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          RevenueHeroCard(
-                            amount: revenueAmount,
-                            previousAmount: previousAmount,
-                            deltaPercent: deltaPercent,
-                            pipelineAmount: pipelineAmount,
-                            average3Months: avg3,
-                            last6Months: last6,
-                            selectedMonth: _selectedMonth,
-                            eyebrowLabel: eyebrowLabel,
-                            previousMonthLabel: prevMonthLabel,
-                            canGoPrev: true,
-                            canGoNext: !_isCurrentMonth,
-                            onPrev: _onPrevMonth,
-                            onNext: _onNextMonth,
-                            onSparkbarTap: (m) =>
-                                setState(() => _selectedMonth = m.month),
-                            isLoading: reservationsLoading,
+                          // ignore: dead_code
+                          if (showHeroAndKpis) ...[
+                            RevenueHeroCard(
+                              amount: revenueAmount,
+                              previousAmount: previousAmount,
+                              deltaPercent: deltaPercent,
+                              pipelineAmount: pipelineAmount,
+                              average3Months: avg3,
+                              last6Months: last6,
+                              selectedMonth: _selectedMonth,
+                              eyebrowLabel: eyebrowLabel,
+                              previousMonthLabel: prevMonthLabel,
+                              canGoPrev: true,
+                              canGoNext: !_isCurrentMonth,
+                              onPrev: _onPrevMonth,
+                              onNext: _onNextMonth,
+                              onSparkbarTap: (m) =>
+                                  setState(() => _selectedMonth = m.month),
+                              isLoading: reservationsLoading,
+                            ),
+                            const SizedBox(height: 16),
+                            ProprioKpiGrid(kpis: kpis),
+                            const SizedBox(height: 22),
+                          ],
+                          ProprioPendingSection(
+                            pending: pending,
+                            onSeeAll: () => pushScreen(
+                                context, const ProprioReservationsScreen()),
+                            onPendingTap: (r) => pushScreen(
+                              context,
+                              ReservationDetailScreen(
+                                reservation: r,
+                                viewerRole:
+                                    ReservationViewerRole.proprietaire,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
-                          ProprioKpiGrid(kpis: kpis),
+                          CalendarBookingsCard(
+                            activeBookingsCount:
+                                ActiveBookingsCounter.activeToday(reservations),
+                            onTap: () => pushScreen(
+                              context,
+                              const CalendarBookingsScreen(),
+                            ),
+                          ),
                           const SizedBox(height: 22),
                           ProprioCashflowSection(
                             title: _sectionTitle('Flux financier'),
@@ -233,20 +266,6 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                               context,
                               ProprioListingEditScreen(
                                   appartement: appartement),
-                            ),
-                          ),
-                          const SizedBox(height: 22),
-                          ProprioPendingSection(
-                            pending: pending,
-                            onSeeAll: () => pushScreen(
-                                context, const ProprioReservationsScreen()),
-                            onPendingTap: (r) => pushScreen(
-                              context,
-                              ReservationDetailScreen(
-                                reservation: r,
-                                viewerRole:
-                                    ReservationViewerRole.proprietaire,
-                              ),
                             ),
                           ),
                         ],

@@ -62,6 +62,19 @@ class RequestRealLocation extends MapEvent {
   const RequestRealLocation(this.appartementId);
 }
 
+/// Recherche textuelle d'un lieu (geocoding backend).
+///
+/// Émis par `InteractiveMapPicker` via la `MapSearchBar`. Le handler appelle
+/// `MapService.searchPlace` et émet `MapPlaceSearchSuccess` (avec la
+/// coordonnée trouvée) ou `MapPlaceSearchError`. L'UI réagit au succès en
+/// recentrant la carte (`MapController.move`) — le moveEnd qui s'ensuit
+/// déclenche le rechargement des appartements via `UpdateMapCenter`.
+class SearchPlace extends MapEvent {
+  final String query;
+
+  const SearchPlace(this.query);
+}
+
 // ==================== RÉINITIALISATION ====================
 
 /// Réinitialise le BLoC à son état Initial.

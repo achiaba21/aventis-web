@@ -58,6 +58,10 @@ class _PlainButtonState extends State<PlainButton> {
     final button = AnimatedScale(
       scale: _pressed ? 0.97 : 1.0,
       duration: const Duration(milliseconds: 90),
+      // Pas d'alignment sur le Container : bug Flutter 3.35.2 + iOS 26 où
+      // un Container avec alignment dans un parent loose (bottomNavigationBar,
+      // Row+Expanded) expand à toute la hauteur dispo → bouton pleine page.
+      // Aligné avec CustomButton + OutlinedCustomButton.
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: widget.size.paddingX,
@@ -67,7 +71,6 @@ class _PlainButtonState extends State<PlainButton> {
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(widget.size.radius),
         ),
-        alignment: Alignment.center,
         child: Row(
           mainAxisSize: widget.block ? MainAxisSize.max : MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,

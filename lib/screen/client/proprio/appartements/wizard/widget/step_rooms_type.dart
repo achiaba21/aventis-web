@@ -1,41 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/model/enumeration/appartement_type_location.dart';
 import 'package:asfar/screen/client/proprio/appartements/wizard/widget/rooms_type_card.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 
-/// Étape 1 du wizard d'ajout d'appartement — choix du nombre de pièces.
+/// Étape 1 du wizard d'ajout d'appartement — choix du type de logement.
 ///
-/// Reproduit `proprietaire-extras.jsx::step 1` (lignes 46-90).
-/// 5 cards en grille 2 colonnes (Studio, 2/3/4/5+ pièces).
+/// Grille 2 colonnes alignée sur les 5 valeurs de `AppartementTypeLocation` :
+/// Studio · 2 pièces · 3 pièces · 4 pièces · 5+ pièces. Le type détermine
+/// le nombre de chambres au step 2 (cf. business-spec §4.1-4.2).
 class StepRoomsType extends StatelessWidget {
-  final String? selectedRooms;
-  final ValueChanged<String> onSelect;
+  final AppartementTypeLocation? selectedType;
+  final ValueChanged<AppartementTypeLocation> onSelect;
 
   const StepRoomsType({
     super.key,
-    required this.selectedRooms,
+    required this.selectedType,
     required this.onSelect,
   });
 
-  static const _options = [
-    _RoomOption(id: 'Studio', label: 'Studio', subtitle: 'Pièce unique séjour + coin nuit'),
-    _RoomOption(id: '2 pièces', label: '2 pièces', subtitle: 'Séjour + 1 chambre'),
-    _RoomOption(id: '3 pièces', label: '3 pièces', subtitle: 'Séjour + 2 chambres'),
-    _RoomOption(id: '4 pièces', label: '4 pièces', subtitle: 'Séjour + 3 chambres'),
-    _RoomOption(id: '5+ pièces', label: '5+ pièces', subtitle: 'Grande résidence'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final types = AppartementTypeLocation.values;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Combien de pièces ?', style: AppTextStyles.h2),
+        Text('Quel type de logement ?', style: AppTextStyles.h2),
         const SizedBox(height: 6),
         Text(
-          'Toutes les annonces Asfar sont des résidences meublées. '
-          'Le nombre de pièces détermine la catégorie de votre bien.',
+          'Choisissez la typologie qui correspond le mieux à votre bien. '
+          'Le nombre de chambres en découle automatiquement.',
           style: AppTextStyles.body,
         ),
         const SizedBox(height: 18),
@@ -50,31 +45,19 @@ class StepRoomsType extends StatelessWidget {
             mainAxisSpacing: 10,
             childAspectRatio: 1.5,
           ),
-          itemCount: _options.length,
+          itemCount: types.length,
           itemBuilder: (_, i) {
-            final option = _options[i];
+            final type = types[i];
             return RoomsTypeCard(
-              label: option.label,
-              subtitle: option.subtitle,
-              active: selectedRooms == option.id,
-              onTap: () => onSelect(option.id),
+              type: type,
+              active: selectedType == type,
+              onTap: () => onSelect(type),
             );
           },
         ),
       ],
     );
   }
-}
-
-class _RoomOption {
-  final String id;
-  final String label;
-  final String subtitle;
-  const _RoomOption({
-    required this.id,
-    required this.label,
-    required this.subtitle,
-  });
 }
 
 class _RoomsHint extends StatelessWidget {
@@ -98,7 +81,7 @@ class _RoomsHint extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'On compte le séjour + chambres. Salle de bain et cuisine ne comptent pas.',
+              'Studio = pièce unique sans salon. À partir de 2 pièces : 1 salon + chambres.',
               style: AppTextStyles.small.copyWith(
                 fontSize: 12,
                 height: 1.5,

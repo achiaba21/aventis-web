@@ -6,9 +6,11 @@ import 'package:asfar/model/locolite/address.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/capacity_edit_dialog.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/text_field_edit_dialog.dart';
+import 'package:asfar/screen/client/proprio/appartements/widget/type_location_edit_dialog.dart';
 import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
+import 'package:asfar/util/type_location_chambres_policy.dart';
 import 'package:asfar/widget/item/field_row.dart';
 
 /// Tab « Infos » du `ProprioListingEditScreen`.
@@ -32,11 +34,7 @@ class ListingInfosTab extends StatelessWidget {
     );
   }
 
-  String _typeLabel() {
-    final t = source?.typeLocation?.trim();
-    if (t == null || t.isEmpty) return 'Non précisé';
-    return t;
-  }
+  String _typeLabel() => source?.typeLocation?.label ?? 'Non précisé';
 
   String _descriptionText() {
     final d = source?.description?.trim();
@@ -97,17 +95,34 @@ class ListingInfosTab extends StatelessWidget {
     if (!_ensureEditable(context)) return;
     final bloc = context.read<AppartementBloc>();
     final messenger = ScaffoldMessenger.of(context);
-    final value = await TextFieldEditDialog.show(
+    final newType = await TypeLocationEditDialog.show(
       context,
-      title: 'Modifier le type',
-      subtitle: 'Ex : Appartement entier, Studio, Chambre privée…',
-      fieldLabel: 'TYPE',
-      initialValue: source!.typeLocation,
-      hintText: 'Appartement entier',
+      initial: source!.typeLocation,
     );
-    if (value == null || value == source!.typeLocation) return;
-    _dispatch(bloc, messenger, source!.copyWith(typeLocation: value),
-        'Type mis à jour');
+    if (newType == null || newType == source!.typeLocation) return;
+    // Recalcul automatique de nbChambres selon la règle métier (cf. business
+    // §4.5). Pour Studio/2P/3P/4P → valeur dérivée ; pour 5+ → ≥ 4 (force au
+    // min si l'ancienne valeur était plus basse, sinon préserve).
+    final resolvedChambres = TypeLocationChambresPolicy.resolveNbChambres(
+      newType,
+      source!.nbChambres,
+    );
+    final updated = source!.copyWith(
+      typeLocation: newType,
+      nbChambres: resolvedChambres,
+    );
+    if (resolvedChambres != source!.nbChambres) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Type changé en ${newType.label}, '
+            'nombre de chambres ajusté à $resolvedChambres.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+    _dispatch(bloc, messenger, updated, 'Type mis à jour');
   }
 
   Future<void> _editDescription(BuildContext context) async {

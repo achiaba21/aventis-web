@@ -18,8 +18,15 @@ class ReferralsListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Padding bottom dimensionné pour ne pas masquer le dernier item derrière
+    // le FAB + BottomNav du shell : hauteur BottomNav + FAB (≈ 56) + safe area
+    // device + 24 de marge visuelle.
+    final scrollBottomInset = kBottomNavigationBarHeight +
+        56 +
+        MediaQuery.of(context).padding.bottom +
+        24;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
+      padding: EdgeInsets.fromLTRB(18, 0, 18, scrollBottomInset),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.bgElev1,

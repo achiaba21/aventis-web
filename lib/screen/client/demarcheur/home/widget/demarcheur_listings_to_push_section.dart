@@ -6,7 +6,7 @@ import 'package:asfar/util/calc/demarcheur_stats_calculator.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 import 'package:asfar/widget/text/section_header.dart';
 
-/// Section « Logements à pousser » du `DemarcheurDashboard` — carrousel
+/// Section « Logements partenaires » du `DemarcheurDashboard` — carrousel
 /// horizontal de `ListingPushCard` (ou EmptyState si aucun bien éligible).
 class DemarcheurListingsToPushSection extends StatelessWidget {
   final List<Appartement> appartements;
@@ -26,7 +26,7 @@ class DemarcheurListingsToPushSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          title: 'Logements à pousser',
+          title: 'Logements partenaires',
           actionLabel: 'Voir tout',
           onActionTap: onSeeAll,
         ),
@@ -38,7 +38,7 @@ class DemarcheurListingsToPushSection extends StatelessWidget {
           )
         else
           SizedBox(
-            height: 200,
+            height: 250,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.zero,

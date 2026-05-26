@@ -22,17 +22,6 @@ class PartenariatDetailScreen extends StatelessWidget {
     required this.demande,
   });
 
-  String _nomProprietaire() {
-    final prenom = demande.proprietaire['prenom'] as String? ?? '';
-    final nom = demande.proprietaire['nom'] as String? ?? '';
-    final full = '$prenom $nom'.trim();
-    return full.isNotEmpty ? full : 'Propriétaire';
-  }
-
-  String _telephoneProprietaire() {
-    return demande.proprietaire['telephone'] as String? ?? '';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,8 +56,8 @@ class PartenariatDetailScreen extends StatelessWidget {
               const SizedBox(height: 12),
               PartenariatDetailPartyCard(
                 role: 'Propriétaire',
-                nom: _nomProprietaire(),
-                telephone: _telephoneProprietaire(),
+                nom: demande.nomProprietaire,
+                telephone: demande.telephoneProprietaire,
               ),
             ],
           ),

@@ -32,10 +32,6 @@ class BottomNavTabs {
     BottomNavItem(
         id: 'referrals', label: 'Demandes', icon: Icons.send_outlined),
     BottomNavItem(
-        id: 'wallet',
-        label: 'Gains',
-        icon: Icons.account_balance_wallet_outlined),
-    BottomNavItem(
         id: 'messages', label: 'Messages', icon: Icons.chat_bubble_outline),
     BottomNavItem(id: 'profile', label: 'Profil', icon: Icons.person_outline),
   ];

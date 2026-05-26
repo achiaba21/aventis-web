@@ -271,6 +271,54 @@
                     </div>
                 </a>
 
+                <a href="demarcheur-listing-filters.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">Filtres & Calendrier Listings Démarcheur</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Système de filtres combinables (Pièces × Partenaire × Zone) et calendrier
+                        de disponibilités inline dans l'écran "Choisir un logement". Bouton "Filtrer"
+                        avec badge dynamique, écran filtre pleine page avec sections dynamiques,
+                        infrastructure vue carte FlutterMap câblée (masquée R14 — activable quand
+                        backend expose lat/lon). ListingPickerTile partagé (DRY). 0 issue flutter analyze.
+                    </p>
+                    <div class="feature-meta">
+                        <span>7 fichiers créés, 3 modifiés</span>
+                        <span>10/10 critères d'acceptation</span>
+                        <span>Score: 78/100</span>
+                    </div>
+                </a>
+
+                <a href="demarcheur-listing-availability-calendar.html" class="feature-card">
+                    <div class="feature-header">
+                        <h2 class="feature-title">Calendrier disponibilités démarcheur</h2>
+                        <div class="feature-badges">
+                            <span class="badge badge-success">Livree</span>
+                            <span class="badge badge-primary">v1.0</span>
+                        </div>
+                    </div>
+                    <p class="feature-description">
+                        Ajout d'un calendrier de disponibilités inline dans l'écran de choix
+                        de logement du tunnel "Nouvelle demande" démarcheur. Tap sur un
+                        logement → sélection radio + chargement inline du calendrier
+                        (MiniCalendarGrid réutilisé, 0 duplication). Navigation mois
+                        prev/next avec borne min mois courant. Jours réservés accent/or
+                        vs libres, légende intégrée, shimmer pendant chargement.
+                        Bouton "Continuer" sticky via Column+Expanded. Cache mémoire simple
+                        (Map&lt;int, CalendarResponse&gt;) évitant les appels réseau répétés.
+                        Pas de nouveau BLoC — état UI éphémère dans le State.
+                    </p>
+                    <div class="feature-meta">
+                        <span>1 fichier créé, 2 modifiés</span>
+                        <span>6/6 critères d'acceptation</span>
+                        <span>Score: 87/100</span>
+                    </div>
+                </a>
+
                 <a href="vague-6-demarcheur.html" class="feature-card">
                     <div class="feature-header">
                         <h2 class="feature-title">Vague 6 — Demarcheur</h2>
@@ -463,22 +511,22 @@
 
             <div class="stats">
                 <div class="stat">
-                    <div class="stat-value">8</div>
+                    <div class="stat-value">9</div>
                     <div class="stat-label">Features livrees</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-value">100</div>
+                    <div class="stat-value">103</div>
                     <div class="stat-label">Fichiers impactes</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-value">96</div>
+                    <div class="stat-value">95</div>
                     <div class="stat-label">Score qualite moyen</div>
                 </div>
             </div>
         </main>
 
         <footer>
-            <p>Documentation Asfar | Derniere mise a jour : 10 mai 2026 (Vague 8 - prototype 100% reconstruit)</p>
+            <p>Documentation Asfar | Derniere mise a jour : 24 mai 2026 (Calendrier disponibilités démarcheur)</p>
         </footer>
     </div>
 </body>

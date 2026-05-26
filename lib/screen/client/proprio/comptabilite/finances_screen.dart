@@ -443,7 +443,7 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                           // ),
                           const SizedBox(height: 22),
                           OutlinedCustomButton(
-                            text: 'Exporter en PDF / CSV',
+                            text: 'Exporter en PDF',
                             onPressed: _onExportTap,
                             size: ButtonSize.lg,
                             block: true,

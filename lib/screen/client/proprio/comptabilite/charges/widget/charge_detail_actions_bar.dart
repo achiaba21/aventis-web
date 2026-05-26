@@ -22,44 +22,49 @@ class ChargeDetailActionsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mq = MediaQuery.of(context);
     final disabled = actionInProgress != null;
 
+    // SafeArea(top: false) gère seul l'espace bas (home indicator). Ajouter
+    // `mq.padding.bottom` manuellement provoquait un double padding qui, sur
+    // certains contextes MediaQuery, faisait gonfler la barre et écraser le
+    // body de ChargeDetailScreen.
     return Container(
-      padding: EdgeInsets.fromLTRB(18, 12, 18, 12 + mq.padding.bottom),
       decoration: const BoxDecoration(
         color: AppColors.bgElev1,
         border: Border(top: BorderSide(color: AppColors.line, width: 1)),
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          children: [
-            Expanded(
-              child: CustomButton(
-                text: 'Modifier',
-                size: ButtonSize.md,
-                block: true,
-                loading: actionInProgress == ChargeDetailAction.edit,
-                onPressed: disabled
-                    ? null
-                    : () => onAction(ChargeDetailAction.edit),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: CustomButton(
+                  text: 'Modifier',
+                  size: ButtonSize.md,
+                  block: true,
+                  loading: actionInProgress == ChargeDetailAction.edit,
+                  onPressed: disabled
+                      ? null
+                      : () => onAction(ChargeDetailAction.edit),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: OutlinedCustomButton(
-                text: 'Supprimer',
-                size: ButtonSize.md,
-                block: true,
-                loading: actionInProgress == ChargeDetailAction.delete,
-                textColor: AppColors.danger,
-                onPressed: disabled
-                    ? null
-                    : () => onAction(ChargeDetailAction.delete),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedCustomButton(
+                  text: 'Supprimer',
+                  size: ButtonSize.md,
+                  block: true,
+                  loading: actionInProgress == ChargeDetailAction.delete,
+                  textColor: AppColors.danger,
+                  onPressed: disabled
+                      ? null
+                      : () => onAction(ChargeDetailAction.delete),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

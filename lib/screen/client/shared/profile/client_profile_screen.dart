@@ -103,7 +103,7 @@ class ClientProfileScreen extends StatelessWidget {
                     badge: info.badge,
                     verified: true,
                   ),
-                  if (canSwitchView) ...[
+                  if (false) ...[
                     const SizedBox(height: 18),
                     const Text('Changer de vue', style: AppTextStyles.h3),
                     const SizedBox(height: 10),

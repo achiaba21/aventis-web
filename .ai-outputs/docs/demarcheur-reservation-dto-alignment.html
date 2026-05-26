@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alignement Démarcheur — ReservationDemarcheurDto · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-24">
+    <meta name="updated" content="2026-05-24">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+            --wallet-blue: #8B9AFF;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+        .eyebrow {
+            color: var(--accent);
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-size: 38px; letter-spacing: -1px;
+            font-weight: 700; line-height: 1.05;
+            margin-bottom: 0.75rem;
+        }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 {
+            font-size: 22px; font-weight: 700;
+            letter-spacing: -0.4px;
+            margin: 2.5rem 0 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        h3 {
+            font-size: 17px; font-weight: 600;
+            letter-spacing: -0.2px;
+            margin: 1.5rem 0 0.75rem;
+            color: var(--text);
+        }
+        p, li {
+            color: var(--text-2);
+            font-size: 15px; line-height: 1.6;
+        }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta {
+            color: var(--text-3); font-size: 13px;
+            display: flex; flex-wrap: wrap; gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        nav ul {
+            display: flex; flex-wrap: wrap; gap: 1rem;
+            list-style: none; padding: 1rem 0;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 2rem;
+        }
+        nav a {
+            color: var(--accent); text-decoration: none;
+            font-size: 13px; font-weight: 500;
+        }
+        nav a:hover { text-decoration: underline; }
+        .card {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            margin: 1rem 0;
+        }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge {
+            display: inline-flex; align-items: center;
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        .badge-blue { background: rgba(139,154,255,0.14); color: var(--wallet-blue); }
+        .badge-danger { background: rgba(248,113,113,0.14); color: var(--danger); }
+        table {
+            width: 100%; border-collapse: collapse;
+            margin: 1rem 0; font-size: 14px;
+        }
+        th, td {
+            text-align: left; padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+        }
+        th {
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--text-3);
+            background: var(--bg-elev-2);
+        }
+        td { color: var(--text-2); }
+        td code, p code, li code {
+            background: var(--bg-elev-2);
+            padding: 2px 6px; border-radius: 6px;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            color: var(--text);
+        }
+        pre {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            margin: 1rem 0;
+        }
+        pre code {
+            background: none; padding: 0; font-size: inherit;
+            color: var(--text);
+        }
+        .check { color: var(--success); }
+        .cross { color: var(--danger); }
+        .arrow { color: var(--accent); }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .stat-cell {
+            background: var(--bg-elev-1);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            text-align: center;
+        }
+        .stat-cell .num {
+            font-size: 28px; font-weight: 700;
+            color: var(--accent);
+            font-feature-settings: "tnum";
+        }
+        .stat-cell .lab {
+            font-size: 12px; color: var(--text-3);
+            margin-top: 0.25rem; letter-spacing: 0.4px;
+        }
+        .callout {
+            background: var(--bg-elev-2);
+            border-left: 3px solid var(--accent);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+        }
+        .callout.warn { border-left-color: var(--warn); }
+        .callout.info { border-left-color: var(--info); }
+        .callout.success { border-left-color: var(--success); }
+        .changelog-entry {
+            border-left: 2px solid var(--line);
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+        .changelog-entry .date {
+            font-size: 12px; color: var(--text-3);
+            letter-spacing: 0.4px;
+        }
+        footer {
+            margin-top: 4rem; padding-top: 2rem;
+            border-top: 1px solid var(--line);
+            color: var(--text-3); font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="eyebrow">Alignement Backend · Démarcheur</div>
+            <h1>Alignement <em>ReservationDemarcheurDto</em></h1>
+            <p class="meta">
+                <span>Version 1.0</span>
+                <span>Créée le 24 mai 2026</span>
+                <span>Score audit : 99/100</span>
+            </p>
+            <div class="badges">
+                <span class="badge badge-success">Livrée</span>
+                <span class="badge badge-blue">Vague 6 — suite</span>
+                <span class="badge badge-accent">Alignement backend</span>
+            </div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#contexte">Contexte</a></li>
+                <li><a href="#decouverte">Découverte</a></li>
+                <li><a href="#changements">Changements</a></li>
+                <li><a href="#r4">Règle R4</a></li>
+                <li><a href="#hors-perimetre">Hors-périmètre</a></li>
+                <li><a href="#qualite">Qualité</a></li>
+                <li><a href="#liens">Liens connexes</a></li>
+            </ul>
+        </nav>
+
+        <section id="contexte">
+            <h2>1. Contexte backend</h2>
+            <p>
+                Le backend Spring a livré un nouveau DTO
+                <code>ReservationDemarcheurDto</code> qui enrichit la réponse de
+                <code>GET /demarcheur/reservations</code> avec des objets imbriqués et
+                des champs scalaires additionnels.
+            </p>
+
+            <h3>Forme du nouveau payload</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Section</th>
+                        <th>Champs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>proprio</strong> <span class="badge badge-info">nested</span></td>
+                        <td><code>id, nom, prenom, telephone, email, imgUrl</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>appart</strong> <span class="badge badge-info">nested aplati</span></td>
+                        <td><code>id, numero, titre, imgUrl, prix, status, communeNom, villeNom</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>locataire</strong> <span class="badge badge-neutral">nullable</span></td>
+                        <td><code>id, nom, prenom, telephone, email, imgUrl</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>demarcheur</strong></td>
+                        <td><code>id, nom, prenom, telephone, email, imgUrl</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>avanceReservation</strong> <span class="badge badge-neutral">nullable</span></td>
+                        <td>structure existante</td>
+                    </tr>
+                    <tr>
+                        <td><strong>scalaires</strong></td>
+                        <td><code>type, reference, debut, fin, prix, frais, statut, motif, moyenPaiement, montantCommission, clientExterneNom, clientExterneTelephone, clientExterneEmail</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="decouverte">
+            <h2>2. Découverte clé</h2>
+            <div class="callout success">
+                <strong>80% du parsing était déjà aligné côté mobile.</strong>
+                Le scan d'architecture a révélé que la base <code>Reservation.fromJsonCommon</code>,
+                <code>ReservationDemarcheur</code>, l'enum <code>ReservationType</code>, le système
+                de contact (<code>ContactTargetResolver</code> + <code>ContactSheet</code>) et le
+                <code>ReferralDetailScreen</code> étaient déjà câblés bout-en-bout sur le nouveau payload.
+            </div>
+
+            <h3>Ce qui était déjà en place</h3>
+            <ul>
+                <li><code>Reservation</code> (abstract) parse <code>proprio</code>, <code>locataire</code>,
+                <code>appart</code>, <code>avanceReservation</code>, <code>type</code>, <code>clientExterne*</code>,
+                <code>statut</code>, <code>motif</code>, <code>moyenPaiement</code>, <code>reference</code>,
+                <code>prix</code>, <code>frais</code>, <code>debut</code>, <code>fin</code>.</li>
+                <li>Factory polymorphique <code>Reservation.fromJson</code> qui crée la bonne sous-classe
+                selon le champ <code>type</code>.</li>
+                <li><code>ReservationDemarcheur</code> parse <code>demarcheur</code> et <code>montantCommission</code>.</li>
+                <li>Enum <code>ReservationType</code> complet (<code>PLATEFORME / MANUELLE / DEMARCHEUR</code>).</li>
+                <li>Système de contact : <code>ContactTargetResolver.fromReservation(r, demarcheur)</code>
+                + <code>ContactSheet</code> + <code>CallButton</code> + matrice de rôles.</li>
+                <li><code>ReferralDetailScreen._onContactProprio()</code> déjà câblé sur <code>proprio.telephone</code>.</li>
+            </ul>
+
+            <h3>Le delta réel à traiter</h3>
+            <ul>
+                <li><strong>Parsing Appartement</strong> : les 2 champs aplatis
+                <code>communeNom</code> et <code>villeNom</code> du nouveau DTO n'étaient pas exploités.</li>
+                <li><strong>Règle R4</strong> : les réservations <code>MANUELLE</code> avec client
+                externe du proprio affichaient toujours les infos du client côté démarcheur.</li>
+            </ul>
+        </section>
+
+        <section id="changements">
+            <h2>3. Changements implémentés</h2>
+
+            <p>
+                Trois fichiers modifiés, environ 25 lignes utiles (hors docstrings).
+                <strong>Aucun nouveau fichier créé.</strong>
+            </p>
+
+            <h3>3.1 <code>lib/model/residence/appart.dart</code></h3>
+            <ul>
+                <li>Ajout de 2 champs nullables : <code>String? communeNom</code> et <code>String? villeNom</code>.</li>
+                <li>Parsing dans <code>fromJson</code>, sérialisation dans <code>toJson</code>,
+                intégration au constructeur et au <code>copyWith</code>.</li>
+                <li>Nouveau getter <code>localiteLabel</code> qui retourne
+                <code>"Commune, Ville"</code> en priorité (champs aplatis backend), avec fallback
+                sur l'<code>Address</code> nested legacy via <code>address.locationDisplayName</code>.</li>
+            </ul>
+            <pre><code>String get localiteLabel {
+  if (communeNom != null && villeNom != null) {
+    return '$communeNom, $villeNom';
+  }
+  if (communeNom != null) return communeNom!;
+  if (villeNom != null) return villeNom!;
+  if (address?.hasFallbackLocation == true) {
+    return address!.locationDisplayName;
+  }
+  return '';
+}</code></pre>
+
+            <h3>3.2 <code>lib/screen/client/demarcheur/referrals/widget/referral_display.dart</code></h3>
+            <ul>
+                <li>Import ajouté : <code>package:asfar/model/enumeration/reservation_type.dart</code>.</li>
+                <li>Nouveau getter <code>isClientConfidential</code> (source unique de la règle R4).</li>
+                <li>Adaptation de <code>referralClientName</code> et <code>referralClientPhone</code>
+                qui court-circuitent désormais sur l'état confidentiel.</li>
+            </ul>
+            <pre><code>bool get isClientConfidential =&gt; type == ReservationType.manuelle;
+
+String get referralClientName {
+  if (isClientConfidential) return 'Client confidentiel';
+  final base = clientNom?.trim().isNotEmpty == true
+      ? clientNom!
+      : 'Client #${id ?? 0}';
+  return base;
+}
+
+String get referralClientPhone {
+  if (isClientConfidential) return '';
+  return clientExterneTelephone ?? locataire?.telephone ?? '';
+}</code></pre>
+
+            <h3>3.3 <code>lib/screen/client/demarcheur/referrals/referral_detail_screen.dart</code></h3>
+            <ul>
+                <li>Section « Client » conditionnée par un spread <code>if (!reservation.isClientConfidential) ...[]</code>.</li>
+                <li>Aucune modification d'imports — l'extension <code>ReferralDisplay</code> apporte le nouveau getter.</li>
+            </ul>
+            <pre><code>if (!reservation.isClientConfidential) ...[
+  const Text('Client', style: AppTextStyles.h3),
+  const SizedBox(height: 10),
+  ReferralClientCard(
+    name: reservation.referralClientName,
+    phone: reservation.referralClientPhone,
+  ),
+  const SizedBox(height: 22),
+],</code></pre>
+        </section>
+
+        <section id="r4">
+            <h2>4. Règle métier R4 — Anonymisation client externe</h2>
+            <div class="callout">
+                <strong>Énoncé :</strong> Quand une réservation est de type
+                <code>MANUELLE</code> et que le client est un externe passé par le proprio
+                (<code>clientExterneNom</code> renseigné, <code>locataire == null</code>),
+                le démarcheur ne voit PAS les infos du client : seuls l'appartement, les dates,
+                le statut et la commission sont visibles.
+            </div>
+
+            <h3>Décision UI validée — Option A (masquage complet)</h3>
+            <p>
+                Plutôt qu'afficher une card neutre « Client confidentiel » (option B) ou
+                un bandeau discret (option C), l'option retenue masque entièrement la section
+                « Client » sur l'écran détail référence. Le scroll passe directement de
+                <strong>Logement</strong> à <strong>Propriétaire</strong>.
+            </p>
+
+            <h3>Cas couverts</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type de réservation</th>
+                        <th>Locataire</th>
+                        <th>Client externe</th>
+                        <th>Affichage section Client</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>DEMARCHEUR</code></td>
+                        <td>null</td>
+                        <td>renseigné</td>
+                        <td><span class="check">✓</span> visible (le démarcheur réfère son propre client externe)</td>
+                    </tr>
+                    <tr>
+                        <td><code>PLATEFORME</code></td>
+                        <td>renseigné</td>
+                        <td>null</td>
+                        <td><span class="check">✓</span> visible (locataire de la plateforme)</td>
+                    </tr>
+                    <tr>
+                        <td><code>MANUELLE</code></td>
+                        <td>null</td>
+                        <td>renseigné (du proprio)</td>
+                        <td><span class="cross">✗</span> masquée (R4 — confidentialité)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="hors-perimetre">
+            <h2>5. Hors-périmètre (explicite)</h2>
+            <ul>
+                <li><strong>R5 distinction « ma demande » vs « autre démarcheur »</strong> :
+                non implémentée. L'endpoint backend ne renvoie que les réservations du
+                démarcheur connecté (validé en BA). À reconsidérer si l'API évolue pour
+                exposer les demandes d'autres démarcheurs sur les mêmes appartements
+                partenaires.</li>
+                <li><strong>Nouveau widget de contact</strong> : aucun. Le système existant
+                (<code>ContactTargetResolver</code>, <code>ContactSheet</code>, <code>CallButton</code>)
+                couvre déjà le besoin et a été simplement vérifié.</li>
+                <li><strong>Modèle <code>Reservation</code></strong> : pas touché — parsing déjà aligné.</li>
+                <li><strong>BLoC et Service démarcheur</strong> : inchangés — fonctionnels.</li>
+                <li><strong>Tests unitaires</strong> : non ajoutés (la feature ne les exigeait pas),
+                suggérés par l'audit en amélioration de suite (cf. <a href="#qualite">§ Qualité</a>).</li>
+            </ul>
+        </section>
+
+        <section id="qualite">
+            <h2>6. Qualité &amp; audit</h2>
+
+            <div class="stat-grid">
+                <div class="stat-cell">
+                    <div class="num">99/100</div>
+                    <div class="lab">Score global</div>
+                </div>
+                <div class="stat-cell">
+                    <div class="num">6/6</div>
+                    <div class="lab">Critères d'acceptation</div>
+                </div>
+                <div class="stat-cell">
+                    <div class="num">0</div>
+                    <div class="lab">Erreurs LSP</div>
+                </div>
+                <div class="stat-cell">
+                    <div class="num">3</div>
+                    <div class="lab">Fichiers modifiés</div>
+                </div>
+            </div>
+
+            <h3>Scores par dimension</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dimension</th>
+                        <th>Score</th>
+                        <th>Pénalités</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Complexité</td><td>100/100</td><td>—</td></tr>
+                    <tr><td>Lisibilité</td><td>100/100</td><td>—</td></tr>
+                    <tr><td>DRY</td><td>100/100</td><td>—</td></tr>
+                    <tr><td>Documentation</td><td>100/100</td><td>—</td></tr>
+                    <tr><td>SOLID</td><td>100/100</td><td>—</td></tr>
+                    <tr><td>Dette technique</td><td>95/100</td><td>ℹ️ tests unitaires absents (non bloquant)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Suggestion de suite — tests R4</h3>
+            <p>
+                L'audit recommande l'ajout de 3 tests unitaires courts pour capturer la règle
+                R4 contre régression future :
+            </p>
+            <pre><code>test('isClientConfidential true pour MANUELLE', () { ... });
+test('referralClientName retourne libellé confidentiel pour MANUELLE', () { ... });
+test('referralClientPhone retourne vide pour MANUELLE', () { ... });</code></pre>
+        </section>
+
+        <section id="liens">
+            <h2>7. Liens connexes</h2>
+            <ul>
+                <li><a href="vague-6-demarcheur.html">Vague 6 — Démarcheur</a> (feature parent, implémentation initiale du rôle)</li>
+                <li><a href="calendrier-bookings-proprio.html">Calendrier &amp; bookings proprio</a> (consomme aussi les réservations enrichies)</li>
+                <li><a href="amelioration-detail-reservation.html">Amélioration détail réservation</a> (système de contact unifié réutilisé)</li>
+                <li><a href="index.html">← Retour à l'index</a></li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Historique</h2>
+            <div class="changelog-entry">
+                <div class="date">24 mai 2026 — v1.0</div>
+                <p>
+                    Création initiale. Alignement du module démarcheur sur le nouveau DTO
+                    <code>ReservationDemarcheurDto</code> livré par le backend Spring. 3 fichiers
+                    modifiés (~25 lignes utiles). Score audit 99/100. Décision UI : masquage
+                    complet de la section client pour les réservations <code>MANUELLE</code> (R4).
+                </p>
+            </div>
+        </section>
+
+        <footer>
+            Documentation générée le 24 mai 2026 · Workflow <code>/feature full</code> ·
+            Spécifications dans <code>.ai-outputs/specs/demarcheur-reservation-dto-alignment/</code>
+        </footer>
+    </div>
+</body>
+</html>

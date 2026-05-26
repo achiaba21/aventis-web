@@ -2,23 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/amenity_catalog.dart';
 
 /// Grid 2 colonnes de chips d'équipement multi-sélection — étape 4 wizard.
 ///
-/// Reproduit `proprietaire-extras.jsx::AmenityChip` (lignes 461-472) :
-/// chip padding 10×12 avec icon `check` si active sinon `add`, fond
-/// `accentSoft`/`bgElev1`, border `accent`/`line`, color `accent`/`text`.
+/// La sélection est gérée par `value` (clé stable) plutôt que par label,
+/// pour rester robuste aux variations d'orthographe et matcher le backend
+/// (`findByValue` côté serveur).
 class AmenityChipGrid extends StatelessWidget {
   final String eyebrow;
-  final List<String> amenities;
-  final Set<String> active;
-  final ValueChanged<String> onToggle;
+  final List<AmenityCatalogEntry> entries;
+
+  /// Set des `value` actuellement sélectionnées.
+  final Set<String> activeValues;
+  final void Function(AmenityCatalogEntry entry) onToggle;
 
   const AmenityChipGrid({
     super.key,
     required this.eyebrow,
-    required this.amenities,
-    required this.active,
+    required this.entries,
+    required this.activeValues,
     required this.onToggle,
   });
 
@@ -40,13 +43,13 @@ class AmenityChipGrid extends StatelessWidget {
             mainAxisSpacing: 8,
             childAspectRatio: 4.0,
           ),
-          itemCount: amenities.length,
+          itemCount: entries.length,
           itemBuilder: (_, i) {
-            final amenity = amenities[i];
+            final entry = entries[i];
             return _AmenityChipItem(
-              label: amenity,
-              active: active.contains(amenity),
-              onTap: () => onToggle(amenity),
+              label: entry.label,
+              active: activeValues.contains(entry.value),
+              onTap: () => onToggle(entry),
             );
           },
         ),

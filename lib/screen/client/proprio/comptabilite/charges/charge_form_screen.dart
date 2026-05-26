@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/charge_bloc/charge_bloc.dart';
@@ -24,6 +23,7 @@ import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/input/input_field.dart';
+import 'package:asfar/widget/input/number_input_field.dart';
 import 'package:asfar/widget/section/section_with_eyebrow.dart';
 
 /// Formulaire de création OU édition d'une charge.
@@ -145,8 +145,9 @@ class _ChargeFormScreenState extends State<ChargeFormScreen> {
       setState(() => _error = 'Sélectionnez un appartement');
       return;
     }
-    final montantRaw = _montantCtrl.text.trim();
-    final montant = double.tryParse(montantRaw);
+    final montantDigits =
+        _montantCtrl.text.replaceAll(RegExp(r'[^\d]'), '');
+    final montant = double.tryParse(montantDigits);
     if (montant == null || montant <= 0) {
       setState(() => _error = 'Montant invalide');
       return;
@@ -291,14 +292,13 @@ class _ChargeFormScreenState extends State<ChargeFormScreen> {
                     leadingIcon: Icons.label_outline,
                   ),
                   const SizedBox(height: 12),
-                  InputField(
+                  NumberInputField(
                     controller: _montantCtrl,
-                    hintText: 'Montant en FCFA',
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    hintText: 'Montant',
+                    formatThousands: true,
+                    suffix: 'FCFA',
                     leadingIcon: Icons.attach_money,
+                    useMonoStyle: true,
                   ),
                   const SizedBox(height: 12),
                   InputField(

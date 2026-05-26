@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier & bookings proprio · Documentation</title>
+    <meta name="version" content="1.0">
+    <meta name="created" content="2026-05-16">
+    <meta name="updated" content="2026-05-16">
+    <style>
+        :root {
+            --bg: #0A0A0B;
+            --bg-elev-1: #131316;
+            --bg-elev-2: #1C1C20;
+            --bg-elev-3: #25252B;
+            --line: rgba(255,255,255,0.08);
+            --text: #F5F5F7;
+            --text-2: #B8B8BE;
+            --text-3: #76767E;
+            --accent: #E8B86B;
+            --accent-soft: rgba(232,184,107,0.14);
+            --success: #4ADE80;
+            --warn: #F4B740;
+            --danger: #F87171;
+            --info: #60A5FA;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        .container { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        header { border-bottom: 1px solid var(--line); padding-bottom: 2rem; margin-bottom: 2rem; }
+        .eyebrow { color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 12px; }
+        h1 { font-size: 38px; letter-spacing: -1px; font-weight: 700; line-height: 1.05; margin-bottom: 0.75rem; }
+        h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
+        h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin: 2.5rem 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; margin: 1.5rem 0 0.75rem; color: var(--text); }
+        p, li { color: var(--text-2); font-size: 15px; line-height: 1.6; }
+        ul, ol { padding-left: 1.5rem; margin: 0.5rem 0 1rem; }
+        li { margin-bottom: 0.4rem; }
+        .meta { color: var(--text-3); font-size: 13px; display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem; }
+        nav ul { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; padding: 1rem 0; border-bottom: 1px solid var(--line); margin-bottom: 2rem; }
+        nav a { color: var(--accent); text-decoration: none; font-size: 13px; font-weight: 500; }
+        nav a:hover { text-decoration: underline; }
+        .card { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 20px; padding: 1.25rem 1.5rem; margin: 1rem 0; }
+        .card-hero { background: linear-gradient(135deg, #2A1F0E 0%, #1A1206 60%, #0F0A04 100%); border-color: rgba(232,184,107,0.25); position: relative; overflow: hidden; }
+        .card-hero::before { content: ""; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(232,184,107,0.18), transparent 70%); }
+        .card-hero h2 { margin-top: 0; color: var(--accent); }
+        .card-warn { border-color: rgba(244,183,64,0.25); background: linear-gradient(135deg, rgba(244,183,64,0.06), rgba(244,183,64,0.02)); }
+        .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 1rem 0; }
+        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; }
+        .badge-success { background: rgba(74,222,128,0.14); color: var(--success); }
+        .badge-warn { background: rgba(244,183,64,0.14); color: var(--warn); }
+        .badge-info { background: rgba(96,165,250,0.14); color: var(--info); }
+        .badge-accent { background: var(--accent-soft); color: var(--accent); }
+        .badge-neutral { background: var(--bg-elev-3); color: var(--text-2); }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 14px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+        th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-3); background: var(--bg-elev-2); }
+        td { color: var(--text-2); vertical-align: top; }
+        td code, p code, li code { background: var(--bg-elev-2); padding: 2px 6px; border-radius: 6px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; color: var(--text); }
+        pre { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 14px; padding: 1rem; overflow-x: auto; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; margin: 1rem 0; }
+        pre code { background: none; padding: 0; font-size: inherit; color: var(--text); }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+        .stat-cell { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.25rem; text-align: center; }
+        .stat-cell .num { font-size: 28px; font-weight: 700; color: var(--accent); font-feature-settings: "tnum"; }
+        .stat-cell .lab { font-size: 12px; color: var(--text-3); margin-top: 0.25rem; letter-spacing: 0.4px; }
+        .quote { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--text-2); font-style: italic; margin: 1rem 0; }
+        .step-list { counter-reset: step; list-style: none; padding-left: 0; }
+        .step-list li { counter-increment: step; padding-left: 36px; position: relative; margin-bottom: 12px; }
+        .step-list li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+        @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+        .col-block { background: var(--bg-elev-1); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.25rem; }
+        .col-block.before { border-left: 3px solid var(--danger); }
+        .col-block.after { border-left: 3px solid var(--success); }
+        .col-block h4 { font-size: 13px; color: var(--text-3); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.5rem; }
+        footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--line); color: var(--text-3); font-size: 12px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="eyebrow">Calendrier proprio · Asfar Mobile</div>
+        <h1>Calendrier & bookings <em>agenda multi-annonces + wizard résa manuelle</em></h1>
+        <p>Vue d'ensemble de la disponibilité de toutes les annonces du proprio, stats du mois, conseil intelligent chiffré, liste des séjours du mois, et wizard 3 étapes pour saisir une réservation manuelle (client direct ou démarcheur). 24 fichiers livrés en réutilisant ~70&nbsp;% de l'infrastructure existante (BLoCs calendrier, MiniCalendarGrid, ReservationBloc, AvailabilityBloc).</p>
+        <div class="meta">
+            <span>Version : <strong>1.0</strong></span>
+            <span>Créée : 2026-05-16</span>
+            <span>Audit : <strong style="color:var(--accent)">97/100</strong></span>
+            <span>Pipeline : <strong>/feature full</strong></span>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#contexte">Contexte</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#regles">Règles métier</a></li>
+            <li><a href="#flow">Flow utilisateur</a></li>
+            <li><a href="#backend">Coord. backend</a></li>
+            <li><a href="#fichiers">Fichiers touchés</a></li>
+            <li><a href="#qualite">Qualité</a></li>
+            <li><a href="index.html">← Index</a></li>
+        </ul>
+    </nav>
+
+    <section class="card card-hero">
+        <h2>📅 Agenda global proprio + résa manuelle</h2>
+        <p>Avant cette feature, le proprio devait <strong>ouvrir chaque annonce une par une</strong> pour voir son calendrier, et il n'avait aucun moyen de saisir une réservation faite hors plateforme (client direct, paiement en espèces, démarcheur partenaire). Cette feature livre une vue agenda unique multi-annonces avec stats du mois, un bandeau Conseil chiffré qui pousse à optimiser le revenu, et un wizard 3 étapes pour créer une réservation manuelle traçable.</p>
+        <div class="badges">
+            <span class="badge badge-success">✅ Écran agenda multi-annonces</span>
+            <span class="badge badge-success">✅ Wizard 3 étapes</span>
+            <span class="badge badge-accent">★ 70 % infra réutilisée</span>
+            <span class="badge badge-info">/feature full pipeline</span>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="contexte">🧨 Contexte</h2>
+
+        <div class="two-col">
+            <div class="col-block before">
+                <h4>Avant</h4>
+                <ul>
+                    <li>Calendrier accessible uniquement via l'édition d'une annonce (tab Calendrier) — vue mono-annonce</li>
+                    <li>Pas de stats agrégées sur le mois (Occupé / Libre / Manque à gagner)</li>
+                    <li>Pas de moyen de saisir une réservation hors plateforme (client direct, démarcheur, paiement en espèces)</li>
+                    <li>Aucune suggestion d'optimisation revenus</li>
+                </ul>
+            </div>
+            <div class="col-block after">
+                <h4>Après</h4>
+                <ul>
+                    <li>Écran « Calendrier & bookings » multi-annonces avec chips sticky</li>
+                    <li>Stats du mois (Occupé / Libre / Manque à gagner) + Conseil hebdo</li>
+                    <li>Wizard 3 étapes pour saisir une réservation manuelle (Client direct ou Démarcheur)</li>
+                    <li>Action « Bloquer une période » (maintenance / perso) en 1 dialog</li>
+                    <li>Card sur le dashboard avec sous-titre « N séjours en cours »</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="architecture">🧬 Architecture</h2>
+
+        <h3>BLoCs & helpers</h3>
+        <table>
+            <thead><tr><th>Type</th><th>Composant</th><th>Rôle</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge badge-accent">RÉUTILISÉ</span></td><td><code>CalendarPlageBloc</code></td><td>Réservations occupées + en attente + blocages proprio (plages)</td></tr>
+                <tr><td><span class="badge badge-accent">RÉUTILISÉ</span></td><td><code>AvailabilityBloc</code></td><td>Dispatch <code>BlockDates(appartId, range)</code> au valide du dialog blocage</td></tr>
+                <tr><td><span class="badge badge-accent">RÉUTILISÉ</span></td><td><code>ReservationBloc</code></td><td>Dispatche <code>CreateManualReservation(req)</code> au step 3 du wizard</td></tr>
+                <tr><td><span class="badge badge-accent">RÉUTILISÉ</span></td><td><code>AppartementBloc</code></td><td>Source de la liste d'annonces pour les chips</td></tr>
+                <tr><td><span class="badge badge-success">NOUVEAU</span></td><td><code>ManualReservationWizardBloc</code></td><td>Pilote local le wizard 3 étapes (5 events utilisateur + 2 callbacks succès/erreur)</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Utils purs testables (SRP)</h3>
+        <table>
+            <thead><tr><th>Util</th><th>Responsabilité</th><th>Tests</th></tr></thead>
+            <tbody>
+                <tr><td><code>TipSuggestionEngine</code></td><td>Heuristique « Conseil » hebdo (jours libres + bloqués × prix × taux)</td><td>10</td></tr>
+                <tr><td><code>ActiveBookingsCounter</code></td><td>Compte séjours actifs aujourd'hui (card dashboard)</td><td>10</td></tr>
+                <tr><td><code>ManqueAGagnerCalculator</code></td><td>(libres + bloqués proprio) × prix/nuit pour un mois</td><td>7</td></tr>
+                <tr><td><code>ManualReservationValidator</code></td><td>4 méthodes statiques (dates, client, source, paiement)</td><td>14</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Widgets atomes — réutilisation maximale</h3>
+        <p>Atoms du design system Asfar réutilisés tel quel : <code>MiniCalendarGrid</code> + body/header/day_cell · <code>CalendarLegend</code> · <code>WizardStepIndicator</code> · <code>WizardCtaBar</code> · <code>CustomButton</code> · <code>OutlinedCustomButton</code> · <code>AsfarChip</code> · <code>BadgeStatus</code> · <code>DomainImage</code> + <code>ImgPh</code> · <code>SuccessCircle</code> · <code>EmptyState</code> · <code>InputField</code> · <code>FcfaFormatter</code>. Aucun atom dupliqué.</p>
+    </section>
+
+    <section>
+        <h2 id="regles">⚖️ Règles métier</h2>
+
+        <h3>Stats du mois</h3>
+        <table>
+            <thead><tr><th>Stat</th><th>Calcul</th><th>Tone</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Occupé</strong></td><td>jours du mois avec une plage <code>OCCUPE</code> ou <code>EN_ATTENTE</code></td><td><span class="badge badge-warn">danger</span></td></tr>
+                <tr><td><strong>Libre</strong></td><td>joursDuMois − Occupé − Bloqué proprio</td><td><span class="badge badge-success">success</span></td></tr>
+                <tr><td><strong>Manque à gagner</strong></td><td>(Libre + Bloqué) × prixNuit</td><td><span class="badge badge-accent">accent</span></td></tr>
+            </tbody>
+        </table>
+
+        <p class="quote">Le « Manque à gagner » <strong>inclut volontairement les jours bloqués par le proprio</strong>. Objectif métier : inciter à débloquer ce qui peut l'être (maintenance prolongée, perso non urgent).</p>
+
+        <h3>Conseil hebdomadaire (TipSuggestionEngine)</h3>
+        <ol>
+            <li>Compter <code>joursLibres</code> dans la semaine en cours (lundi → dimanche, blocages proprio comptent comme libres)</li>
+            <li>Si <code>joursLibres &gt;= 4</code> → afficher le bandeau ; sinon masquer</li>
+            <li>Suggestion = <code>min(joursLibres, 4) × prixNuit × tauxOccupationMoyen</code> (fallback 70 %)</li>
+        </ol>
+
+        <h3>Wizard de création — source enum</h3>
+        <table>
+            <thead><tr><th>Valeur</th><th>value (JSON)</th><th>Commission</th></tr></thead>
+            <tbody>
+                <tr><td><code>clientDirect</code></td><td><code>CLIENT_DIRECT</code></td><td>0 % (proprio reçoit tout)</td></tr>
+                <tr><td><code>demarcheurPartenaire</code></td><td><code>DEMARCHEUR_PARTENAIRE</code></td><td>10 % au démarcheur</td></tr>
+            </tbody>
+        </table>
+        <p>« Via Asfar » est volontairement <strong>absent</strong> du wizard : une réservation manuelle est par définition hors plateforme.</p>
+
+        <h3>Mode de paiement (tracking proprio)</h3>
+        <p>4 chips proposés au wizard step 2 (extraits de <code>MoyenPaiement.manualReservationOptions</code>) : <code>Espèces</code>, <code>Wave</code>, <code>Orange Money</code>, <code>Virement</code>. Le moyen de paiement est purement informatif côté proprio — il n'affecte aucun calcul de commission Asfar.</p>
+
+        <h3>Validation publication</h3>
+        <ul>
+            <li>Dates : pas de chevauchement avec plage occupée ou en attente. <strong>Dates passées autorisées</strong> (résa rétroactive).</li>
+            <li>Client : nom + téléphone obligatoires (non vides après trim).</li>
+            <li>Source : obligatoire ; si <code>demarcheurPartenaire</code> → <code>demarcheurId</code> requis.</li>
+            <li>Moyen de paiement : obligatoire (1 chip sélectionné).</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 id="flow">🎬 Flow utilisateur — Création réservation manuelle</h2>
+
+        <ol class="step-list">
+            <li>Proprio ouvre le dashboard → tape sur la card « Calendrier & bookings »</li>
+            <li>Écran s'ouvre sur la 1<sup>re</sup> annonce du proprio. Chips horizontales sticky permettent de switcher</li>
+            <li>Tape sur le bouton <strong>+ Bloquer / Réserver</strong> en AppBar</li>
+            <li>Bottom sheet 2 options. Choisit « Réserver pour un client direct »</li>
+            <li><strong>Step 1</strong> : sélectionne <em>16-17 nov</em> sur le calendrier date range (jours rouges = déjà occupés non-tappables)</li>
+            <li><strong>Step 2</strong> : saisit nom (« Rachid B. »), téléphone, choisit <em>Client direct</em>, choisit <em>Wave</em>. Récap : <code>1 nuit × 68k = 68 000</code>, « Vous recevez 68 000 »</li>
+            <li><strong>Step 3</strong> : confirmation « Réservation enregistrée — réf <code>ASF-H8R2X</code> » avec SuccessCircle vert et récap final</li>
+            <li>Tape « Retour au calendrier » → 16-17 nov est désormais marqué occupé, la stat « Réservations du mois » s'incrémente</li>
+        </ol>
+    </section>
+
+    <section>
+        <h2 id="backend">🔌 Coordination backend</h2>
+
+        <p>L'endpoint <code>createManualReservation</code> existe déjà côté serveur. Le wizard envoie 3 champs supplémentaires sur le payload :</p>
+
+        <pre><code>{
+  "appartId": 12,
+  "debut": "2026-11-16T00:00:00.000",
+  "dure": 1,
+  "clientNom": "Madame Touré",
+  "clientTelephone": "+225 07 12 34 56",
+  "montant": 68000,
+  "source": "CLIENT_DIRECT",          // ← NOUVEAU
+  "moyenPaiement": "WAVE",            // ← NOUVEAU
+  "demarcheurId": null                // ← NOUVEAU (requis si source = DEMARCHEUR_PARTENAIRE)
+}</code></pre>
+
+        <div class="card card-warn">
+            <h3 style="margin-top:0">⚠️ Demande backend</h3>
+            <p>Pour l'instant, ces 3 nouveaux champs sont envoyés mais ignorables côté serveur (parser tolérant). Côté Flutter, leur absence dans le DTO retourné n'a pas d'impact. Pour activer la commission démarcheur sur résa manuelle et la traçabilité paiement, le backend doit :</p>
+            <ul>
+                <li>Persister <code>source</code> et <code>moyenPaiement</code> sur <code>ReservationManuelle</code> (2 colonnes enum)</li>
+                <li>Si <code>source == DEMARCHEUR_PARTENAIRE</code> : persister <code>demarcheur_id</code> (FK), calculer <code>montantCommission = montant × 0.10</code></li>
+            </ul>
+            <p>Détails complets dans <code>BACKEND_NOTES_RESERVATION_DETAIL.md §0</code>.</p>
+        </div>
+    </section>
+
+    <section>
+        <h2 id="fichiers">📂 Fichiers touchés</h2>
+
+        <h3>Créés (24)</h3>
+
+        <table>
+            <thead><tr><th>Type</th><th>Fichier</th></tr></thead>
+            <tbody>
+                <tr><td>Enum</td><td><code>lib/model/enumeration/reservation_manuelle_source.dart</code></td></tr>
+                <tr><td>Util pur</td><td><code>lib/util/calc/active_bookings_counter.dart</code></td></tr>
+                <tr><td>Util pur</td><td><code>lib/util/calc/manque_a_gagner_calculator.dart</code></td></tr>
+                <tr><td>Util pur</td><td><code>lib/util/calc/tip_suggestion_engine.dart</code></td></tr>
+                <tr><td>Util pur</td><td><code>lib/util/calc/manual_reservation_validator.dart</code></td></tr>
+                <tr><td>BLoC</td><td><code>lib/bloc/manual_reservation_wizard_bloc/</code> (3 fichiers)</td></tr>
+                <tr><td>Écran</td><td><code>lib/screen/.../calendrier/calendar_bookings_screen.dart</code></td></tr>
+                <tr><td>Écran</td><td><code>lib/screen/.../calendrier/manual_reservation_wizard_screen.dart</code></td></tr>
+                <tr><td>Atom écran</td><td>7 widgets (chips, header, stats row, stat cell, tip banner, bookings list, booking row)</td></tr>
+                <tr><td>Modal</td><td><code>manual_reservation_action_sheet.dart</code>, <code>block_period_dialog.dart</code></td></tr>
+                <tr><td>Atom wizard</td><td>9 widgets (range picker, day cell, 3 steps, source picker, payment chips, recap card, demarcheur sheet)</td></tr>
+                <tr><td>Card dashboard</td><td><code>lib/screen/.../home/widget/calendar_bookings_card.dart</code></td></tr>
+                <tr><td>Tests (5 fichiers)</td><td>51 tests sur utils + BLoC wizard</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Modifiés (5)</h3>
+        <ul>
+            <li><code>lib/model/enumeration/moyen_paiement.dart</code> — ajout <code>ESPECES</code> + <code>VIREMENT</code> + getter <code>label</code> + liste <code>manualReservationOptions</code></li>
+            <li><code>lib/model/request/reservation_manuelle_req.dart</code> — champs <code>source</code> / <code>moyenPaiement</code> / <code>demarcheurId</code> (nullable pour rétro-compat édition)</li>
+            <li><code>lib/model/request/reservation_req.dart</code> — switch <code>MoyenPaiement</code> remplacé par <code>.value</code> (extensible)</li>
+            <li><code>lib/screen/.../home/dashboard_screen.dart</code> — insertion de <code>CalendarBookingsCard</code> entre <code>ProprioKpiGrid</code> et <code>ProprioCashflowSection</code></li>
+            <li><code>BACKEND_NOTES_RESERVATION_DETAIL.md</code> — nouvelle section §0 payload étendu</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2 id="qualite">📊 Qualité</h2>
+
+        <div class="stat-grid">
+            <div class="stat-cell"><div class="num">97</div><div class="lab">/ 100 audit</div></div>
+            <div class="stat-cell"><div class="num">171</div><div class="lab">tests verts</div></div>
+            <div class="stat-cell"><div class="num">51</div><div class="lab">nouveaux tests</div></div>
+            <div class="stat-cell"><div class="num">0</div><div class="lab">erreur analyzer</div></div>
+            <div class="stat-cell"><div class="num">14/14</div><div class="lab">critères acceptés</div></div>
+            <div class="stat-cell"><div class="num">10/10</div><div class="lab">règles Flutter</div></div>
+        </div>
+
+        <h3>Conformité</h3>
+        <ul>
+            <li><strong>100 %</strong> du contrat d'implémentation <code>architecture.md §7</code> respecté (11 sections)</li>
+            <li><strong>14 / 14</strong> critères d'acceptation business-spec atteints</li>
+            <li><strong>0</strong> <code>Widget _buildXxx()</code> privé, 0 <code>TODO</code>/<code>FIXME</code>, 0 <code>print</code> debug, 0 <code>catch</code> vide</li>
+            <li><strong>Mémoire respectée</strong> : 0 <code>alignment</code> sur <code>Container</code> dans parent loose (cf. bug Flutter 3.35 + iOS 26 documenté)</li>
+            <li><strong>171 / 171 tests verts</strong> — y compris les 120 tests existants intacts (aucune régression sur <code>typeLocation</code>, <code>backend mapper</code>, <code>validator</code>, etc.)</li>
+        </ul>
+
+        <h3>Améliorations V2 (notées non bloquantes)</h3>
+        <ul>
+            <li>Extraire <code>_CalendarContent</code> (170 LOC) du screen principal dans un fichier dédié pour passer sous le seuil 300 LOC</li>
+            <li>Extraire <code>_daysWith</code> / <code>_joursDistincts</code> / <code>_reservationsDuMois</code> dans un util pur dédié (SRP plus strict)</li>
+            <li>Brancher le picker démarcheur partenaire sur <code>PartenariatBloc</code> (V1 = empty state)</li>
+        </ul>
+
+        <h3>Hors scope</h3>
+        <ul>
+            <li>Picker démarcheur partenaire avec liste réelle (V1 = placeholder empty state)</li>
+            <li>Notification SMS au client (côté serveur, non Flutter)</li>
+            <li>Refonte de <code>ListingCalendarTab</code> (vue mono-annonce dans l'édition d'annonce — non touchée)</li>
+            <li>Historique des suggestions « Conseil » (heuristique stateless V1)</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>🔗 Features liées</h2>
+        <ul>
+            <li><a href="typeLocation-enum-refacto.html" style="color:var(--accent)">typeLocation — Enum strict</a> : refonte du modèle annonce (typologie pièces). Les chips d'annonces et le header de cette feature consomment <code>Appartement.titleSafe</code>, <code>areaName</code>, <code>priceAmount</code> exposés par cette refonte.</li>
+            <li><a href="v9-1-wizard-creation-appart.html" style="color:var(--accent)">V9.1 — Wizard création appartement</a> : pattern wizard 3-5 étapes réutilisé ici (BLoC local, <code>WizardStepIndicator</code>, <code>WizardCtaBar</code>).</li>
+            <li><a href="compte-proprietaire.html" style="color:var(--accent)">Compte propriétaire</a> : dashboard dans lequel s'insère la nouvelle <code>CalendarBookingsCard</code>.</li>
+        </ul>
+    </section>
+
+    <footer>
+        Pipeline : <code>/feature full</code> (BA → Architecture → UI/UX → Dev → Audit → Doc) ·
+        Spec source : <code>.ai-outputs/specs/calendrier-bookings-proprio/</code>
+    </footer>
+</div>
+</body>
+</html>

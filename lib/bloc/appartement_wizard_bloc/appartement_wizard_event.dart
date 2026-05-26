@@ -14,8 +14,17 @@ class InitWizard extends AppartementWizardEvent {
 /// Met à jour un champ du brouillon.
 ///
 /// Champs gérés (clés string) :
-/// `titre`, `description`, `typeLocation`, `nbChambres`, `nbLits`,
-/// `nbDouches`, `prix`, `address`, `photos`, `offres`, `brouillon`.
+/// - `titre: String?`
+/// - `description: String?`
+/// - `typeLocation: AppartementTypeLocation?` — au changement de type,
+///   `nbChambres` est automatiquement recalculé via
+///   `TypeLocationChambresPolicy.resolveNbChambres`.
+/// - `nbChambres: int?` — utile uniquement pour le cas `cinqPlus`
+///   (saisie libre, min 4).
+/// - `nbLits: int?`, `nbDouches: int?`, `prix: num?`
+/// - `address: Address?`, `addressLatLng: LatLng?`, `addressNom: String?`
+/// - `photos: List<PhotoAppart>?`, `offres: List<Offre>?`
+/// - `brouillon: bool?`
 class UpdateField extends AppartementWizardEvent {
   final String field;
   final dynamic value;
@@ -41,6 +50,14 @@ class TriggerAutoSave extends AppartementWizardEvent {}
 /// `validationErrors` ; sinon active `published = true` pour que l'écran
 /// dispatch CreateAppartement / UpdateAppartement vers AppartementBloc.
 class PublishAppartement extends AppartementWizardEvent {}
+
+/// Notifie le bloc d'un échec de publication côté écran (catch API).
+/// Reset les flags `isPublishing` + `published` pour permettre un retry
+/// et arrêter le loader.
+class PublishAppartementFailed extends AppartementWizardEvent {
+  final String message;
+  PublishAppartementFailed(this.message);
+}
 
 /// Efface le brouillon courant et réinitialise l'état.
 class DiscardDraft extends AppartementWizardEvent {}

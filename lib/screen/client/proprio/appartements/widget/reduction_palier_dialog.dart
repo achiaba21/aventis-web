@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:asfar/model/remise/condition.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
@@ -8,7 +7,7 @@ import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/outlined_custom_button.dart';
 import 'package:asfar/widget/button/plain_button.dart';
-import 'package:asfar/widget/input/input_field.dart';
+import 'package:asfar/widget/input/number_input_field.dart';
 
 /// Résultat retourné par `ReductionPalierDialog.show()`.
 ///
@@ -76,10 +75,10 @@ class _ReductionPalierDialogState extends State<ReductionPalierDialog> {
   }
 
   void _onSave() {
-    final daysText = _daysCtrl.text.trim();
-    final montantText = _montantCtrl.text.trim();
-    final days = int.tryParse(daysText);
-    final montant = double.tryParse(montantText);
+    final daysDigits = _daysCtrl.text.replaceAll(RegExp(r'[^\d]'), '');
+    final montantDigits = _montantCtrl.text.replaceAll(RegExp(r'[^\d]'), '');
+    final days = int.tryParse(daysDigits);
+    final montant = double.tryParse(montantDigits);
     if (days == null || days <= 0) {
       setState(() => _error = 'Saisissez un nombre de nuits positif.');
       return;
@@ -128,20 +127,21 @@ class _ReductionPalierDialogState extends State<ReductionPalierDialog> {
               style: AppTextStyles.small.copyWith(fontSize: 12),
             ),
             const SizedBox(height: 16),
-            InputField(
+            NumberInputField(
               controller: _daysCtrl,
-              eyebrow: 'À PARTIR DE (NUITS)',
+              eyebrow: 'À PARTIR DE',
               hintText: '7',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              suffix: 'nuits',
+              maxDigits: 3,
             ),
             const SizedBox(height: 12),
-            InputField(
+            NumberInputField(
               controller: _montantCtrl,
-              eyebrow: 'NOUVEAU PRIX / NUIT (FCFA)',
-              hintText: '40000',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              eyebrow: 'NOUVEAU PRIX / NUIT',
+              hintText: '40 000',
+              formatThousands: true,
+              suffix: 'FCFA',
+              useMonoStyle: true,
             ),
             if (_error != null) ...[
               const SizedBox(height: 10),

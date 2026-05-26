@@ -37,16 +37,5 @@ class ReservationReq {
   }
 
   // Méthode utilitaire pour convertir MoyenPaiement en String
-  static String _moyenPaiementToString(MoyenPaiement moyen) {
-    switch (moyen) {
-      case MoyenPaiement.OM:
-        return 'OM';
-      case MoyenPaiement.MOOV_MONNEY:
-        return 'MOOV_MONNEY';
-      case MoyenPaiement.MOMO:
-        return 'MOMO';
-      case MoyenPaiement.WAVE:
-        return 'WAVE';
-    }
-  }
+  static String _moyenPaiementToString(MoyenPaiement moyen) => moyen.value;
 }

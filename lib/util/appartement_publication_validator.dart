@@ -1,4 +1,6 @@
+import 'package:asfar/model/enumeration/appartement_type_location.dart';
 import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/util/type_location_chambres_policy.dart';
 
 /// Résultat d'une validation de publication.
 ///
@@ -24,11 +26,14 @@ class ValidationResult {
 
 /// Valide qu'un [Appartement] est prêt à être publié (pas brouillon).
 ///
-/// Règles métier (cf. business-spec.md §4.2) :
+/// Règles métier (cf. business-spec.md §4) :
 /// - Titre obligatoire (non vide après trim)
 /// - Adresse complète (lat + longi non nuls)
-/// - Type de location renseigné
-/// - Capacité renseignée (chambres ≥ 0, lits ≥ 0, douches ≥ 0)
+/// - `typeLocation` renseigné (enum strict)
+/// - `nbChambres` ≥ 1 ET cohérent avec `typeLocation`
+///   (Studio/2P → 1, 3P → 2, 4P → 3, 5+ → ≥ 4) — délégué à
+///   `TypeLocationChambresPolicy.isCoherent`
+/// - `nbLits` ≥ 0 et `nbDouches` ≥ 0
 /// - Prix > 0
 /// - **Au moins 3 photos**
 ///
@@ -59,10 +64,15 @@ class AppartementPublicationValidator {
       errors['address'] = "L'adresse GPS est obligatoire";
     }
     if (!_hasTypeLocation(appart)) {
-      errors['typeLocation'] = 'Le type de location est obligatoire';
+      errors['typeLocation'] = 'Le type de logement est obligatoire';
+    } else if (!_hasMinChambres(appart)) {
+      errors['nbChambres'] = 'Au moins 1 chambre est requise';
+    } else if (!_isCapacityCoherentWithType(appart)) {
+      errors['nbChambres'] = _incoherenceMessage(appart.typeLocation!);
     }
-    if (!_hasCapacity(appart)) {
-      errors['capacity'] = 'La capacité (chambres, lits, douches) doit être renseignée';
+    if (!_hasLitsAndDouches(appart)) {
+      errors['capacity'] =
+          'Les lits et salles de bain doivent être renseignés';
     }
     if (!_hasPrix(appart)) {
       errors['prix'] = 'Le prix doit être supérieur à 0';
@@ -84,8 +94,13 @@ class AppartementPublicationValidator {
   bool isStep2Complete(Appartement appart) =>
       _hasTitre(appart) && _hasTypeLocation(appart);
 
-  /// Étape 3 — Capacité : chambres + lits + douches.
-  bool isStep3Complete(Appartement appart) => _hasCapacity(appart);
+  /// Étape 3 — Capacité : lits + douches saisis ; chambres soit dérivé du
+  /// type, soit ≥ 4 pour `cinqPlus` (cf. règle croisée).
+  bool isStep3Complete(Appartement appart) =>
+      _hasLitsAndDouches(appart) &&
+      _hasMinChambres(appart) &&
+      (appart.typeLocation == null ||
+          _isCapacityCoherentWithType(appart));
 
   /// Étape 4 — Photos : au moins [minPhotosToPublish].
   bool isStep4Complete(Appartement appart) => _hasMinPhotos(appart);
@@ -100,14 +115,20 @@ class AppartementPublicationValidator {
   bool _hasAddress(Appartement a) =>
       a.address != null && a.address!.lat != null && a.address!.longi != null;
 
-  bool _hasTypeLocation(Appartement a) =>
-      a.typeLocation != null && a.typeLocation!.isNotEmpty;
+  bool _hasTypeLocation(Appartement a) => a.typeLocation != null;
 
-  bool _hasCapacity(Appartement a) =>
-      a.nbChambres != null &&
+  bool _hasMinChambres(Appartement a) => (a.nbChambres ?? 0) >= 1;
+
+  bool _isCapacityCoherentWithType(Appartement a) {
+    return TypeLocationChambresPolicy.isCoherent(
+      a.typeLocation!,
+      a.nbChambres,
+    );
+  }
+
+  bool _hasLitsAndDouches(Appartement a) =>
       a.nbLits != null &&
       a.nbDouches != null &&
-      a.nbChambres! >= 0 &&
       a.nbLits! >= 0 &&
       a.nbDouches! >= 0;
 
@@ -115,4 +136,11 @@ class AppartementPublicationValidator {
 
   bool _hasMinPhotos(Appartement a) =>
       (a.photos?.length ?? 0) >= minPhotosToPublish;
+
+  String _incoherenceMessage(AppartementTypeLocation type) {
+    if (type == AppartementTypeLocation.cinqPlus) {
+      return 'Un logement 5+ pièces doit avoir au moins 4 chambres';
+    }
+    return '${type.label} doit avoir ${type.derivedNbChambres} chambre(s)';
+  }
 }

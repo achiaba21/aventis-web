@@ -4,13 +4,16 @@ import 'package:latlong2/latlong.dart';
 import 'package:asfar/bloc/appartement_wizard_bloc/appartement_wizard_event.dart';
 import 'package:asfar/bloc/appartement_wizard_bloc/appartement_wizard_state.dart';
 import 'package:asfar/model/document/photo_appart.dart';
+import 'package:asfar/model/enumeration/appartement_type_location.dart';
 import 'package:asfar/model/locolite/address.dart';
+import 'package:asfar/model/remise/remise.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/residence/offre.dart';
 import 'package:asfar/service/geo/geo_location_service.dart';
 import 'package:asfar/service/storage/appartement_draft_storage.dart';
 import 'package:asfar/util/appartement_publication_validator.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/type_location_chambres_policy.dart';
 
 /// BLoC du wizard d'ajout/édition d'appartement.
 ///
@@ -42,7 +45,20 @@ class AppartementWizardBloc extends Bloc<AppartementWizardEvent, AppartementWiza
     on<PrevStep>(_onPrevStep);
     on<GoToStep>(_onGoToStep);
     on<PublishAppartement>(_onPublish);
+    on<PublishAppartementFailed>(_onPublishFailed);
     on<DiscardDraft>(_onDiscardDraft);
+  }
+
+  void _onPublishFailed(
+    PublishAppartementFailed event,
+    Emitter<AppartementWizardState> emit,
+  ) {
+    // Reset les flags pour arrêter le loader et permettre un retry.
+    emit(state.copyWith(
+      isPublishing: false,
+      published: false,
+      errorMessage: event.message,
+    ));
   }
 
   Future<void> _onInit(InitWizard event, Emitter<AppartementWizardState> emit) async {
@@ -202,7 +218,24 @@ class AppartementWizardBloc extends Bloc<AppartementWizardEvent, AppartementWiza
       case 'description':
         return draft.copyWith(description: value as String?);
       case 'typeLocation':
-        return draft.copyWith(typeLocation: value as String?);
+        final newType = value as AppartementTypeLocation?;
+        if (newType == null) {
+          return draft.copyWith(typeLocation: null);
+        }
+        // Règle métier : au changement de type, recalculer nbChambres
+        // (force la valeur dérivée, ou min 4 pour cinqPlus).
+        final resolvedChambres = TypeLocationChambresPolicy.resolveNbChambres(
+          newType, draft.nbChambres,
+        );
+        // Lits + douches : pré-remplis avec les valeurs typiques du type.
+        // Pour Studio/2P/3P/4P : valeurs forcées (saisie masquée step 2).
+        // Pour 5+ : valeurs initiales modifiables ensuite par le proprio.
+        return draft.copyWith(
+          typeLocation: newType,
+          nbChambres: resolvedChambres,
+          nbLits: newType.defaultNbLits,
+          nbDouches: newType.defaultNbDouches,
+        );
       case 'nbChambres':
         return draft.copyWith(nbChambres: value as int?);
       case 'nbLits':
@@ -244,6 +277,10 @@ class AppartementWizardBloc extends Bloc<AppartementWizardEvent, AppartementWiza
             geoLongi: current.geoLongi,
           ),
         );
+      case 'remises':
+        // value = Remise? (porteur des conditions/paliers de réduction).
+        // Cf. step 5 wizard — section Remises long séjour.
+        return draft.copyWith(remises: value as Remise?);
       case 'photos':
         return draft.copyWith(photos: value as List<PhotoAppart>?);
       case 'offres':

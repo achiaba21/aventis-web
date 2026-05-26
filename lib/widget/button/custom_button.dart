@@ -59,13 +59,18 @@ class _CustomButtonState extends State<CustomButton> {
         ));
         children.add(const SizedBox(width: 8));
       }
-      children.add(Text(
-        widget.text,
-        style: TextStyle(
-          color: AppColors.onAccent,
-          fontSize: widget.size.fontSize,
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.1,
+      children.add(Flexible(
+        child: Text(
+          widget.text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: AppColors.onAccent,
+            fontSize: widget.size.fontSize,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.1,
+          ),
         ),
       ));
     }
