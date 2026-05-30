@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/screen/client/locataire/map/widget/map_overlay_card.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
+import 'package:asfar/widget/map/overlay/map_overlay_card.dart';
 
 /// Card centrée affichant un `EmptyState.error` en cas d'erreur réseau
-/// pendant le chargement des résidences.
+/// pendant le chargement des logements.
 class MapErrorOverlay extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;

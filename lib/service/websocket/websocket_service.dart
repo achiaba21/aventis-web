@@ -344,6 +344,35 @@ class WebSocketService {
     }
   }
 
+  /// Relance une tentative de connexion UNIQUEMENT si le socket a réellement
+  /// abandonné (aucune tentative en cours, aucun timer de reconnexion actif).
+  ///
+  /// Utilisé par `ConnectivityService` pour « réveiller » le socket après que
+  /// les tentatives internes (backoff) aient été épuisées. Conçu pour ne JAMAIS
+  /// créer de connexion parallèle :
+  /// - no-op si déjà connecté / en cours de connexion / en reconnexion ;
+  /// - no-op si le socket a déjà un timer de reconnexion programmé ;
+  /// - sinon, désactive proprement l'ancien client avant d'en relancer un.
+  void reconnectNow() {
+    if (_currentState.isConnected ||
+        _currentState.isConnecting ||
+        _currentState.isReconnecting) {
+      return;
+    }
+    // Le socket va déjà retenter tout seul → ne pas interférer (anti-churn).
+    if (_reconnectTimer?.isActive ?? false) return;
+    if (_userPhone == null) return;
+
+    // Fermer proprement l'éventuel client mort avant d'en recréer un, sinon
+    // on se retrouve avec deux connexions STOMP concurrentes.
+    _stompClient?.deactivate();
+    _stompClient = null;
+
+    _updateState(_currentState.copyWith(reconnectAttempts: 0));
+    deboger('🔄 reconnectNow() — relance de la connexion WebSocket');
+    _connect();
+  }
+
   void sendMessage(String destination, Map<String, dynamic> body) {
     if (!_currentState.isConnected || _stompClient == null) {
       deboger('❌ Impossible d\'envoyer le message: WebSocket non connecté');

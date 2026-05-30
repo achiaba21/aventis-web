@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:asfar/config/app_propertie.dart';
 import 'package:asfar/service/auth/auth_manager.dart';
+import 'package:asfar/service/connectivity/connectivity_service.dart';
 import 'package:asfar/util/custom_exception.dart';
 import 'package:asfar/util/error_handler.dart';
+import 'package:asfar/util/helper/network_error_classifier.dart';
 import 'package:asfar/util/function.dart';
 import 'package:asfar/util/response/response_mapper.dart';
 import 'package:asfar/util/navigation.dart';
@@ -14,6 +16,10 @@ import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 class DioRequest {
   static DioRequest? _instance;
   String? _currentToken;
+
+  /// Marqueur posé sur une requête déjà prise en charge par le retry réseau,
+  /// pour éviter qu'elle ne ré-entre dans la boucle de rejeu à chaque échec.
+  static const String _netRetryFlag = '__net_retry__';
 
   static DioRequest get instance {
     _instance = _instance ?? DioRequest._internal();
@@ -270,6 +276,23 @@ class DioRequest {
       return handler.next(error);
     }
 
+    // ============ RETRY RÉSEAU (lectures GET) ============
+    // Si la requête échoue pour cause RÉSEAU (pas d'internet / timeout), on la
+    // suspend et on la rejoue automatiquement dès que la connexion serveur
+    // revient (source de vérité : socket via ConnectivityService). Couvre TOUS
+    // les chargements de données de l'app sans modifier le moindre BLoC.
+    // Lectures uniquement : on ne rejoue pas les écritures (POST/PUT/DELETE).
+    final opts = error.requestOptions;
+    final isGet = opts.method.toUpperCase() == 'GET';
+    final alreadyRetrying = opts.extra[_netRetryFlag] == true;
+    if (isGet &&
+        !alreadyRetrying &&
+        NetworkErrorClassifier.isNetworkError(error)) {
+      opts.extra[_netRetryFlag] = true;
+      _retryWhenOnline(opts, handler);
+      return;
+    }
+
     // Logger l'erreur avec plus de détails
     ErrorHandler.logError("DIO REQUEST", error);
 
@@ -286,6 +309,52 @@ class DioRequest {
     );
 
     return handler.next(modifiedError);
+  }
+
+  /// Suspend une requête GET échouée pour cause réseau et la rejoue dès que la
+  /// connexion serveur revient. Le `Future` d'origine du BLoC ne se résout
+  /// qu'avec la réponse finale → l'écran se met à jour tout seul, sans
+  /// redémarrage et sans code spécifique par écran.
+  Future<void> _retryWhenOnline(
+    RequestOptions opts,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final conn = ConnectivityService.instance;
+    int onlineButFailing = 0;
+    while (true) {
+      if (!conn.isOnline) {
+        // Attend la transition online (sans timeout → survit aux coupures
+        // longues, exactement le besoin : « quand la co revient, on rejoue »).
+        await conn.waitForOnline();
+      } else {
+        // Connecté mais la requête échoue quand même (serveur momentanément
+        // injoignable) : backoff borné pour éviter une boucle serrée.
+        if (onlineButFailing >= 3) {
+          return handler.next(
+            DioException(
+              requestOptions: opts,
+              type: DioExceptionType.connectionError,
+              error: 'Erreur de connexion',
+              message: 'Erreur de connexion',
+            ),
+          );
+        }
+        onlineButFailing++;
+        await Future.delayed(Duration(seconds: 2 * onlineButFailing));
+      }
+
+      try {
+        final response = await _dio.fetch(opts);
+        return handler.resolve(response);
+      } on DioException catch (e) {
+        if (NetworkErrorClassifier.isNetworkError(e)) {
+          continue; // de nouveau offline → ré-attendre le retour
+        }
+        return handler.next(e); // erreur métier → propager normalement
+      } catch (e) {
+        return handler.next(DioException(requestOptions: opts, error: e));
+      }
+    }
   }
 
   // === MÉTHODES GÉNÉRIQUES AVEC MAPPING AUTOMATIQUE ===

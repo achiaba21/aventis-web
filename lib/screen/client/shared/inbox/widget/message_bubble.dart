@@ -39,7 +39,10 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            // Hug le contenu (au lieu de stretch qui forçait chaque bulle à la
+            // largeur max 78 %) : les messages courts restent compacts.
+            crossAxisAlignment:
+                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(

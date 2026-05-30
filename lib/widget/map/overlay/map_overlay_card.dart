@@ -3,8 +3,7 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 
 /// Card centrée flottante au-dessus de la carte, utilisée comme conteneur
-/// commun pour les 3 overlays du `LocataireMapScreen` (Loading / Empty /
-/// Error).
+/// commun pour les 3 overlays partagés (Loading / Empty / Error).
 ///
 /// Style partagé : fond `bgElev1` semi-opaque, border `line`, radius `lg`,
 /// shadow profonde pour ressortir sur les tuiles OSM dark filtered.

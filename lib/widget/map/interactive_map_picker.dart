@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:asfar/model/geocoding/geocoding_result.dart';
 import 'package:asfar/model/map/map_appartement.dart';
+import 'package:asfar/service/geocoding/geocoding_service.dart';
 import 'package:asfar/widget/map/map_pin_marker.dart';
 import 'package:asfar/widget/map/map_search_bar.dart';
+import 'package:asfar/widget/map/map_search_suggestions.dart';
 import 'package:asfar/widget/map/map_view.dart';
 import 'package:asfar/widget/map/map_zone_banner.dart';
 
@@ -71,8 +74,20 @@ class InteractiveMapPicker extends StatefulWidget {
 class _InteractiveMapPickerState extends State<InteractiveMapPicker> {
   static const _debounceDuration = Duration(milliseconds: 300);
 
+  /// Délai avant de lancer l'autocomplétion de lieu (anti-spam de frappe).
+  static const _suggestDebounce = Duration(milliseconds: 350);
+
+  /// Zoom appliqué quand on sélectionne une suggestion.
+  static const double _suggestionZoom = 14;
+
   MapController? _internalCtrl;
   Timer? _debounce;
+
+  final GeocodingService _geocoding = GeocodingService.instance;
+  final TextEditingController _searchTextCtrl = TextEditingController();
+  Timer? _suggestDebounceTimer;
+  List<GeocodingResult> _suggestions = const [];
+  int _queryToken = 0;
 
   MapController get _controller {
     if (widget.controller != null) return widget.controller!;
@@ -82,6 +97,8 @@ class _InteractiveMapPickerState extends State<InteractiveMapPicker> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _suggestDebounceTimer?.cancel();
+    _searchTextCtrl.dispose();
     _internalCtrl?.dispose();
     super.dispose();
   }
@@ -97,6 +114,42 @@ class _InteractiveMapPickerState extends State<InteractiveMapPicker> {
         // mapCtrl pas encore prêt — ignore.
       }
     });
+  }
+
+  void _onQueryChanged(String value) {
+    _suggestDebounceTimer?.cancel();
+    final query = value.trim();
+    if (query.length < 3) {
+      _clearSuggestions();
+      return;
+    }
+    _suggestDebounceTimer = Timer(_suggestDebounce, () => _fetchSuggestions(query));
+  }
+
+  Future<void> _fetchSuggestions(String query) async {
+    final token = ++_queryToken;
+    final results = await _geocoding.autocomplete(query, countrycodes: 'ci');
+    // Ignore les réponses obsolètes (l'utilisateur a continué à taper).
+    if (!mounted || token != _queryToken) return;
+    setState(() => _suggestions = results);
+  }
+
+  void _onSuggestionSelected(GeocodingResult result) {
+    final target = result.latLng;
+    _searchTextCtrl.text = result.displayName.split(',').first.trim();
+    _clearSuggestions();
+    FocusScope.of(context).unfocus();
+    _controller.move(target, _suggestionZoom);
+    // `move()` programmatique ne déclenche pas `MapEventMoveEnd` → on notifie
+    // manuellement le parent pour recharger les résidences de la zone.
+    widget.onCenterChanged(target);
+  }
+
+  void _clearSuggestions() {
+    _queryToken++;
+    if (_suggestions.isNotEmpty) {
+      setState(() => _suggestions = const []);
+    }
   }
 
   @override
@@ -118,15 +171,29 @@ class _InteractiveMapPickerState extends State<InteractiveMapPicker> {
           alignment: Alignment.center,
           child: _CenterPin(),
         ),
-        // Search bar overlay en haut.
+        // Search bar overlay en haut + suggestions d'autocomplétion.
         Positioned(
           top: 12,
           left: 16,
           right: 16,
-          child: MapSearchBar(
-            loading: widget.isSearching,
-            error: widget.searchError,
-            onSubmit: widget.onSearchSubmitted,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MapSearchBar(
+                controller: _searchTextCtrl,
+                loading: widget.isSearching,
+                error: widget.searchError,
+                onChanged: _onQueryChanged,
+                onSubmit: (q) {
+                  _clearSuggestions();
+                  widget.onSearchSubmitted(q);
+                },
+              ),
+              MapSearchSuggestions(
+                suggestions: _suggestions,
+                onSelected: _onSuggestionSelected,
+              ),
+            ],
           ),
         ),
         // Bandeau bas — laisse 80px à droite pour le FAB MyLocation.

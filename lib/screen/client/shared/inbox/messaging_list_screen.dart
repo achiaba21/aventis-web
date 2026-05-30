@@ -70,6 +70,17 @@ class _MessagingListScreenState extends State<MessagingListScreen> {
         builder: (context, userState) {
           final currentUser = userState.user;
           return BlocBuilder<ConversationBloc, ConversationState>(
+            // Ne rebuild que pour les états porteurs de conversations. Les états
+            // transitoires d'un thread (MessageSent, MessageSending,
+            // MessageSendError, NewMessageReceived…) ne portent pas la liste :
+            // sans ce filtre, `_extractConversations` retombe à vide après un
+            // envoi → l'écran affiche « Aucune conversation ».
+            buildWhen: (_, curr) =>
+                curr is ConversationLoading ||
+                curr is ConversationLoaded ||
+                curr is ConversationError ||
+                curr is MessagesLoading ||
+                curr is MessagesLoaded,
             builder: (context, convState) {
               if (convState is ConversationLoading) {
                 return const MessagingLoadingView();

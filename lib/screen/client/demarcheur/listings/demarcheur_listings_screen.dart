@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_bloc.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_event.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_state.dart';
+import 'package:asfar/bloc/demarcheur_map_bloc/demarcheur_map_bloc.dart';
 import 'package:asfar/model/calendar/calendar_plage.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/residence/appart_display.dart';
@@ -10,7 +11,7 @@ import 'package:asfar/screen/client/demarcheur/detail/demarcheur_appart_detail_s
 import 'package:asfar/screen/client/demarcheur/listings/listing_filter_screen.dart';
 import 'package:asfar/screen/client/demarcheur/listings/listing_filters.dart';
 import 'package:asfar/screen/client/demarcheur/listings/widget/listing_availability_calendar.dart';
-import 'package:asfar/screen/client/demarcheur/listings/widget/listing_map_view.dart';
+import 'package:asfar/screen/client/demarcheur/listings/widget/listing_map_pane.dart';
 import 'package:asfar/screen/client/demarcheur/listings/widget/partner_listing_card.dart';
 import 'package:asfar/service/model/calendar/calendar_service.dart';
 import 'package:asfar/theme/app_colors.dart';
@@ -136,7 +137,10 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
         ),
         trailingWidth: 130,
       ),
-      body: SafeArea(
+      body: BlocProvider<DemarcheurMapBloc>(
+        create: (_) => DemarcheurMapBloc(),
+        lazy: true,
+        child: SafeArea(
         top: false,
         child: BlocBuilder<DemarcheurBloc, DemarcheurState>(
           builder: (context, state) {
@@ -190,13 +194,22 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
                   )
                 : null;
 
+            final appartementsParId = <int, Appartement>{
+              for (final a in allApparts)
+                if (a.id != null) a.id!: a,
+            };
+
             return Column(
               children: [
                 Expanded(
                   child: _showMap
-                      ? ListingMapView(
-                          appartements: apparts,
-                          onTap: _selectListing,
+                      ? ListingMapPane(
+                          appartementsParId: appartementsParId,
+                          activeFilters: _activeFilters,
+                          onTapAppartement: (a) => pushScreen(
+                            context,
+                            DemarcheurAppartDetailScreen(appartement: a),
+                          ),
                         )
                       : apparts.isEmpty
                           ? Padding(
@@ -239,7 +252,8 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
                           },
                         ),
                 ),
-                if (_selectedId != null &&
+                if (!_showMap &&
+                    _selectedId != null &&
                     selectedAppart != null &&
                     apparts.any((a) => a.id == _selectedId))
                   _ContinueButton(
@@ -253,6 +267,7 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
             );
           },
         ),
+      ),
       ),
     );
   }

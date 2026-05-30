@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:asfar/screen/client/locataire/map/widget/map_overlay_card.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/widget/map/overlay/map_overlay_card.dart';
 
 /// Petite card centrée bgElev1 avec spinner accent + "Chargement…".
 /// Non-bloquante : la carte reste visible/interactive en dessous.

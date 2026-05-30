@@ -9,9 +9,6 @@ import 'package:asfar/model/map/map_appartement.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/screen/client/locataire/booking/detail_screen.dart';
 import 'package:asfar/screen/client/locataire/home/search_screen.dart';
-import 'package:asfar/screen/client/locataire/map/widget/map_empty_overlay.dart';
-import 'package:asfar/screen/client/locataire/map/widget/map_error_overlay.dart';
-import 'package:asfar/screen/client/locataire/map/widget/map_loading_overlay.dart';
 import 'package:asfar/screen/client/locataire/map/widget/map_marker_bottom_sheet.dart';
 import 'package:asfar/screen/client/locataire/map/widget/my_location_fab.dart';
 import 'package:asfar/theme/app_colors.dart';
@@ -20,6 +17,9 @@ import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/map/interactive_map_picker.dart';
+import 'package:asfar/widget/map/overlay/map_empty_overlay.dart';
+import 'package:asfar/widget/map/overlay/map_error_overlay.dart';
+import 'package:asfar/widget/map/overlay/map_loading_overlay.dart';
 
 /// Écran cartographique interactif du locataire — V9.7b + InteractiveMapPicker.
 ///
@@ -220,7 +220,6 @@ class _LocataireMapScreenState extends State<LocataireMapScreen> {
                 ),
               if (isEmpty)
                 MapEmptyOverlay(
-                  onExpandRadius: null,
                   onDismiss: () =>
                       setState(() => _emptyOverlayDismissed = true),
                 ),

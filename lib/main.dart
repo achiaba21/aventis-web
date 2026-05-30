@@ -42,6 +42,7 @@ import 'package:asfar/model/user/user.dart';
 import 'package:asfar/screen/splash_screen.dart';
 import 'package:asfar/theme/app_theme.dart';
 import 'package:asfar/service/storage/storage_service.dart';
+import 'package:asfar/service/connectivity/connectivity_service.dart';
 import 'package:asfar/service/preload/preload_coordinator_builder.dart';
 import 'package:asfar/util/json_constructors_registry.dart';
 import 'package:asfar/util/function.dart';
@@ -76,6 +77,11 @@ void main() async {
 
   // Enregistrer les constructeurs JSON pour DioRequest
   initializeJsonConstructors();
+
+  // Résilience réseau : démarre la détection de connectivité (dérivée du
+  // socket) dès le lancement, pour que l'intercepteur Dio puisse suspendre et
+  // rejouer les requêtes échouées même avant la connexion du WebSocket.
+  ConnectivityService.instance.start();
 
   // Activer le rendu edge-to-edge pour que le contenu s'affiche derrière la status bar
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -244,6 +250,11 @@ class AppWithBlocListener extends StatelessWidget {
           ),
         );
     context.read<NotificationBloc>().add(const InitializeFCM());
+
+    // Résilience réseau : démarre la détection de connectivité (dérivée du
+    // socket). Idempotent. Le rejeu des requêtes échouées est géré au niveau
+    // de l'intercepteur Dio (couvre tous les chargements de données).
+    ConnectivityService.instance.start();
   }
 
   /// Démarre le préchargement transparent des données en arrière-plan

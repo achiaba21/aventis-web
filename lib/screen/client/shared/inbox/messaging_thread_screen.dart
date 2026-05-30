@@ -140,6 +140,15 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
                 listenWhen: (_, curr) =>
                     curr is MessageSent || curr is NewMessageReceived,
                 listener: (context, state) => _scrollToBottom(),
+                // Ne reconstruit la liste que pour les états qui portent les
+                // messages. Les états transitoires (MessageSent, MessageSending,
+                // MessageSendError…) n'en contiennent pas : sans ce filtre, le
+                // builder repasse avec une liste vide → la conversation
+                // « disparaît » juste après l'envoi d'un message.
+                buildWhen: (_, curr) =>
+                    curr is MessagesLoading ||
+                    curr is MessagesLoaded ||
+                    curr is MessagesError,
                 builder: (context, state) {
                   if (state is MessagesLoading &&
                       state.conversationId == _conversationId) {

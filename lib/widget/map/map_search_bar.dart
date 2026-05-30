@@ -16,6 +16,7 @@ class MapSearchBar extends StatefulWidget {
   final bool loading;
   final String? error;
   final ValueChanged<String> onSubmit;
+  final ValueChanged<String>? onChanged;
   final String hint;
 
   const MapSearchBar({
@@ -24,6 +25,7 @@ class MapSearchBar extends StatefulWidget {
     this.loading = false,
     this.error,
     required this.onSubmit,
+    this.onChanged,
     this.hint = 'Rechercher un quartier, une adresse…',
   });
 
@@ -121,6 +123,7 @@ class _MapSearchBarState extends State<MapSearchBar> {
                   controller: _controller,
                   focusNode: _focusNode,
                   textInputAction: TextInputAction.search,
+                  onChanged: widget.onChanged,
                   onSubmitted: (_) => _submit(),
                   enabled: !widget.loading,
                   style: const TextStyle(
