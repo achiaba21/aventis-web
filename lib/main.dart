@@ -10,6 +10,7 @@ import 'package:asfar/service/firebase/fcm_background_handler.dart';
 import 'package:asfar/bloc/active_shell_cubit/active_shell_cubit.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/commission_cubit/commission_cubit.dart';
+import 'package:asfar/bloc/document_cubit/document_cubit.dart';
 import 'package:asfar/bloc/commodite_cubit/commodite_cubit.dart';
 import 'package:asfar/bloc/demarcheur_bloc/demarcheur_bloc.dart';
 import 'package:asfar/bloc/rule_cubit/rule_cubit.dart';
@@ -119,6 +120,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => CommoditeCubit()..load()),
         BlocProvider(create: (_) => RuleCubit()..load()),
         BlocProvider(create: (_) => CommissionCubit()..load()),
+        BlocProvider(create: (_) => DocumentCubit()),
       ],
       child: const AppWithBlocListener(),
     );

@@ -8,11 +8,20 @@ class ProfileSettingsCallbacks {
   final VoidCallback? onPartenariats;
   final VoidCallback? onComingSoon;
 
+  /// Ouverture de l'écran de vérification d'identité (KYC).
+  final VoidCallback? onKyc;
+
+  /// Libellé de statut KYC affiché sur l'entrée (« Vérifié » / « En attente » /
+  /// « Non vérifié »). `null` si non applicable.
+  final String? kycStatusLabel;
+
   const ProfileSettingsCallbacks({
     this.onPersonalInfo,
     this.onNotifications,
     this.onPartenariats,
     this.onComingSoon,
+    this.onKyc,
+    this.kycStatusLabel,
   });
 }
 
@@ -60,11 +69,8 @@ class ProfileDisplayInfo {
             icon: Icons.person_outline,
             label: 'Informations personnelles',
             onTap: cb.onPersonalInfo),
-        ProfileSettingsItem(
-            icon: Icons.verified_outlined,
-            label: "Vérification d'identité",
-            value: 'Vérifié',
-            onTap: cb.onComingSoon),
+        // Pas d'entrée KYC pour le locataire : la vérification d'identité est
+        // réservée aux propriétaires et démarcheurs (règle backend).
         if (false)
           ProfileSettingsItem(
               icon: Icons.account_balance_wallet_outlined,
@@ -94,8 +100,8 @@ class ProfileDisplayInfo {
         ProfileSettingsItem(
             icon: Icons.verified_outlined,
             label: "Vérification d'identité",
-            value: 'Vérifié',
-            onTap: cb.onComingSoon),
+            value: cb.kycStatusLabel,
+            onTap: cb.onKyc),
         if (false)
           ProfileSettingsItem(
               icon: Icons.account_balance_outlined,
@@ -125,8 +131,8 @@ class ProfileDisplayInfo {
         ProfileSettingsItem(
             icon: Icons.verified_outlined,
             label: "Vérification d'identité",
-            value: 'Vérifié',
-            onTap: cb.onComingSoon),
+            value: cb.kycStatusLabel,
+            onTap: cb.onKyc),
         if (false)
           ProfileSettingsItem(
               icon: Icons.account_balance_wallet_outlined,

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asfar - Vérification d'identité (KYC)</title>
+    <style>
+        :root {
+            --bg-dark: #1D1D1D;
+            --bg-card: #2A2A2A;
+            --primary: #FFA02A;
+            --text: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --success: #22C55E;
+            --border: #374151;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            color: var(--primary); text-decoration: none;
+            margin-bottom: 30px; font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            font-size: 28px; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 15px; }
+        .badge {
+            display: inline-block; padding: 4px 12px; border-radius: 999px;
+            font-size: 12px; font-weight: 600; margin-left: 8px;
+        }
+        .badge-success { background: rgba(34,197,94,0.15); color: var(--success); }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 20px;
+        }
+        .card h2 { font-size: 20px; margin-bottom: 16px; color: var(--primary); }
+        .card h3 { font-size: 16px; margin: 16px 0 8px; color: var(--text); }
+        p { margin-bottom: 12px; color: var(--text-muted); }
+        ul { margin: 12px 0 12px 20px; color: var(--text-muted); }
+        li { margin-bottom: 6px; }
+        code {
+            background: #1A1A1A; padding: 2px 8px; border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace; font-size: 13px;
+            color: #FFA02A;
+        }
+        pre {
+            background: #1A1A1A; padding: 16px; border-radius: 8px;
+            overflow-x: auto; margin: 12px 0;
+        }
+        pre code { background: none; padding: 0; color: #E5E7EB; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); }
+        th { color: var(--primary); font-size: 14px; }
+        td { color: var(--text-muted); font-size: 14px; }
+        .file-path { color: var(--success); font-family: monospace; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Retour à l'index</a>
+
+        <h1>🛡️ Vérification d'identité (KYC) <span class="badge badge-success">Audit 98/100</span></h1>
+        <p class="subtitle">Envoi et suivi des pièces justificatives (propriétaire / démarcheur), statut « vérifié » et rafraîchissement temps réel au verdict admin</p>
+
+        <div class="card">
+            <h2>Vue d'ensemble</h2>
+            <p>Un <strong>propriétaire</strong> ou un <strong>démarcheur</strong> envoie une photo de pièce d'identité (titre choisi dans une liste). Un admin l'approuve ou la rejette. L'utilisateur est <strong>« vérifié » dès qu'au moins un document est au statut <code>VERIFIER</code></strong>. L'écran se rafraîchit automatiquement au verdict admin via le canal de notifications existant. Le <strong>locataire n'a pas accès</strong> à la fonctionnalité.</p>
+        </div>
+
+        <div class="card">
+            <h2>Statuts d'un document</h2>
+            <table>
+                <tr><th>Statut backend</th><th>Affichage</th><th>Ton</th></tr>
+                <tr><td><code>EN_ATTENTE</code></td><td>En attente</td><td>⏳ warning</td></tr>
+                <tr><td><code>VERIFIER</code></td><td>Vérifié</td><td>✅ success</td></tr>
+                <tr><td><code>REFUSER</code></td><td>Refusé (+ motif)</td><td>❌ danger</td></tr>
+            </table>
+            <p>Statut global dérivé (pas d'endpoint dédié) : <code>verified</code> si ≥ 1 document vérifié, sinon <code>pending</code> si au moins un document, sinon <code>none</code>.</p>
+        </div>
+
+        <div class="card">
+            <h2>Parcours utilisateur</h2>
+            <ul>
+                <li>Profil → entrée <strong>« Vérification d'identité »</strong> (affiche le vrai statut : Vérifié / En attente / Non vérifié).</li>
+                <li>Écran KYC : bandeau de statut global + historique complet des documents (miniature, titre, date, badge, motif si refusé).</li>
+                <li>Bouton <strong>« Envoyer une pièce »</strong> (ou « Renvoyer une pièce » après un refus) → bottom sheet : titre (liste prédéfinie ou « Autre ») + photo (galerie/caméra) + aperçu → envoi.</li>
+                <li>Après upload : document en <code>EN_ATTENTE</code>. À l'approbation/rejet, notification reçue → l'écran se recharge automatiquement.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>API consommée</h2>
+            <table>
+                <tr><th>Méthode</th><th>Endpoint</th><th>Rôle</th></tr>
+                <tr><td>GET</td><td><code>/api/user/documents</code></td><td>Liste des documents (tous statuts)</td></tr>
+                <tr><td>POST</td><td><code>/api/user/documents</code></td><td>Upload multipart : <code>file</code> + <code>titre</code></td></tr>
+            </table>
+            <p>Affichage du fichier : <code>${domain}/${path}</code> (servi en statique, sans auth). Le token Bearer est injecté automatiquement par <code>DioRequest</code>. Les erreurs 400 (fichier vide, &gt; 5 Mo, type non supporté, titre manquant, rôle non autorisé) sont relayées telles quelles à l'utilisateur (SnackBar).</p>
+        </div>
+
+        <div class="card">
+            <h2>Architecture</h2>
+            <h3>Modèles & logique pure</h3>
+            <ul>
+                <li><span class="file-path">lib/model/document/document_status.dart</span> — enum <code>DocumentStatus</code> + <code>fromBackend</code>/<code>label</code>/<code>tone</code></li>
+                <li><span class="file-path">lib/model/document/identity_document.dart</span> — modèle + <code>fromJson</code> + <code>fileUrl(domain)</code></li>
+                <li><span class="file-path">lib/util/calc/kyc_status_resolver.dart</span> — statut global (pur, testé)</li>
+            </ul>
+            <h3>Service & état</h3>
+            <ul>
+                <li><span class="file-path">lib/service/model/document/document_service.dart</span> — <code>getMyDocuments</code> + <code>uploadDocument</code></li>
+                <li><span class="file-path">lib/bloc/document_cubit/</span> — <code>DocumentCubit</code> (load / upload) + états</li>
+            </ul>
+            <h3>UI</h3>
+            <ul>
+                <li><span class="file-path">lib/screen/client/shared/profile/kyc/kyc_screen.dart</span> — écran principal</li>
+                <li><span class="file-path">.../kyc/widget/</span> — kyc_status_header, identity_document_card, kyc_document_status_badge, kyc_upload_sheet, kyc_title_selector</li>
+            </ul>
+            <h3>Intégration</h3>
+            <ul>
+                <li><span class="file-path">lib/main.dart</span> — <code>BlocProvider(DocumentCubit)</code></li>
+                <li><span class="file-path">lib/screen/client/shared/profile/profile_display_info.dart</span> — entrée KYC (statut dynamique, retirée pour le locataire)</li>
+                <li><span class="file-path">lib/screen/client/shared/profile/client_profile_screen.dart</span> — navigation + écoute <code>NotificationBloc</code> (refresh au verdict)</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>Règles métier</h2>
+            <ul>
+                <li>Seuls Propriétaire et Démarcheur peuvent envoyer.</li>
+                <li>Envois illimités ; chaque envoi = nouveau document (uuid distinct).</li>
+                <li>Après un rejet : pas de réédition — on renvoie un nouveau document ; l'ancien reste <code>REFUSER</code> (historique conservé).</li>
+                <li>Le serveur bloque certaines actions sensibles (ex. demande de partenariat) tant qu'aucun document n'est vérifié.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>Périmètre v1 / hors périmètre</h2>
+            <p><strong>v1 :</strong> photo (galerie/caméra), titre prédéfini, liste + statuts + motif, détection « vérifié », renvoi après refus, refresh sur notif.</p>
+            <p><strong>Hors v1 :</strong> upload PDF, endpoints admin, ré-édition d'un document refusé, cache local des documents.</p>
+        </div>
+
+        <div class="card">
+            <h2>Tests</h2>
+            <ul>
+                <li><span class="file-path">test/util/calc/kyc_status_resolver_test.dart</span> — statut global (none / pending / verified)</li>
+                <li><span class="file-path">test/model/document/identity_document_test.dart</span> — mapping fromJson, fallback, fileUrl, isImage</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>Historique</h2>
+            <table>
+                <tr><th>Version</th><th>Date</th><th>Changement</th></tr>
+                <tr><td>1.0</td><td>2026-05-30</td><td>Création initiale — intégration mobile KYC (upload, liste, statut, refresh notif)</td></tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -4,15 +4,21 @@ import 'package:asfar/bloc/active_shell_cubit/active_shell_cubit.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
+import 'package:asfar/bloc/document_cubit/document_cubit.dart';
+import 'package:asfar/bloc/document_cubit/document_state.dart';
+import 'package:asfar/bloc/notification_bloc/notification_bloc.dart';
+import 'package:asfar/bloc/notification_bloc/notification_state.dart';
 import 'package:asfar/screen/client/shared/notifications/notifications_screen.dart';
 import 'package:asfar/screen/client/shared/partenariats/partenariats_screen.dart';
 import 'package:asfar/screen/client/shared/profile/personal_info_screen.dart';
 import 'package:asfar/screen/client/shared/profile/profile_display_info.dart';
+import 'package:asfar/screen/client/shared/profile/kyc/kyc_screen.dart';
 import 'package:asfar/screen/client/shared/profile/widget/profile_hero_card.dart';
 import 'package:asfar/screen/client/shared/profile/widget/profile_role_switcher.dart';
 import 'package:asfar/screen/client/shared/profile/widget/profile_settings_card.dart';
 import 'package:asfar/screen/onboarding/onboarding_screen.dart';
 import 'package:asfar/screen/role_home_router.dart';
+import 'package:asfar/util/calc/kyc_status_resolver.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/navigation.dart';
@@ -30,8 +36,50 @@ import 'package:asfar/widget/button/outlined_custom_button.dart';
 ///
 /// Le `subtitle`, le `badge` et la liste de paramètres sont calculés via
 /// [ProfileDisplayInfo.forRole] depuis `user.type`.
-class ClientProfileScreen extends StatelessWidget {
+class ClientProfileScreen extends StatefulWidget {
   const ClientProfileScreen({super.key});
+
+  @override
+  State<ClientProfileScreen> createState() => _ClientProfileScreenState();
+}
+
+class _ClientProfileScreenState extends State<ClientProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Charger le statut KYC uniquement pour les rôles habilités à envoyer
+      // une pièce (propriétaire / démarcheur).
+      final user = context.read<UserBloc>().state.user;
+      final activeView =
+          context.read<ActiveShellCubit>().state ?? user?.type ?? 'locataire';
+      if (_canSubmitKyc(activeView)) {
+        context.read<DocumentCubit>().load();
+      }
+    });
+  }
+
+  bool _canSubmitKyc(String? role) {
+    final r = (role ?? '').toLowerCase();
+    return r == 'proprietaire' || r == 'demarcheur';
+  }
+
+  String _kycLabel(KycGlobalStatus status) {
+    switch (status) {
+      case KycGlobalStatus.verified:
+        return 'Vérifié';
+      case KycGlobalStatus.pending:
+        return 'En attente';
+      case KycGlobalStatus.none:
+        return 'Non vérifié';
+    }
+  }
+
+  bool _isKycNotification(String? titre) {
+    final t = (titre ?? '').toLowerCase();
+    return t.contains('identité vérifiée') || t.contains('document refusé');
+  }
 
   void _toast(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -77,7 +125,15 @@ class ClientProfileScreen extends StatelessWidget {
       ),
       body: SafeArea(
         top: false,
-        child: BlocBuilder<UserBloc, UserState>(
+        child: BlocListener<NotificationBloc, NotificationState>(
+          listenWhen: (prev, curr) => curr is NotificationReceivedState,
+          listener: (context, notifState) {
+            if (notifState is NotificationReceivedState &&
+                _isKycNotification(notifState.notification.titre)) {
+              context.read<DocumentCubit>().load();
+            }
+          },
+          child: BlocBuilder<UserBloc, UserState>(
           builder: (context, state) {
             final user = state.user;
             final name = user?.fullName.trim().isNotEmpty == true
@@ -116,19 +172,31 @@ class ClientProfileScreen extends StatelessWidget {
                   const SizedBox(height: 18),
                   const Text('Compte', style: AppTextStyles.h3),
                   const SizedBox(height: 10),
-                  ProfileSettingsCard(
-                    items: info.settingsBuilder(
-                      ProfileSettingsCallbacks(
-                        onPersonalInfo: () => pushScreen(
-                            context, const PersonalInfoScreen()),
-                        onNotifications: () => pushScreen(
-                            context, const NotificationsScreen()),
-                        onPartenariats: () => pushScreen(
-                            context, const PartenariatsScreen()),
-                        onComingSoon: () => _toast(
-                            context, 'Disponible prochainement'),
-                      ),
-                    ),
+                  BlocBuilder<DocumentCubit, DocumentState>(
+                    builder: (context, docState) {
+                      final showKyc = _canSubmitKyc(activeView);
+                      return ProfileSettingsCard(
+                        items: info.settingsBuilder(
+                          ProfileSettingsCallbacks(
+                            onPersonalInfo: () => pushScreen(
+                                context, const PersonalInfoScreen()),
+                            onNotifications: () => pushScreen(
+                                context, const NotificationsScreen()),
+                            onPartenariats: () => pushScreen(
+                                context, const PartenariatsScreen()),
+                            onComingSoon: () => _toast(
+                                context, 'Disponible prochainement'),
+                            onKyc: showKyc
+                                ? () =>
+                                    pushScreen(context, const KycScreen())
+                                : null,
+                            kycStatusLabel: showKyc
+                                ? _kycLabel(docState.globalStatus)
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 22),
                   OutlinedCustomButton(
@@ -149,6 +217,7 @@ class ClientProfileScreen extends StatelessWidget {
               ),
             );
           },
+        ),
         ),
       ),
     );
