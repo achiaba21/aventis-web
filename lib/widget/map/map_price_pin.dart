@@ -41,6 +41,9 @@ class MapPricePin extends StatelessWidget {
           ),
           child: Text(
             FcfaFormatter.compact(price),
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.visible,
             style: AppTextStyles.mono(const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,

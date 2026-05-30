@@ -42,8 +42,8 @@ class MapView extends StatelessWidget {
         .map((a) {
       return Marker(
         point: a.displayPosition,
-        width: 60,
-        height: 32,
+        width: 100,
+        height: 44,
         alignment: Alignment.center,
         child: MapPricePin(
           price: a.price ?? 0,
