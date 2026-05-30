@@ -5,10 +5,10 @@ import 'package:asfar/util/fcfa_formatter.dart';
 
 /// Pin de prix posé sur les tuiles d'une vraie carte FlutterMap.
 ///
-/// Pill compact ~52×26 avec prix compact (`45k`, `1.2M`), fond accent or,
-/// texte onAccent w700 mono. Shadow douce pour ressortir sur les tuiles
-/// dark. Distinct de [MapPriceMarker] (utilisé pour les pins décoratifs
-/// sur `MapPlaceholder`/`MapTeaser`).
+/// Style « pill + pointe » (à la Airbnb) : pastille accent or compacte avec
+/// le prix, prolongée d'un petit triangle vers le bas qui ancre le marker sur
+/// le point géographique exact. Texte onAccent mono, ombre douce pour
+/// ressortir sur les tuiles dark.
 class MapPricePin extends StatelessWidget {
   final int price;
   final VoidCallback? onTap;
@@ -26,32 +26,74 @@ class MapPricePin extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(99),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.accent,
-            borderRadius: BorderRadius.circular(99),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-                color: Colors.black.withValues(alpha: 0.25),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppColors.accent,
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(color: AppColors.onAccent, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                    color: Colors.black.withValues(alpha: 0.35),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Text(
-            FcfaFormatter.compact(price),
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.visible,
-            style: AppTextStyles.mono(const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.onAccent,
-            )),
-          ),
+              child: Text(
+                FcfaFormatter.compact(price),
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.visible,
+                style: AppTextStyles.mono(const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.onAccent,
+                )),
+              ),
+            ),
+            // Pointe triangulaire qui ancre la pill sur le point exact.
+            Transform.translate(
+              offset: const Offset(0, -2),
+              child: const _PinTail(),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+/// Petit triangle accent or pointant vers le bas, sous la pill de prix.
+class _PinTail extends StatelessWidget {
+  const _PinTail();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(12, 7),
+      painter: _TailPainter(),
+    );
+  }
+}
+
+class _TailPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.accent
+      ..style = PaintingStyle.fill;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

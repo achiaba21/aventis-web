@@ -42,9 +42,10 @@ class MapView extends StatelessWidget {
         .map((a) {
       return Marker(
         point: a.displayPosition,
-        width: 100,
-        height: 44,
-        alignment: Alignment.center,
+        width: 110,
+        height: 48,
+        // La pointe du pin (bas) doit toucher le point géographique exact.
+        alignment: Alignment.topCenter,
         child: MapPricePin(
           price: a.price ?? 0,
           onTap: onMarkerTap == null ? null : () => onMarkerTap!(a),
