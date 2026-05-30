@@ -131,7 +131,9 @@ class _ChargesListViewState extends State<_ChargesListView> {
         backgroundColor: AppColors.accent,
         foregroundColor: AppColors.onAccent,
         onPressed: _onCreate,
-        child: const Icon(Icons.add),
+        // Icône explicite « ajouter une charge » (reçu + plus) plutôt qu'un
+        // simple « + » générique (réunion 17/05 & 24/05).
+        child: const Icon(Icons.post_add_outlined),
       ),
       body: SafeArea(
         top: false,

@@ -223,10 +223,10 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                                   setState(() => _selectedMonth = m.month),
                               isLoading: reservationsLoading,
                             ),
-                            const SizedBox(height: 16),
-                            ProprioKpiGrid(kpis: kpis),
                             const SizedBox(height: 22),
                           ],
+                          // Demandes en attente remontées juste sous les
+                          // revenus du mois (réunion 17/05).
                           ProprioPendingSection(
                             pending: pending,
                             onSeeAll: () => pushScreen(
@@ -240,7 +240,12 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 22),
+                          // ignore: dead_code
+                          if (showHeroAndKpis) ...[
+                            ProprioKpiGrid(kpis: kpis),
+                            const SizedBox(height: 22),
+                          ],
                           CalendarBookingsCard(
                             activeBookingsCount:
                                 ActiveBookingsCounter.activeToday(reservations),
@@ -256,18 +261,23 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
                             onSeeDetails: () => pushScreen(
                                 context, const ProprioFinancesScreen()),
                           ),
-                          const SizedBox(height: 22),
-                          ProprioListingsSection(
-                            title: _sectionTitle('Mes annonces'),
-                            perfs: perfs,
-                            onSeeAll: () => pushScreen(
-                                context, const ProprioListingsScreen()),
-                            onListingTap: (appartement) => pushScreen(
-                              context,
-                              ProprioListingEditScreen(
-                                  appartement: appartement),
+                          // Section « Mes annonces » masquée (réunion 17/05).
+                          // Code conservé pour réactivation ultérieure.
+                          // ignore: dead_code
+                          if (false) ...[
+                            const SizedBox(height: 22),
+                            ProprioListingsSection(
+                              title: _sectionTitle('Mes annonces'),
+                              perfs: perfs,
+                              onSeeAll: () => pushScreen(
+                                  context, const ProprioListingsScreen()),
+                              onListingTap: (appartement) => pushScreen(
+                                context,
+                                ProprioListingEditScreen(
+                                    appartement: appartement),
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     );

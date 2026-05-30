@@ -397,7 +397,10 @@ class _CalendarContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 const CalendarLegend(),
-                if (tip != null) ...[
+                // « Conseil du jour » masqué (réunion 17/05). Le calcul amont
+                // (`tip`) est conservé pour réactivation ultérieure.
+                // ignore: dead_code
+                if (false && tip != null) ...[
                   const SizedBox(height: 16),
                   CalendarTipBanner(suggestion: tip),
                 ],

@@ -67,11 +67,15 @@ class ReservationContactResolver {
         }
         final l = r.locataire;
         if (l == null) return null;
+        // Sur une réservation apportée par un démarcheur, le propriétaire ne
+        // doit PAS voir le numéro du client : le contact passe par le
+        // démarcheur source (réunion 24/05). On masque téléphone + chat.
+        final isViaDemarcheur = r is ReservationDemarcheur;
         return ContactTarget(
           roleLabel: 'Locataire',
           displayName: _fullName(l.prenom, l.nom),
-          telephone: l.telephone,
-          userId: l.id,
+          telephone: isViaDemarcheur ? null : l.telephone,
+          userId: isViaDemarcheur ? null : l.id,
         );
 
       case ReservationViewerRole.demarcheur:

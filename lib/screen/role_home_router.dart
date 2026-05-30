@@ -42,7 +42,9 @@ class RoleHomeRouter {
       case 'proprietaire':
         return const ['locataire', 'proprietaire'];
       case 'demarcheur':
-        return const ['locataire', 'demarcheur'];
+        // « locataire » masqué pour le démarcheur (réunion 17/05) : il ne
+        // dispose que de sa propre vue.
+        return const ['demarcheur'];
       case 'locataire':
       default:
         return const ['locataire'];
