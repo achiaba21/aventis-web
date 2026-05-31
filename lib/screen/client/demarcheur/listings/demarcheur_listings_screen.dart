@@ -81,6 +81,12 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
   Future<void> _selectListing(Appartement appart) async {
     final id = appart.id;
     if (id == null) return;
+    // Toggle : re-cliquer sur le logement déjà sélectionné le désélectionne
+    // (masque le calendrier + le bouton « Continuer »).
+    if (_selectedId == id) {
+      setState(() => _selectedId = null);
+      return;
+    }
     setState(() => _selectedId = id);
     if (_calendarCache.containsKey(id)) return;
     setState(() => _loadingIds.add(id));
