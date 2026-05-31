@@ -157,13 +157,23 @@ class _RadioIndicator extends StatelessWidget {
       height: 22,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isSelected ? AppColors.accent : Colors.transparent,
-        border: isSelected
-            ? null
-            : Border.all(color: AppColors.text3, width: 1.5),
+        border: Border.all(
+          color: isSelected ? AppColors.accent : AppColors.text3,
+          width: isSelected ? 2 : 1.5,
+        ),
       ),
+      alignment: Alignment.center,
+      // Vrai radio : pastille pleine centrée quand sélectionné (au lieu d'un
+      // cercle plein + coche, qui se lisait comme une checkbox/toggle).
       child: isSelected
-          ? const Icon(Icons.check, size: 14, color: AppColors.onAccent)
+          ? Container(
+              width: 10,
+              height: 10,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.accent,
+              ),
+            )
           : null,
     );
   }
