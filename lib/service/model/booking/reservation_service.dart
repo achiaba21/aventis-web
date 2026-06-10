@@ -274,7 +274,8 @@ class ReservationService {
           final codeReservation = CodeReservation.fromJson(
             body as Map<String, dynamic>,
           );
-          deboger(['Code de réservation récupéré:', codeReservation.secretKey]);
+          // SEC-04 : le code secret de réservation ne doit jamais être loggé
+          deboger(['Code de réservation récupéré']);
           return codeReservation;
         }
       }
@@ -336,7 +337,8 @@ class ReservationService {
         data: {'secretKey': secretKey},
       );
 
-      deboger(['Réservation finalisée avec le code:', secretKey]);
+      // SEC-04 : le code secret de réservation ne doit jamais être loggé
+      deboger(['Réservation finalisée']);
     } catch (e) {
       deboger(['Erreur finalisation réservation:', e]);
       rethrow;

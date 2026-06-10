@@ -12,7 +12,8 @@ class PartenariatDemarcheurService {
 
   Future<DemandePartenariat> sendDemande(String telephone) async {
     try {
-      deboger('[PartenariatDemarcheurService] sendDemande tel=$telephone');
+      // SEC-04 : pas de téléphone dans les logs
+      deboger('[PartenariatDemarcheurService] sendDemande');
       final response = await _dio.post(
         _urlDemande,
         data: {'telephone': telephone},

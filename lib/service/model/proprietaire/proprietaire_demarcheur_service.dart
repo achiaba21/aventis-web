@@ -35,7 +35,8 @@ class ProprietaireDemarcheurService {
   /// POST proprietaire/demarcheurs/link { telephone }
   Future<void> linkDemarcheur(String telephone) async {
     try {
-      deboger('[ProprietaireDemarcheurService] linkDemarcheur tel=$telephone');
+      // SEC-04 : pas de téléphone dans les logs
+      deboger('[ProprietaireDemarcheurService] linkDemarcheur');
       await _dio.post('$_urlBase/link', data: {'telephone': telephone});
     } catch (e) {
       ErrorHandler.logError('PROPRIO_LINK_DEMARCHEUR', e);

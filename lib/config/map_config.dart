@@ -8,15 +8,23 @@ class MapConfig {
 
   // ==================== TUILES ====================
 
-  /// Clé API Stadia Maps
-  static const String _stadiaApiKey = 'd90155af-6b52-49d4-bbf0-1f9f555369a3';
+  /// Clé API Stadia Maps, injectée au build (SEC-03) :
+  /// flutter run --dart-define=STADIA_KEY=xxx
+  /// Cible : proxy de tuiles côté backend (prérequis serveur) — la clé
+  /// disparaîtra alors entièrement du client.
+  static const String _stadiaApiKey =
+      String.fromEnvironment('STADIA_KEY', defaultValue: '');
+
+  /// Suffixe `?api_key=` uniquement si une clé a été fournie au build
+  static String get _apiKeySuffix =>
+      _stadiaApiKey.isEmpty ? '' : '?api_key=$_stadiaApiKey';
 
   /// Tuiles Stadia Maps - Style épuré
-  static const String lightTileUrl =
-      'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=$_stadiaApiKey';
+  static String get lightTileUrl =>
+      'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png$_apiKeySuffix';
 
-  static const String darkTileUrl =
-      'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=$_stadiaApiKey';
+  static String get darkTileUrl =>
+      'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png$_apiKeySuffix';
 
   /// User agent pour les requêtes de tuiles
   static const String userAgent = 'com.asfar.app';

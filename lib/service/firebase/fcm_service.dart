@@ -47,14 +47,15 @@ class FCMService {
       // 3. Obtenir le token FCM
       _fcmToken = await _firebaseMessaging.getToken();
       if (_fcmToken != null) {
-        debugPrint('[FCMService] Token FCM: $_fcmToken');
+        // SEC-04 : ne jamais logger le token en clair
+        debugPrint('[FCMService] Token FCM reçu (${_fcmToken!.length} chars)');
         _tokenController.add(_fcmToken!);
       }
 
       // 4. Écouter le rafraîchissement du token
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
         _fcmToken = newToken;
-        debugPrint('[FCMService] Token FCM rafraîchi: $newToken');
+        debugPrint('[FCMService] Token FCM rafraîchi (${newToken.length} chars)');
         _tokenController.add(newToken);
       });
 

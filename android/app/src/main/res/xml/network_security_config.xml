@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sécurité réseau (SEC-01) : tout trafic non chiffré (http://) est refusé
+     en release. Le build debug est assoupli par la variante de cette ressource
+     dans src/debug/res/xml/ (dev sur serveur local sans TLS). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

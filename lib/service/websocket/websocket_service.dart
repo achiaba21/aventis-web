@@ -102,17 +102,16 @@ class WebSocketService {
   }
 
   String _buildWebSocketUrl() {
-    return 'ws://$serveur:$port/ws/websocket';
+    return '$wsDomain/ws/websocket';
   }
 
   void _onStompConnected(StompFrame frame) {
+    // SEC-04 : pas de headers de frame (jeton) ni de téléphone dans les logs
     deboger([
       '═══════════════════════════════════════════',
       '✅ WEBSOCKET/STOMP CONNECTÉ',
       '═══════════════════════════════════════════',
-      'Frame headers: ${frame.headers}',
-      'Frame body: ${frame.body}',
-      'User phone pour abonnement: $_userPhone',
+      'User phone pour abonnement: ${_userPhone != null ? 'présent' : 'absent'}',
     ]);
 
     _updateState(
@@ -127,6 +126,7 @@ class WebSocketService {
     // Abonnements après connexion
     _subscribeToPersonalNotifications();
     _subscribeToGlobalActions();
+    _subscribeToUserUpdates();
   }
 
   void _onStompDisconnected(StompFrame frame) {
@@ -141,11 +141,11 @@ class WebSocketService {
     // Spring route automatiquement vers le bon utilisateur basé sur le Principal de la session
     const destination = '/user/queue/notifications';
 
+    // SEC-04 : pas de téléphone dans les logs
     deboger([
       '═══════════════════════════════════════════',
       '📱 ABONNEMENT NOTIFICATIONS',
       '═══════════════════════════════════════════',
-      'User Phone: $_userPhone',
       'Destination: $destination',
     ]);
 
@@ -175,13 +175,32 @@ class WebSocketService {
     deboger('🌍 Abonné aux actions globales: $destination');
   }
 
+  /// Canal ciblé par-utilisateur (NOUVEAU) : synchro temps réel des entités
+  /// (appartement / document / partenariat / réservation). Spring route via le
+  /// Principal de session, comme `/user/queue/notifications`. Le parsing
+  /// réutilise `_handleActionMessage` → `RealtimeAction.fromJson` (qui gère
+  /// l'enveloppe `entityType`/`action`).
+  void _subscribeToUserUpdates() {
+    if (_stompClient == null) return;
+
+    const destination = '/user/queue/updates';
+
+    _stompClient!.subscribe(
+      destination: destination,
+      callback: (StompFrame frame) {
+        _handleActionMessage(frame);
+      },
+    );
+
+    deboger('🔔 Abonné aux updates ciblées: $destination');
+  }
+
   void _handleNotificationMessage(StompFrame frame) {
+    // SEC-04 : pas de headers ni de body brut (contenu personnel) dans les logs
     deboger([
       '═══════════════════════════════════════════',
       '🔔 MESSAGE NOTIFICATION REÇU',
       '═══════════════════════════════════════════',
-      'Headers: ${frame.headers}',
-      'Body brut: ${frame.body}',
     ]);
 
     try {
@@ -191,7 +210,6 @@ class WebSocketService {
       }
 
       final jsonData = jsonDecode(frame.body!);
-      deboger('📦 JSON parsé: $jsonData');
 
       final notification = NotificationModel.fromJson(jsonData);
       deboger([
@@ -214,12 +232,11 @@ class WebSocketService {
   }
 
   void _handleActionMessage(StompFrame frame) {
+    // SEC-04 : pas de headers ni de body brut (contenu personnel) dans les logs
     deboger([
       '═══════════════════════════════════════════',
       '⚡ MESSAGE ACTION REÇU',
       '═══════════════════════════════════════════',
-      'Headers: ${frame.headers}',
-      'Body brut: ${frame.body}',
     ]);
 
     try {
@@ -229,13 +246,11 @@ class WebSocketService {
       }
 
       final jsonData = jsonDecode(frame.body!);
-      deboger('📦 JSON parsé: $jsonData');
 
       final action = RealtimeAction.fromJson(jsonData);
       deboger([
         '✅ Action parsée avec succès:',
         '   - Type: ${action.type}',
-        '   - Payload: ${action.payload}',
         '   - Timestamp: ${action.timestamp}',
       ]);
 

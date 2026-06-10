@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Variante DEBUG uniquement : autorise le trafic en clair vers le serveur
+     local de développement (flutter run --dart-define=USE_TLS=false).
+     Cette ressource remplace celle de src/main/ dans les builds debug et
+     n'existe pas dans les builds release. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

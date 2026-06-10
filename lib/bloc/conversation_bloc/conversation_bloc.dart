@@ -439,7 +439,8 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     Emitter<ConversationState> emit,
   ) {
     _currentUser = event.user;
-    deboger(['👤 Utilisateur courant défini: ${_currentUser?.fullName}']);
+    // SEC-04 : pas de nom d'utilisateur dans les logs
+    deboger(['👤 Utilisateur courant défini (#${_currentUser?.id})']);
   }
 
   void _updateConversationLastMessage(int conversationId, ChatMessage message) {

@@ -176,11 +176,10 @@ class ReferralDetailScreen extends StatelessWidget {
     deboger('   reservation.proprio   = ${reservation.proprio}');
     if (reservation.proprio != null) {
       final p = reservation.proprio!;
+      // SEC-04 : pas de PII (nom, téléphone, email) dans les logs
       deboger('     ├─ id        = ${p.id}');
-      deboger('     ├─ prenom    = ${p.prenom}');
-      deboger('     ├─ nom       = ${p.nom}');
-      deboger('     ├─ telephone = ${p.telephone}');
-      deboger('     └─ email     = ${p.email}');
+      deboger('     ├─ telephone = ${p.telephone != null ? 'présent' : 'absent'}');
+      deboger('     └─ email     = ${p.email != null ? 'présent' : 'absent'}');
     } else {
       deboger('     ⚠️ reservation.proprio == null (backend ne l\'envoie pas)');
     }
@@ -203,8 +202,7 @@ class ReferralDetailScreen extends StatelessWidget {
           roleLabel: 'Propriétaire',
         );
     deboger('   contact final :');
-    deboger('     ├─ displayName = ${contact.displayName}');
-    deboger('     ├─ telephone   = ${contact.telephone}');
+    deboger('     ├─ telephone   = ${contact.telephone != null ? 'présent' : 'absent'}');
     deboger('     ├─ userId      = ${contact.userId}');
     deboger('     ├─ hasPhone    = ${contact.hasPhone}');
     deboger('     ├─ hasWhatsApp = ${contact.hasWhatsApp}');
@@ -243,21 +241,18 @@ class ReferralDetailScreen extends StatelessWidget {
     deboger('   reservation.proprio    = ${reservation.proprio}');
     if (reservation.proprio != null) {
       final p = reservation.proprio!;
+      // SEC-04 : pas de PII (nom, téléphone, email) dans les logs
       deboger('     ├─ id           = ${p.id}');
-      deboger('     ├─ prenom       = ${p.prenom}');
-      deboger('     ├─ nom          = ${p.nom}');
-      deboger('     ├─ fullName     = ${p.fullName}');
-      deboger('     ├─ telephone    = ${p.telephone}');
-      deboger('     ├─ email        = ${p.email}');
-      deboger('     ├─ createdAt    = ${p.createdAt}');
-      deboger('     └─ imgUrl       = ${p.imgUrl}');
+      deboger('     ├─ telephone    = ${p.telephone != null ? 'présent' : 'absent'}');
+      deboger('     ├─ email        = ${p.email != null ? 'présent' : 'absent'}');
+      deboger('     └─ createdAt    = ${p.createdAt}');
     } else {
       deboger('     ⚠️ reservation.proprio == null');
     }
     deboger('   reservation.appart     = ${reservation.appart?.id}');
     deboger('   reservation.locataire  = ${reservation.locataire?.id}');
-    deboger('   clientExterneNom       = ${reservation.clientExterneNom}');
-    deboger('   clientExterneTelephone = ${reservation.clientExterneTelephone}');
+    deboger('   clientExterne          = '
+        '${reservation.clientExterneNom != null ? 'présent' : 'absent'}');
     deboger('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
 

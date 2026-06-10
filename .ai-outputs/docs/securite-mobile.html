@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asfar - Sécurisation de l'application mobile</title>
+    <style>
+        :root {
+            --bg-dark: #1D1D1D;
+            --bg-card: #2A2A2A;
+            --primary: #FFA02A;
+            --text: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --border: #374151;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            color: var(--primary); text-decoration: none;
+            margin-bottom: 30px; font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 {
+            font-size: 28px; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 15px; }
+        .badge {
+            display: inline-block; padding: 4px 12px; border-radius: 999px;
+            font-size: 12px; font-weight: 600; margin-left: 8px;
+        }
+        .badge-success { background: rgba(34,197,94,0.15); color: var(--success); }
+        .badge-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 20px;
+        }
+        .card h2 { font-size: 20px; margin-bottom: 16px; color: var(--primary); }
+        .card h3 { font-size: 16px; margin: 16px 0 8px; color: var(--text); }
+        p { margin-bottom: 12px; color: var(--text-muted); }
+        ul { margin: 12px 0 12px 20px; color: var(--text-muted); }
+        li { margin-bottom: 6px; }
+        code {
+            background: #1A1A1A; padding: 2px 8px; border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace; font-size: 13px;
+            color: #FFA02A;
+        }
+        pre {
+            background: #1A1A1A; padding: 16px; border-radius: 8px;
+            overflow-x: auto; margin: 12px 0;
+        }
+        pre code { background: none; padding: 0; color: #E5E7EB; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+        th { color: var(--text); font-size: 13px; }
+        td { color: var(--text-muted); font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Retour à l'index</a>
+
+        <h1>🔒 Sécurisation de l'application mobile
+            <span class="badge badge-success">Validé 95/100</span>
+        </h1>
+        <p class="subtitle">
+            Version 1.0 · Créée le 2026-06-10 · Implémente les fiches d'audit SEC-01 à SEC-05
+            (<code>.ai-outputs/audit/</code>) · Specs : <code>.ai-outputs/specs/securite-mobile/</code>
+        </p>
+
+        <div class="card">
+            <h2>📋 Description</h2>
+            <p>
+                Mise au niveau « production » de la sécurité de l'app : transport chiffré par défaut,
+                jeton de session dans le Keychain/Keystore, cache Hive chiffré, clé cartographique
+                sortie du code source, journaux sans données sensibles, sessions qui expirent proprement.
+                Aucun changement visible pour l'utilisateur final, hormis une reconnexion unique à la
+                première ouverture (pas de migration des données : aucun utilisateur réel en production).
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>🚀 Commandes de build</h2>
+            <h3>Développement (serveur local sans TLS)</h3>
+            <pre><code>flutter run --dart-define=USE_TLS=false \
+            --dart-define=SERVER_HOST=192.168.1.7 \
+            --dart-define=SERVER_PORT=7565</code></pre>
+            <p>Sans <code>USE_TLS=false</code>, l'app force <code>https://</code> et <code>wss://</code> (défaut sûr).
+               Côté Android, le trafic en clair n'est autorisé que par la variante <em>debug</em> de
+               <code>network_security_config.xml</code> — un build release le refuse toujours.</p>
+            <h3>Production</h3>
+            <pre><code>flutter build apk \
+  --dart-define=SERVER_HOST=api.mondomaine.com \
+  --dart-define=SERVER_PORT=443 \
+  --dart-define=STADIA_KEY=&lt;nouvelle-clé&gt;   # optionnel tant que les cartes sont sur OSM</code></pre>
+        </div>
+
+        <div class="card">
+            <h2>🔧 Ce qui a été implémenté</h2>
+            <table>
+                <tr><th>Fiche</th><th>Livré</th></tr>
+                <tr><td>SEC-01 Transport</td><td><code>kUseTls</code>/<code>domain</code>/<code>wsDomain</code> dans <code>app_propertie.dart</code>, WebSocket en <code>wss</code>, URLs d'auth normalisées, network security config Android (cleartext interdit en release).</td></tr>
+                <tr><td>SEC-02 Stockage</td><td><code>SecureStorageService</code> (jeton + clé AES dans Keychain/Keystore), 9 boxes Hive chiffrées (<code>HiveAesCipher</code>), ouverture résiliente avec purge sur corruption, <code>local_store.dart</code> (code mort) supprimé.</td></tr>
+                <tr><td>SEC-03 Clé Stadia</td><td>Clé retirée du dépôt, injectée au build via <code>STADIA_KEY</code> ; URLs de tuiles en getters. Les cartes actives utilisent OpenStreetMap (sans clé).</td></tr>
+                <tr><td>SEC-04 Logs</td><td>Intercepteurs Dio sans headers ni bodies, token FCM masqué, PII (téléphones, emails, noms, codes secrets) retirée de 9 fichiers. <code>deboger</code>/<code>prettyPrint</code> restent no-op en release.</td></tr>
+                <tr><td>SEC-05 Session</td><td><code>TokenValidator</code> (expiration JWT, 6 tests), validation au restore de session et dans <code>AuthManager.validateToken()</code>, révocation serveur best-effort au logout (fonctionne hors ligne).</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>🧩 Nouveaux composants</h2>
+            <h3><code>lib/service/storage/secure_storage_service.dart</code></h3>
+            <ul>
+                <li><code>init()</code> — pré-charge le jeton (à appeler avant <code>StorageService.init()</code>)</li>
+                <li><code>cachedToken</code> — lecture synchrone du jeton</li>
+                <li><code>saveToken / deleteToken</code> — écriture Keychain/Keystore</li>
+                <li><code>getOrCreateHiveKey()</code> — clé AES 256 des boxes Hive</li>
+            </ul>
+            <h3><code>lib/service/auth/token_validator.dart</code></h3>
+            <ul>
+                <li><code>TokenValidator.isValid(String?)</code> — présent + décodable + non expiré, ne lève jamais d'exception</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>⚠️ Prérequis backend (hors périmètre mobile)
+                <span class="badge badge-warning">À faire côté Spring Boot</span>
+            </h2>
+            <ul>
+                <li><strong>TLS</strong> — exposer l'API en HTTPS (reverse proxy nginx/Caddy + Let's Encrypt). L'app pointe déjà sur <code>https/wss</code> par défaut.</li>
+                <li><strong>POST /auth/logout</strong> — révocation/blacklist du JWT. L'app l'appelle déjà en best-effort (404 toléré).</li>
+                <li><strong>Proxy de tuiles cartes</strong> — endpoint relayant Stadia Maps avec la clé côté serveur ; permettra de retirer <code>STADIA_KEY</code> du build.</li>
+                <li><strong>Action manuelle</strong> — révoquer l'ancienne clé Stadia <code>d90155af-…</code> (compromise, présente dans l'historique git).</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>📜 Historique</h2>
+            <table>
+                <tr><th>Version</th><th>Date</th><th>Changement</th></tr>
+                <tr><td>1.0</td><td>2026-06-10</td><td>Création — implémentation SEC-01 à SEC-05, audit 95/100, 252 tests verts.</td></tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

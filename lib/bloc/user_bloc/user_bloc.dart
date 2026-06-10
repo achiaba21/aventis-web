@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
 import 'package:asfar/service/auth/auth_manager.dart';
+import 'package:asfar/service/auth/token_validator.dart';
 import 'package:asfar/service/model/Auth/authentication_service.dart';
 import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/service/dio/dio_request.dart';
@@ -23,16 +24,19 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           // Charger le token depuis StorageService
           final token = StorageService.instance.getToken();
 
-          // Synchroniser le token avec DioRequest (CRITIQUE!)
-          if (token != null) {
-            DioRequest.instance.setToken(token);
-            deboger(["Token synchronisé avec DioRequest au démarrage"]);
+          // Valider le jeton AVANT de restaurer la session (RM6) :
+          // un jeton absent, expiré ou illisible ramène au login
+          // sans aucun appel métier préalable.
+          if (TokenValidator.isValid(token)) {
+            // Synchroniser le token avec DioRequest (CRITIQUE!)
+            DioRequest.instance.setToken(token!);
+            deboger(["Token valide synchronisé avec DioRequest au démarrage"]);
+            deboger(["stored user found"]);
+            emit(UserLoaded(cachedUser));
           } else {
-            deboger(["User trouvé mais pas de token - Déconnexion nécessaire"]);
+            deboger(["Jeton absent ou expiré au démarrage - déconnexion"]);
+            await AuthManager.instance.logout();
           }
-
-          deboger(["stored user found:", cachedUser.fullName]);
-          emit(UserLoaded(cachedUser));
         } else {
           deboger(["no stored user found"]);
         }

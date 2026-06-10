@@ -42,6 +42,7 @@ import 'package:asfar/bloc/user_bloc/user_state.dart';
 import 'package:asfar/model/user/user.dart';
 import 'package:asfar/screen/splash_screen.dart';
 import 'package:asfar/theme/app_theme.dart';
+import 'package:asfar/service/storage/secure_storage_service.dart';
 import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/service/connectivity/connectivity_service.dart';
 import 'package:asfar/service/preload/preload_coordinator_builder.dart';
@@ -66,7 +67,11 @@ void main() async {
   // Initialiser Hive pour le stockage local
   await Hive.initFlutter();
 
-  // Initialiser StorageService (ouvrir les boxes)
+  // Initialiser le stockage sécurisé (jeton + clé de chiffrement Hive)
+  // AVANT StorageService qui en dépend pour chiffrer ses boxes
+  await SecureStorageService.instance.init();
+
+  // Initialiser StorageService (ouvrir les boxes chiffrées)
   await StorageService.instance.init();
 
   // Migration one-shot : transfère l'address des anciennes résidences
@@ -272,7 +277,8 @@ class AppWithBlocListener extends StatelessWidget {
     Future.delayed(const Duration(milliseconds: 500), () {
       if (!context.mounted) return;
 
-      deboger(['[main.dart] Démarrage du préchargement pour ${user.fullName}']);
+      // SEC-04 : pas de nom d'utilisateur dans les logs
+      deboger(['[main.dart] Démarrage du préchargement (user #${user.id})']);
 
       // Construire le coordinateur avec tous les executors nécessaires
       final coordinator = PreloadCoordinatorBuilder.build(context, user);

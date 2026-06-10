@@ -1,9 +1,14 @@
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:asfar/model/user/user.dart';
+import 'package:asfar/service/storage/secure_storage_service.dart';
 import 'package:asfar/util/function.dart';
 
 /// Service de stockage local centralisé utilisant Hive
+///
+/// Toutes les boxes sont chiffrées (HiveAesCipher) avec une clé AES détenue
+/// par [SecureStorageService]. Le jeton de session ne transite plus par Hive :
+/// il est délégué au stockage sécurisé de l'OS.
 ///
 /// Suit les principes :
 /// - Single Responsibility : Gère uniquement le stockage persistant
@@ -72,16 +77,26 @@ class StorageService {
     }
 
     try {
-      // Ouvrir les boxes
-      _authBox = await Hive.openBox(_authBoxName);
-      _userBox = await Hive.openBox(_userBoxName);
-      _chargesBox = await Hive.openBox(_chargesBoxName);
-      _residencesBox = await Hive.openBox(_residencesBoxName);
-      _appartementsBox = await Hive.openBox(_appartementsBoxName);
-      _proprietairesBox = await Hive.openBox(_proprietairesBoxName);
-      _reservationsBox = await Hive.openBox(_reservationsBoxName);
-      _appartementDraftBox = await Hive.openBox(_appartementDraftBoxName);
-      _appSettingsBox = await Hive.openBox(_appSettingsBoxName);
+      // Clé AES détenue par le stockage sécurisé de l'OS
+      final hiveKey = await SecureStorageService.instance.getOrCreateHiveKey();
+      final cipher = HiveAesCipher(hiveKey);
+
+      // Ouvrir les boxes (chiffrées, avec purge si illisibles)
+      _authBox = await _openBoxSafely(_authBoxName, cipher);
+      _userBox = await _openBoxSafely(_userBoxName, cipher);
+      _chargesBox = await _openBoxSafely(_chargesBoxName, cipher);
+      _residencesBox = await _openBoxSafely(_residencesBoxName, cipher);
+      _appartementsBox = await _openBoxSafely(_appartementsBoxName, cipher);
+      _proprietairesBox = await _openBoxSafely(_proprietairesBoxName, cipher);
+      _reservationsBox = await _openBoxSafely(_reservationsBoxName, cipher);
+      _appartementDraftBox =
+          await _openBoxSafely(_appartementDraftBoxName, cipher);
+      _appSettingsBox = await _openBoxSafely(_appSettingsBoxName, cipher);
+
+      // Purge du jeton historique stocké en clair dans authBox
+      // (versions antérieures au chiffrement). Le jeton vit désormais
+      // dans SecureStorageService uniquement.
+      await _authBox.delete(_tokenKey);
 
       _isInitialized = true;
       deboger("StorageService initialisé avec succès");
@@ -100,6 +115,22 @@ class StorageService {
     }
   }
 
+  /// Ouvre une box chiffrée en tolérant la corruption
+  ///
+  /// Une box illisible (ancienne box non chiffrée, clé AES régénérée,
+  /// données corrompues) est purgée du disque puis rouverte vide : le cache
+  /// se reconstruit depuis l'API et, au pire, l'utilisateur se reconnecte.
+  /// Jamais de crash au démarrage.
+  Future<Box> _openBoxSafely(String name, HiveAesCipher cipher) async {
+    try {
+      return await Hive.openBox(name, encryptionCipher: cipher);
+    } catch (e) {
+      deboger(["Box '$name' illisible, purge et réouverture:", e]);
+      await Hive.deleteBoxFromDisk(name);
+      return Hive.openBox(name, encryptionCipher: cipher);
+    }
+  }
+
   /// Vérifie que le service est initialisé
   void _ensureInitialized() {
     if (!_isInitialized) {
@@ -111,31 +142,30 @@ class StorageService {
   }
 
   // ==================== TOKEN ====================
+  // Le jeton est délégué à SecureStorageService (Keychain/Keystore).
+  // Il ne touche plus aux boxes Hive.
 
-  /// Sauvegarde le token d'authentification
+  /// Sauvegarde le token d'authentification (stockage sécurisé OS)
   Future<void> saveToken(String token) async {
-    _ensureInitialized();
-    await _authBox.put(_tokenKey, token);
-    deboger("Token sauvegardé dans StorageService");
+    await SecureStorageService.instance.saveToken(token);
+    deboger("Token sauvegardé (stockage sécurisé)");
   }
 
-  /// Récupère le token d'authentification
+  /// Récupère le token d'authentification (cache mémoire, synchrone)
   String? getToken() {
-    _ensureInitialized();
-    return _authBox.get(_tokenKey) as String?;
+    return SecureStorageService.instance.cachedToken;
   }
 
   /// Supprime le token d'authentification
   Future<void> deleteToken() async {
-    _ensureInitialized();
-    await _authBox.delete(_tokenKey);
-    deboger("Token supprimé de StorageService");
+    await SecureStorageService.instance.deleteToken();
+    deboger("Token supprimé (stockage sécurisé)");
   }
 
   /// Vérifie si un token existe
   bool hasToken() {
-    _ensureInitialized();
-    return _authBox.containsKey(_tokenKey);
+    final token = getToken();
+    return token != null && token.isNotEmpty;
   }
 
   // ==================== USER ====================
@@ -148,7 +178,8 @@ class StorageService {
     try {
       final userJson = jsonEncode(user.toJson());
       await _userBox.put(_userKey, userJson);
-      deboger(["User sauvegardé dans StorageService:", user.prenom, user.nom]);
+      // SEC-04 : pas de nom d'utilisateur dans les logs
+      deboger(["User sauvegardé dans StorageService (#${user.id})"]);
     } catch (e) {
       deboger(["Erreur lors de la sauvegarde de l'utilisateur:", e]);
       rethrow;
@@ -505,6 +536,7 @@ class StorageService {
   Future<void> clear() async {
     _ensureInitialized();
     await Future.wait([
+      SecureStorageService.instance.deleteToken(),
       _authBox.clear(),
       _userBox.clear(),
       _chargesBox.clear(),
@@ -623,7 +655,7 @@ class StorageService {
     deboger([
       "=== StorageService Debug ===",
       "Token: ${hasToken() ? 'présent' : 'absent'}",
-      "User: ${hasUser() ? getUser()?.prenom : 'absent'}",
+      "User: ${hasUser() ? 'présent' : 'absent'}",
       "=========================="
     ]);
   }

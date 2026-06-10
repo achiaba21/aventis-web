@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:asfar/model/user/user.dart';
+import 'package:asfar/service/auth/token_validator.dart';
 import 'package:asfar/service/color/color_manager.dart';
 import 'package:asfar/service/dio/dio_request.dart';
+import 'package:asfar/service/model/Auth/authentication_service.dart';
 import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/util/function.dart';
 
@@ -37,7 +39,8 @@ class AuthManager {
 
   /// Login: enregistre le token et l'utilisateur
   Future<void> login(String token, User user) async {
-    deboger("AuthManager: Login user ${user.fullName}");
+    // SEC-04 : pas de nom d'utilisateur dans les logs
+    deboger("AuthManager: Login user #${user.id}");
 
     // Sauvegarder le token dans StorageService
     await StorageService.instance.saveToken(token);
@@ -58,6 +61,11 @@ class AuthManager {
   Future<void> logout() async {
     deboger("AuthManager: Starting logout");
 
+    // 0. Révocation serveur best-effort (prérequis backend /auth/logout).
+    //    Lancée AVANT le nettoyage local pour disposer encore du jeton,
+    //    mais jamais attendue : le logout fonctionne hors ligne (RM7).
+    unawaited(AuthenticationService.revokeToken());
+
     // 1. Nettoyer toutes les données (token + user) dans StorageService
     await StorageService.instance.clear();
 
@@ -73,17 +81,20 @@ class AuthManager {
     deboger("AuthManager: Logout completed");
   }
 
-  /// Vérifie si le token est encore valide
+  /// Vérifie si le token est encore valide (présent, décodable, non expiré)
+  ///
+  /// Un jeton présent mais expiré déclenche un logout complet (RM6) :
+  /// l'utilisateur est ramené au login sans attendre un 401 serveur.
   Future<bool> validateToken() async {
     final token = StorageService.instance.getToken();
-    if (token == null || token.isEmpty) {
-      return false;
+    if (TokenValidator.isValid(token)) {
+      return true;
     }
-
-    // Vous pouvez ajouter ici une validation plus sophistiquée
-    // Par exemple: vérifier la date d'expiration du JWT
-
-    return true;
+    if (token != null && token.isNotEmpty) {
+      deboger("AuthManager: jeton expiré ou illisible - logout");
+      await logout();
+    }
+    return false;
   }
 
   /// Nettoie les ressources

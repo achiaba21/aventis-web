@@ -220,8 +220,6 @@ class DioRequest {
   void _onRequest(RequestOptions option, RequestInterceptorHandler handler) {
     final uri = option.uri;
     final end = uri.toString();
-    final body = option.data;
-    //option.responseType = ResponseType.plain;
 
     // Injecter le token pour les routes protégées (sans auth/)
     if (!uri.path.startsWith('/api/auth/')) {
@@ -233,23 +231,23 @@ class DioRequest {
       }
     }
 
-    deboger("Url : $end \nheaders: ${option.headers}");
-    prettyPrint(body,label: "corp");
+    // SEC-04 : jamais de headers ni de body dans les logs
+    // (le header Authorization contient le jeton, les bodies des données perso)
+    deboger("→ ${option.method} $end");
     handler.next(option);
   }
 
   void _onResponse(Response<dynamic> resp, ResponseInterceptorHandler handler) {
     final end = resp.realUri.path;
-    final body = resp.data;
     final code = resp.statusCode;
-    deboger("Url : $end\nheaders: ${resp.headers}\nstatu : $code");
-    prettyPrint(body);
+    // SEC-04 : jamais de headers ni de body dans les logs
+    deboger("← $code $end");
     return handler.next(resp);
   }
 
   void _onError(DioException error, ErrorInterceptorHandler handler) async {
-
-    deboger(["error", error.requestOptions.headers,error.message]);
+    // SEC-04 : pas de headers (jeton) dans les logs d'erreur
+    deboger(["error", error.requestOptions.path, error.message]);
 
     // Gérer les erreurs 401 (token invalide ou expiré)
     if (error.response?.statusCode == 401) {
