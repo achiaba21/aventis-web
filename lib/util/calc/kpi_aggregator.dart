@@ -1,7 +1,9 @@
+import 'package:asfar/model/enumeration/appartement_status.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/model/ui_only/proprio_kpi.dart';
+import 'package:asfar/util/function.dart';
 
 /// Calcule les 4 KPIs du Dashboard propriétaire (grid 2×2) depuis les
 /// appartements + l'historique des réservations.
@@ -15,6 +17,10 @@ import 'package:asfar/model/ui_only/proprio_kpi.dart';
 /// Les deltas % vs mois précédent sont calculés de la même façon.
 class KpiAggregator {
   KpiAggregator._();
+
+  /// Signature des dernières valeurs loggées (évite de spammer la console au
+  /// rebuild). DIAGNOSTIC temporaire.
+  static String? _lastDiagSig;
 
   static List<ProprioKpi> fromData({
     required List<Appartement> appartements,
@@ -34,6 +40,19 @@ class KpiAggregator {
     final resPrev = _reservationsCountFor(reservations, previousMonth);
 
     final noteAvg = _averageNote(appartements);
+
+    // DIAGNOSTIC (temporaire) : valeurs brutes mois courant vs précédent, pour
+    // comprendre les deltas affichés (ex. « 1 réservation / +0% »).
+    final sig = '$occCurrent|$occPrev|$adrCurrent|$adrPrev|$resCurrent|$resPrev';
+    if (sig != _lastDiagSig) {
+      _lastDiagSig = sig;
+      deboger([
+        '[KpiAggregator] courant=${currentMonth.month}/${currentMonth.year} '
+            'précédent=${previousMonth.month}/${previousMonth.year}',
+        'occupation=$occCurrent% (prév $occPrev%) | ADR=$adrCurrent (prév $adrPrev) '
+            '| réservations=$resCurrent (prév $resPrev)',
+      ]);
+    }
 
     return [
       ProprioKpi(
@@ -91,12 +110,22 @@ class KpiAggregator {
       List<Reservation> reservations,
       List<Appartement> appartements,
       DateTime month) {
-    if (appartements.isEmpty) return 0;
+    // Seules les annonces EN_LIGNE constituent de la capacité « louable » :
+    // une annonce non publiée (EN_COURS/HORS_LIGNE/REFUSER) ne doit pas diluer
+    // le taux d'occupation. On restreint aussi le numérateur aux réservations
+    // de ces annonces pour rester cohérent (jamais > 100 %).
+    final liveIds = appartements
+        .where((a) => a.status == AppartementStatus.EN_LIGNE)
+        .map((a) => a.id)
+        .whereType<int>()
+        .toSet();
+    if (liveIds.isEmpty) return 0;
     final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
     int totalDaysOccupied = 0;
     for (final r in reservations) {
       if (r.debut == null || r.fin == null) continue;
       if (!_isCounted(r.statut)) continue;
+      if (!liveIds.contains(r.appart?.id)) continue;
       // Calcule la durée recoupant le mois cible
       final monthStart = DateTime(month.year, month.month, 1);
       final monthEnd = DateTime(month.year, month.month + 1, 0);
@@ -105,8 +134,7 @@ class KpiAggregator {
       if (end.isBefore(start)) continue;
       totalDaysOccupied += end.difference(start).inDays + 1;
     }
-    final totalCapacity = appartements.length * daysInMonth;
-    if (totalCapacity == 0) return 0;
+    final totalCapacity = liveIds.length * daysInMonth;
     return ((totalDaysOccupied / totalCapacity) * 100).round();
   }
 

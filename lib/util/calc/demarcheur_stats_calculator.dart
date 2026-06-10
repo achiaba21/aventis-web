@@ -200,9 +200,10 @@ class DemarcheurStatsCalculator {
 class ReferralCommissionHelper {
   ReferralCommissionHelper._();
 
-  /// Taux de commission démarcheur (10% du séjour brut). Source : décision
-  /// produit Asfar — visible dans l'`InfoBanner` du `NewReferralScreen`
-  /// (« 10 % du séjour · versée après paiement client »).
+  /// Taux de **suggestion** par défaut de la commission démarcheur (10 % du
+  /// séjour brut). Sert uniquement à pré-remplir / estimer : le montant réel
+  /// est libre, proposé par le démarcheur et validé par le proprio (cf.
+  /// `montantCommission`). Source : décision produit Asfar.
   static const double rate = 0.10;
 
   /// Nombre de nuits par défaut pour l'estimation (séjour court standard).

@@ -4,9 +4,9 @@ import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/calc/appartement_status_display.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
-import 'package:asfar/widget/badge/badge_tone.dart';
 import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
@@ -80,9 +80,11 @@ class ProprioListingRow extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const BadgeStatus(
-                          text: '● Actif',
-                          tone: BadgeTone.success,
+                        BadgeStatus(
+                          text: AppartementStatusDisplay.badgeLabel(
+                              appartement.status),
+                          tone: AppartementStatusDisplay.badgeTone(
+                              appartement.status),
                         ),
                         const SizedBox(width: 6),
                         Text(

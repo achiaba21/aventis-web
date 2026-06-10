@@ -220,6 +220,23 @@ class AppartementRepository {
     _backendResidenceIds.remove(id);
   }
 
+  // ==================== Modération (actions propriétaire) ====================
+
+  /// Met l'annonce hors ligne (EN_LIGNE → HORS_LIGNE) et met à jour le cache.
+  Future<Appartement> mettreHorsLigne(int id) async {
+    return _persistAndReturn(await _apiService.mettreHorsLigne(id));
+  }
+
+  /// Remet l'annonce en ligne (HORS_LIGNE → EN_LIGNE) et met à jour le cache.
+  Future<Appartement> remettreEnLigne(int id) async {
+    return _persistAndReturn(await _apiService.remettreEnLigne(id));
+  }
+
+  /// Resoumet l'annonce refusée (REFUSER → EN_COURS) et met à jour le cache.
+  Future<Appartement> resoumettre(int id) async {
+    return _persistAndReturn(await _apiService.resoumettre(id));
+  }
+
   /// Récupère la date de dernière synchronisation
   DateTime? getLastSyncDate() {
     return _storage.getAppartementsLastSync();

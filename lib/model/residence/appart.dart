@@ -117,7 +117,11 @@ class Appartement {
     imgUrl = json['imgUrl'];
     likes = json['likes'];
     isVisible = json['visible'] ?? json['isVisible'];
-    status = AppartementStatusExtension.fromString(json['status']);
+    // Le statut de modération peut arriver sous plusieurs clés selon l'endpoint
+    // backend (`status` documenté, mais `statut`/`etat` ailleurs dans l'API).
+    final dynamic rawStatus =
+        json['status'] ?? json['statut'] ?? json['etat'] ?? json['etats'];
+    status = AppartementStatusExtension.fromString(rawStatus?.toString());
     communeNom = json['communeNom'] as String?;
     villeNom = json['villeNom'] as String?;
     nbLits = json['nbLits'];
@@ -134,8 +138,10 @@ class Appartement {
     regles = json['regles'];
     brouillon = json['brouillon'];
     note = (json['note'] as num?)?.toDouble();
-    createdAt = json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null;
-    updatedAt = json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null;
+    // `tryParse` (et non `parse`) : une date malformée ne doit jamais faire
+    // échouer le parsing de toute l'annonce — elle retombe simplement à null.
+    createdAt = DateTime.tryParse(json['createdAt']?.toString() ?? '');
+    updatedAt = DateTime.tryParse(json['updatedAt']?.toString() ?? '');
     photos = json['photos'] != null
         ? List<PhotoAppart>.from(json['photos'].map((x) => PhotoAppart.fromJson(x)))
         : null;

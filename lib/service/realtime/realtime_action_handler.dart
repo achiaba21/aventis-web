@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
+import 'package:asfar/bloc/document_cubit/document_cubit.dart';
+import 'package:asfar/bloc/partenariat_bloc/partenariat_bloc.dart';
+import 'package:asfar/bloc/partenariat_bloc/partenariat_event.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_bloc.dart';
+import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_bloc.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_bloc.dart';
@@ -49,6 +53,14 @@ class RealtimeActionHandler {
   void _handleRealtimeAction(RealtimeAction action) {
     if (_currentContext == null) {
       deboger('⚠️ Contexte non disponible pour l\'action: ${action.type}');
+      return;
+    }
+
+    // Canal ciblé `/user/queue/updates` : enveloppe entityType/action.
+    if (action.isUserUpdate) {
+      deboger(
+          '⚡ Update ciblée: ${action.entityType}/${action.entityAction}');
+      _handleUserUpdate(action);
       return;
     }
 
@@ -101,6 +113,44 @@ class RealtimeActionHandler {
       }
     } catch (e) {
       deboger('❌ Erreur traitement action ${action.type}: $e');
+    }
+  }
+
+  /// Dispatch des updates ciblées (`/user/queue/updates`) vers le bon bloc.
+  /// Chaque entité patche/recharge son état localement, sans casser le flux si
+  /// un provider est absent du contexte courant.
+  void _handleUserUpdate(RealtimeAction action) {
+    final ctx = _currentContext;
+    if (ctx == null) return;
+    try {
+      switch (action.entityType) {
+        case 'APPARTEMENT': // { appartementId, ancienStatus, nouveauStatus, motif }
+          final id = (action.payload['appartementId'] as num?)?.toInt();
+          final nouveau = action.payload['nouveauStatus'] as String?;
+          ctx.read<AppartementBloc>().add(AppartementStatusPushed(id, nouveau));
+          break;
+        case 'DOCUMENT': // { documentUuid, etat, motif } (KYC)
+          ctx.read<DocumentCubit>().load();
+          break;
+        case 'PARTENARIAT': // { demandeId, statut, proprioId, demarcheurId }
+          final bloc = ctx.read<PartenariatBloc>();
+          if (action.entityAction == 'CREATED') {
+            bloc.add(const LoadDemandesRecues());
+          } else if (action.entityAction == 'STATUS_CHANGED') {
+            bloc.add(const LoadDemandesEnvoyees());
+          } else {
+            bloc.add(const LoadDemandesRecues());
+            bloc.add(const LoadDemandesEnvoyees());
+          }
+          break;
+        case 'RESERVATION': // { id, reference, statut, appartementId, ... }
+          ctx.read<ReservationBloc>().add(RefreshReservations());
+          break;
+        default:
+          deboger('⚠️ entityType non géré: ${action.entityType}');
+      }
+    } catch (e) {
+      deboger('❌ Erreur dispatch update ${action.entityType}: $e');
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/residence/appart_display.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_full_card_more_button.dart';
+import 'package:asfar/util/calc/appartement_status_display.dart';
 import 'package:asfar/widget/badge/badge_status.dart';
 import 'package:asfar/widget/badge/badge_tone.dart';
 import 'package:asfar/widget/img/domain_image.dart';
@@ -37,7 +38,11 @@ class ListingFullCardHero extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const BadgeStatus(text: '● Actif', tone: BadgeTone.success),
+                BadgeStatus(
+                  text: AppartementStatusDisplay.badgeLabel(
+                      appartement.status),
+                  tone: AppartementStatusDisplay.badgeTone(appartement.status),
+                ),
                 if (appartement.isSuperhost) ...[
                   const SizedBox(width: 6),
                   const BadgeStatus(

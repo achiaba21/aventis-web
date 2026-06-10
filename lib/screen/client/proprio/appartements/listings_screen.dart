@@ -10,6 +10,7 @@ import 'package:asfar/screen/client/proprio/appartements/widget/new_listing_card
 import 'package:asfar/screen/client/proprio/appartements/widget/proprio_listings_loading_view.dart';
 import 'package:asfar/screen/client/proprio/appartements/wizard/proprio_new_listing_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/util/calc/listing_status_filter.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
@@ -24,7 +25,7 @@ class ProprioListingsScreen extends StatefulWidget {
 }
 
 class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
-  String _filter = 'Tout';
+  ListingFilter _filter = ListingFilter.tout;
 
   @override
   void initState() {
@@ -32,8 +33,13 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final bloc = context.read<AppartementBloc>();
+      // Cache-first pour un affichage instantané si la liste est vide, sinon
+      // (liste déjà préchargée au login, potentiellement périmée) on force un
+      // rafraîchissement API : garantit des statuts à jour et réécrit le cache.
       if (bloc.state.appartements.isEmpty) {
         bloc.add(LoadProprietaireAppartements());
+      } else {
+        bloc.add(RefreshProprietaireAppartements());
       }
     });
   }
@@ -49,15 +55,6 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
 
   void _onRetry() {
     context.read<AppartementBloc>().add(RefreshProprietaireAppartements());
-  }
-
-  List<String> _buildFilters(int total) {
-    return [
-      'Tout ($total)',
-      'Actifs ($total)',
-      'En pause (0)',
-      'Brouillon (0)',
-    ];
   }
 
   @override
@@ -97,15 +94,18 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
                 onRetry: _onRetry,
               );
             }
+            final filtered = ListingStatusFilter.apply(appartements, _filter);
             return Column(
               children: [
                 const SizedBox(height: 6),
                 ListingsFilterChips(
-                  filters: _buildFilters(appartements.length),
-                  selected: _filter.startsWith('Tout')
-                      ? 'Tout (${appartements.length})'
-                      : _filter,
-                  onSelect: (f) => setState(() => _filter = f),
+                  filters: [
+                    for (final f in ListingFilter.values)
+                      ListingStatusFilter.label(appartements, f),
+                  ],
+                  selected: ListingStatusFilter.label(appartements, _filter),
+                  onSelect: (label) => setState(() => _filter =
+                      ListingStatusFilter.fromLabel(appartements, label)),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
@@ -116,53 +116,65 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
                           body:
                               'Vos annonces publiées apparaîtront ici.\nCommencez par publier votre 1ère annonce.',
                           ctaLabel: 'Nouvelle annonce',
-                          onCtaTap: () => _stub(
-                              'Création d\'annonce disponible prochainement (F2)'),
-                        )
-                      : SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(18, 0, 18, 100),
-                          child: Column(
-                            children: [
-                              for (var i = 0; i < appartements.length; i++) ...[
-                                ListingFullCard(
-                                  appartement: appartements[i],
-                                  occupancyRate: 0,
-                                  monthlyRevenue: 0,
-                                  onTap: () => pushScreen(
-                                    context,
-                                    ProprioListingEditScreen(
-                                        appartement: appartements[i]),
-                                  ),
-                                  onMoreTap: () =>
-                                      _stub("Plus d'options bientôt"),
-                                  onCalendarTap: () => pushScreen(
-                                    context,
-                                    ProprioListingEditScreen(
-                                      appartement: appartements[i],
-                                      initialTab: 1,
-                                    ),
-                                  ),
-                                  onEditTap: () => pushScreen(
-                                    context,
-                                    ProprioListingEditScreen(
-                                      appartement: appartements[i],
-                                      initialTab: 0,
-                                    ),
-                                  ),
-                                  onStatsTap: () => _stub(
-                                      'Statistiques détaillées disponibles prochainement'),
-                                ),
-                                const SizedBox(height: 14),
-                              ],
-                              NewListingCard(
-                                onTap: () => pushScreen(
-                                  context,
-                                  const ProprioNewListingScreen(),
-                                ),
-                              ),
-                            ],
+                          onCtaTap: () => pushScreen(
+                            context,
+                            const ProprioNewListingScreen(),
                           ),
-                        ),
+                        )
+                      : filtered.isEmpty
+                          ? Center(
+                              child: EmptyState.inline(
+                                icon: Icons.filter_list_off,
+                                title: 'Aucune annonce',
+                                body:
+                                    'Aucune annonce ne correspond à ce filtre.',
+                              ),
+                            )
+                          : SingleChildScrollView(
+                              padding:
+                                  const EdgeInsets.fromLTRB(18, 0, 18, 100),
+                              child: Column(
+                                children: [
+                                  for (var i = 0; i < filtered.length; i++) ...[
+                                    ListingFullCard(
+                                      appartement: filtered[i],
+                                      occupancyRate: 0,
+                                      monthlyRevenue: 0,
+                                      onTap: () => pushScreen(
+                                        context,
+                                        ProprioListingEditScreen(
+                                            appartement: filtered[i]),
+                                      ),
+                                      onMoreTap: () =>
+                                          _stub("Plus d'options bientôt"),
+                                      onCalendarTap: () => pushScreen(
+                                        context,
+                                        ProprioListingEditScreen(
+                                          appartement: filtered[i],
+                                          initialTab: 1,
+                                        ),
+                                      ),
+                                      onEditTap: () => pushScreen(
+                                        context,
+                                        ProprioListingEditScreen(
+                                          appartement: filtered[i],
+                                          initialTab: 0,
+                                        ),
+                                      ),
+                                      onStatsTap: () => _stub(
+                                          'Statistiques détaillées disponibles prochainement'),
+                                    ),
+                                    const SizedBox(height: 14),
+                                  ],
+                                  NewListingCard(
+                                    onTap: () => pushScreen(
+                                      context,
+                                      const ProprioNewListingScreen(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                 ),
               ],
             );

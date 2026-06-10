@@ -57,6 +57,35 @@ class DeleteAppartement extends AppartementEvent {
   DeleteAppartement(this.appartementId);
 }
 
+// ==================== MODÉRATION (Propriétaire) ====================
+
+/// Met une annonce du proprio hors ligne (EN_LIGNE → HORS_LIGNE).
+class MettreHorsLigneAppartement extends AppartementEvent {
+  final int appartementId;
+  MettreHorsLigneAppartement(this.appartementId);
+}
+
+/// Remet une annonce du proprio en ligne (HORS_LIGNE → EN_LIGNE).
+class RemettreEnLigneAppartement extends AppartementEvent {
+  final int appartementId;
+  RemettreEnLigneAppartement(this.appartementId);
+}
+
+/// Resoumet une annonce refusée à la modération (REFUSER → EN_COURS).
+class ResoumetreAppartement extends AppartementEvent {
+  final int appartementId;
+  ResoumetreAppartement(this.appartementId);
+}
+
+/// Push temps réel : l'admin a changé le statut d'une annonce
+/// (canal `/user/queue/updates`). Patche le statut de l'item dans la liste
+/// courante, sans refetch.
+class AppartementStatusPushed extends AppartementEvent {
+  final int? appartementId;
+  final String? nouveauStatus;
+  AppartementStatusPushed(this.appartementId, this.nouveauStatus);
+}
+
 // ==================== SYNCHRONISATION ====================
 
 /// Synchronise les appartements depuis une liste préchargée (bootstrap).

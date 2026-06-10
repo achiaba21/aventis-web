@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
+import 'package:asfar/model/enumeration/appartement_status.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/residence/appartement_list_source.dart';
 import 'package:asfar/service/model/appartement/appartement_service.dart';
@@ -34,6 +35,10 @@ class AppartementBloc extends Bloc<AppartementEvent, AppartementState> {
     on<CreateAppartement>(_onCreateAppartement);
     on<UpdateAppartement>(_onUpdateAppartement);
     on<DeleteAppartement>(_onDeleteAppartement);
+    on<MettreHorsLigneAppartement>(_onMettreHorsLigne);
+    on<RemettreEnLigneAppartement>(_onRemettreEnLigne);
+    on<ResoumetreAppartement>(_onResoumettre);
+    on<AppartementStatusPushed>(_onAppartementStatusPushed);
     on<SyncFromResidences>(_onSyncFromResidences);
     on<ResetAppartementState>(_onResetAppartementState);
   }
@@ -235,6 +240,98 @@ class AppartementBloc extends Bloc<AppartementEvent, AppartementState> {
         appartements: current,
       ));
     }
+  }
+
+  // ==================== MODÉRATION (actions propriétaire) ====================
+
+  Future<void> _onMettreHorsLigne(
+    MettreHorsLigneAppartement event,
+    Emitter<AppartementState> emit,
+  ) {
+    return _changeStatus(
+      emit,
+      () => _repository.mettreHorsLigne(event.appartementId),
+      'Annonce mise hors ligne',
+    );
+  }
+
+  Future<void> _onRemettreEnLigne(
+    RemettreEnLigneAppartement event,
+    Emitter<AppartementState> emit,
+  ) {
+    return _changeStatus(
+      emit,
+      () => _repository.remettreEnLigne(event.appartementId),
+      'Annonce remise en ligne',
+    );
+  }
+
+  Future<void> _onResoumettre(
+    ResoumetreAppartement event,
+    Emitter<AppartementState> emit,
+  ) {
+    return _changeStatus(
+      emit,
+      () => _repository.resoumettre(event.appartementId),
+      'Annonce resoumise à la modération',
+    );
+  }
+
+  /// Exécute un changement de statut (modération) puis émet la liste
+  /// rafraîchie depuis le cache avec un message de succès one-shot. En cas
+  /// d'échec, relaie le message backend via `AppartementError`.
+  Future<void> _changeStatus(
+    Emitter<AppartementState> emit,
+    Future<Appartement> Function() action,
+    String successMessage,
+  ) async {
+    final current = state.appartements;
+    emit(AppartementLoading(appartements: current));
+    try {
+      await action();
+      emit(AppartementLoaded(
+        _repository.getCachedAppartements(),
+        source: AppartementListSource.proprietaire,
+        transientMessage: successMessage,
+      ));
+    } catch (e) {
+      ErrorHandler.logError("CHANGE_STATUS_APPARTEMENT", e);
+      emit(AppartementError(
+        ErrorHandler.extractGenericErrorMessage(e),
+        appartements: current,
+      ));
+    }
+  }
+
+  /// Push temps réel du statut d'une annonce (verdict admin). Patche l'item
+  /// dans la liste courante sans refetch. No-op si l'annonce n'est pas dans la
+  /// liste affichée (ex. on est sur le feed locataire) — l'écran proprio
+  /// rechargera de toute façon le bon statut à sa prochaine ouverture.
+  void _onAppartementStatusPushed(
+    AppartementStatusPushed event,
+    Emitter<AppartementState> emit,
+  ) {
+    final id = event.appartementId;
+    if (id == null) return;
+    final current = state.appartements;
+    final index = current.indexWhere((a) => a.id == id);
+    if (index == -1) {
+      deboger(
+          '[AppartementBloc] push statut: annonce $id absente de la liste, ignoré');
+      return;
+    }
+    final newStatus =
+        AppartementStatusExtension.fromString(event.nouveauStatus);
+    final updated = List<Appartement>.from(current);
+    updated[index] = updated[index].copyWith(status: newStatus);
+    final base = state;
+    emit(AppartementLoaded(
+      updated,
+      source: base is AppartementLoaded
+          ? base.source
+          : AppartementListSource.proprietaire,
+      ownerId: base is AppartementLoaded ? base.ownerId : null,
+    ));
   }
 
   // ==================== SYNC / RESET ====================

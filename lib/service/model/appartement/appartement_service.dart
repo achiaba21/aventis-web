@@ -46,6 +46,34 @@ class AppartementService {
     await dio.delete("auth/appartement/$id");
   }
 
+  // ==================== Modération (actions propriétaire) ====================
+  // Endpoints à body vide, enveloppe ResponseServeur { body, message }.
+  // Le message d'erreur backend (400) est relayé par l'intercepteur Dio.
+
+  /// Met une annonce EN_LIGNE hors ligne (→ HORS_LIGNE).
+  Future<Map<String, dynamic>> mettreHorsLigne(int id) async {
+    final dio = DioRequest.instance;
+    final response =
+        await dio.post("api/proprietaire/appartement/$id/mettre-hors-ligne");
+    return _extractBodyMap(response.data);
+  }
+
+  /// Remet une annonce HORS_LIGNE en ligne (→ EN_LIGNE, sans re-modération).
+  Future<Map<String, dynamic>> remettreEnLigne(int id) async {
+    final dio = DioRequest.instance;
+    final response =
+        await dio.post("api/proprietaire/appartement/$id/remettre-en-ligne");
+    return _extractBodyMap(response.data);
+  }
+
+  /// Resoumet une annonce REFUSER à la modération (→ EN_COURS).
+  Future<Map<String, dynamic>> resoumettre(int id) async {
+    final dio = DioRequest.instance;
+    final response =
+        await dio.post("api/proprietaire/appartement/$id/resoumettre");
+    return _extractBodyMap(response.data);
+  }
+
   /// Récupère tous les appartements d'un propriétaire spécifique
   Future<List<Appartement>> getAppartementsByOwner(int proprietaireId) async {
     final dio = DioRequest.instance;
@@ -71,7 +99,8 @@ class AppartementService {
   /// Récupère les appartements du propriétaire connecté
   Future<List<Appartement>> getProprietaireAppartements() async {
     final dio = DioRequest.instance;
-    return await dio.getMapped<Appartement>("api/proprietaire/appartement/appartements");
+    return await dio
+        .getMapped<Appartement>("api/proprietaire/appartement/appartements");
   }
 
   /// Crée un nouvel appartement (JSON pur, sans images).

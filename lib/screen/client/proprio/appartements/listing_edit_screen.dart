@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
+import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
 import 'package:asfar/bloc/calendar_plage_bloc/calendar_plage_bloc.dart';
 import 'package:asfar/bloc/calendar_plage_bloc/calendar_plage_event.dart';
@@ -11,6 +12,7 @@ import 'package:asfar/screen/client/proprio/appartements/widget/listing_calendar
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_edit_hero.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_edit_stats_card.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_infos_tab.dart';
+import 'package:asfar/screen/client/proprio/appartements/widget/listing_moderation_actions.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_reductions_tab.dart';
 import 'package:asfar/screen/client/proprio/appartements/widget/listing_rules_tab.dart';
 import 'package:asfar/theme/app_colors.dart';
@@ -84,15 +86,64 @@ class _ProprioListingEditScreenState extends State<ProprioListingEditScreen> {
     return null;
   }
 
+  /// Affiche un dialog de confirmation puis exécute [onConfirm] si l'utilisateur
+  /// valide. Utilisé par les actions de modération (hors ligne / en ligne /
+  /// resoumettre).
+  Future<void> _confirm(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String confirmLabel,
+    required Color confirmColor,
+    required VoidCallback onConfirm,
+  }) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.bgElev1,
+        title: Text(title, style: const TextStyle(color: AppColors.text)),
+        content:
+            Text(message, style: const TextStyle(color: AppColors.text2)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Annuler',
+                style: TextStyle(color: AppColors.text2)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: Text(confirmLabel, style: TextStyle(color: confirmColor)),
+          ),
+        ],
+      ),
+    );
+    if (ok == true && context.mounted) onConfirm();
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 4,
       initialIndex: widget.initialTab,
-      child: BlocBuilder<AppartementBloc, AppartementState>(
+      child: BlocConsumer<AppartementBloc, AppartementState>(
+        listener: (context, state) {
+          if (state is AppartementLoaded && state.transientMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(state.transientMessage!),
+              behavior: SnackBarBehavior.floating,
+            ));
+          } else if (state is AppartementError) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(state.message),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: AppColors.danger,
+            ));
+          }
+        },
         builder: (context, appartState) {
           final fresh = _findFresh(appartState.appartements);
           final appart = fresh ?? widget.appartement;
+          final busy = appartState is AppartementLoading;
           return Scaffold(
             backgroundColor: AppColors.background,
             appBar: DynamicAppBar(
@@ -129,6 +180,63 @@ class _ProprioListingEditScreenState extends State<ProprioListingEditScreen> {
                             occupancyRate: occupancy,
                           );
                         },
+                      ),
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+                    sliver: SliverToBoxAdapter(
+                      child: ListingModerationActions(
+                        status: appart.status,
+                        busy: busy,
+                        onMettreHorsLigne: () => _confirm(
+                          context,
+                          title: 'Mettre hors ligne',
+                          message:
+                              'Votre annonce ne sera plus visible du public. Vous pourrez la remettre en ligne à tout moment.',
+                          confirmLabel: 'Mettre hors ligne',
+                          confirmColor: AppColors.text,
+                          onConfirm: () {
+                            final id = appart.id;
+                            if (id != null) {
+                              context
+                                  .read<AppartementBloc>()
+                                  .add(MettreHorsLigneAppartement(id));
+                            }
+                          },
+                        ),
+                        onRemettreEnLigne: () => _confirm(
+                          context,
+                          title: 'Remettre en ligne',
+                          message:
+                              'Votre annonce redeviendra visible du public immédiatement.',
+                          confirmLabel: 'Remettre en ligne',
+                          confirmColor: AppColors.accent,
+                          onConfirm: () {
+                            final id = appart.id;
+                            if (id != null) {
+                              context
+                                  .read<AppartementBloc>()
+                                  .add(RemettreEnLigneAppartement(id));
+                            }
+                          },
+                        ),
+                        onResoumettre: () => _confirm(
+                          context,
+                          title: 'Resoumettre l\'annonce',
+                          message:
+                              'Votre annonce sera renvoyée à la modération pour une nouvelle validation.',
+                          confirmLabel: 'Resoumettre',
+                          confirmColor: AppColors.accent,
+                          onConfirm: () {
+                            final id = appart.id;
+                            if (id != null) {
+                              context
+                                  .read<AppartementBloc>()
+                                  .add(ResoumetreAppartement(id));
+                            }
+                          },
+                        ),
                       ),
                     ),
                   ),

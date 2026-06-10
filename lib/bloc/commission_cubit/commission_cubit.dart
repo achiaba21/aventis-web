@@ -18,7 +18,11 @@ class CommissionState {
   });
 
   /// Taux en **fraction** (ex. `0.05` pour 5 %), utile pour les calculs.
-  /// Fallback `0.08` si non chargé (compat valeur historique).
+  ///
+  /// `tauxPercent` est alimenté par l'API puis, à défaut, par le dernier taux
+  /// connu en cache (cf. `CommissionCubit.load`). La constante `0.08` ci-dessous
+  /// n'est donc plus qu'un **ultime recours** : premier lancement hors-ligne,
+  /// sans aucune valeur jamais récupérée sur l'appareil.
   double get tauxFraction {
     if (tauxPercent == null) return 0.08;
     return tauxPercent! / 100;
@@ -58,11 +62,19 @@ class CommissionCubit extends Cubit<CommissionState> {
     if (state.hasLoaded && !force) return;
     emit(state.copyWith(isLoading: true, clearError: true));
     final taux = await _service.fetchTaux();
+    // Repli : si l'appel échoue, on retombe sur le dernier taux connu en cache
+    // plutôt que sur la constante codée en dur (qui dérive du taux admin réel).
+    final cached = _service.cachedTaux();
+    final effective = taux ?? cached;
     emit(state.copyWith(
-      tauxPercent: taux,
+      tauxPercent: effective,
       isLoading: false,
       hasLoaded: true,
-      errorMessage: taux == null ? 'Commission indisponible (fallback 8 %)' : null,
+      errorMessage: taux == null
+          ? (cached != null
+              ? 'Taux hors-ligne (dernière valeur connue)'
+              : 'Commission indisponible (valeur par défaut)')
+          : null,
       clearError: taux != null,
     ));
   }

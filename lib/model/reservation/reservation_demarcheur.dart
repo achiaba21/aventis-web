@@ -7,8 +7,9 @@ import 'package:asfar/model/user/demarcheur.dart';
 /// Mirror de `ReservationDemarcheur extends Reservation` côté backend.
 /// Porte 2 champs supplémentaires :
 /// - `demarcheur: Demarcheur?` : le démarcheur source (référeur)
-/// - `montantCommission: double?` : montant réel de la commission convenu
-///   pour cette résa (peut différer du calcul standard 12% si négocié).
+/// - `montantCommission: double?` : montant **libre** (FCFA) proposé par le
+///   démarcheur pour cette résa (0 = renonce) ; validé par le proprio à la
+///   confirmation. Aucun calcul automatique côté serveur.
 class ReservationDemarcheur extends Reservation {
   Demarcheur? demarcheur;
   double? montantCommission;

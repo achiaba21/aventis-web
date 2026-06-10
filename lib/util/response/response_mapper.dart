@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:asfar/util/custom_exception.dart';
+import 'package:asfar/util/function.dart';
 import 'package:asfar/util/response/http_function.dart';
 
 /// Interface pour les modèles qui supportent le mapping JSON
@@ -50,15 +51,28 @@ class ResponseMapper {
       final data = response.data;
       final mapFunction = fromJsonAllConstructor ?? fromJsonConstructor;
 
-      // Si c'est une liste, mapper chaque élément
+      // Mapping résilient : un item qui échoue (champ malformé, type
+      // inattendu) est ignoré + loggué plutôt que de faire échouer toute la
+      // liste. Évite qu'une seule annonce corrompue masque toutes les autres.
       if (data is List) {
-        return data.map((item) {
-          if (item is Map<String, dynamic>) {
-            return mapFunction(item);
-          } else {
-            throw CustomException("Format de données invalide dans la liste");
+        final result = <T>[];
+        for (var i = 0; i < data.length; i++) {
+          final item = data[i];
+          if (item is! Map<String, dynamic>) {
+            deboger([
+              '[ResponseMapper] item #$i ignoré : format invalide '
+                  '(${item.runtimeType})'
+            ]);
+            continue;
           }
-        }).toList().cast<T>();
+          try {
+            result.add(mapFunction(item));
+          } catch (e) {
+            deboger(
+                ['[ResponseMapper] item #$i ignoré : échec de mapping → $e', item]);
+          }
+        }
+        return result;
       }
 
       // Si c'est un objet unique, le retourner dans une liste

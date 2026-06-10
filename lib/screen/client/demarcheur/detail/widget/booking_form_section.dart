@@ -19,13 +19,16 @@ class BookingFormSection extends StatelessWidget {
   final TextEditingController nomCtrl;
   final TextEditingController phoneCtrl;
   final TextEditingController prixCtrl;
+  final TextEditingController commissionCtrl;
   final DateTime? selectedStart;
   final DateTime? selectedEnd;
   final int nights;
   final int suggestedPrice;
+  final int suggestedCommission;
   final int commission;
   final VoidCallback onAnyChange;
   final void Function(String) onPriceChanged;
+  final void Function(String) onCommissionChanged;
   final void Function(String fullPhone) onPhoneChanged;
   final bool canSubmit;
   final bool submitting;
@@ -36,13 +39,16 @@ class BookingFormSection extends StatelessWidget {
     required this.nomCtrl,
     required this.phoneCtrl,
     required this.prixCtrl,
+    required this.commissionCtrl,
     required this.selectedStart,
     required this.selectedEnd,
     required this.nights,
     required this.suggestedPrice,
+    required this.suggestedCommission,
     required this.commission,
     required this.onAnyChange,
     required this.onPriceChanged,
+    required this.onCommissionChanged,
     required this.onPhoneChanged,
     required this.canSubmit,
     required this.submitting,
@@ -113,11 +119,35 @@ class BookingFormSection extends StatelessWidget {
           },
         ),
         const SizedBox(height: 18),
+        const Text('Votre commission', style: AppTextStyles.h3),
+        const SizedBox(height: 4),
+        Text(
+          nights > 0
+              ? 'Suggestion : ${FcfaFormatter.full(suggestedCommission)} (10 % du prix négocié)'
+              : 'Vous proposez le montant ; le propriétaire le valide.',
+          style: AppTextStyles.small.copyWith(fontSize: 12),
+        ),
+        const SizedBox(height: 10),
+        NumberInputField(
+          controller: commissionCtrl,
+          eyebrow: 'COMMISSION (FCFA)',
+          hintText: nights > 0
+              ? FcfaFormatter.groupThousands(suggestedCommission)
+              : '0',
+          formatThousands: true,
+          suffix: 'FCFA',
+          useMonoStyle: true,
+          onChanged: (value) {
+            onCommissionChanged((value ?? 0).toString());
+            onAnyChange();
+          },
+        ),
+        const SizedBox(height: 10),
         InfoBanner(
           icon: Icons.payments_outlined,
-          title:
-              'Commission estimée ${FcfaFormatter.full(commission)}',
-          body: '10 % du prix négocié · versée après paiement client.',
+          title: 'Commission proposée : ${FcfaFormatter.full(commission)}',
+          body:
+              'Le propriétaire valide en confirmant la demande. Laissez 0 pour y renoncer.',
         ),
         const SizedBox(height: 22),
         CustomButton(

@@ -92,20 +92,42 @@ class WebSocketState {
 }
 
 class RealtimeAction {
+  /// Type d'action « legacy » du canal global `/topic/actions` (REFRESH_*).
   final String type;
+
+  /// Champs de l'enveloppe `UserUpdateMessage` du canal ciblé
+  /// `/user/queue/updates`. `null` pour les messages du canal legacy.
+  final String? eventId;
+
+  /// `APPARTEMENT` | `DOCUMENT` | `PARTENARIAT` | `RESERVATION`.
+  final String? entityType;
+
+  /// `CREATED` | `UPDATED` | `STATUS_CHANGED`.
+  final String? entityAction;
+
   final Map<String, dynamic> payload;
   final DateTime timestamp;
 
   RealtimeAction({
     required this.type,
     required this.payload,
+    this.eventId,
+    this.entityType,
+    this.entityAction,
     DateTime? timestamp,
   }) : timestamp = timestamp ?? DateTime.now();
 
   RealtimeAction.fromJson(Map<String, dynamic> json)
       : type = json['type'] ?? '',
+        eventId = json['eventId'] as String?,
+        entityType = json['entityType'] as String?,
+        entityAction = json['action'] as String?,
         payload = json['payload'] ?? {},
         timestamp = _parseTimestamp(json['timestamp']);
+
+  /// `true` si le message provient du canal ciblé `/user/queue/updates`
+  /// (enveloppe `entityType`/`action`) plutôt que du canal legacy `type`.
+  bool get isUserUpdate => entityType != null;
 
   static DateTime _parseTimestamp(dynamic timestamp) {
     if (timestamp == null) return DateTime.now();

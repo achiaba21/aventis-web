@@ -66,6 +66,7 @@ class _DemarcheurAppartDetailScreenState
   final _nomCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _prixCtrl = TextEditingController();
+  final _commissionCtrl = TextEditingController();
   String _fullPhone = '';
 
   bool _submitting = false;
@@ -93,6 +94,7 @@ class _DemarcheurAppartDetailScreenState
     _nomCtrl.dispose();
     _phoneCtrl.dispose();
     _prixCtrl.dispose();
+    _commissionCtrl.dispose();
     super.dispose();
   }
 
@@ -128,8 +130,17 @@ class _DemarcheurAppartDetailScreenState
     return entered;
   }
 
-  int get _commission =>
+  /// Commission suggérée par défaut : 10 % du prix négocié. Sert uniquement de
+  /// pré-remplissage / repère — le démarcheur reste libre de la modifier.
+  int get _suggestedCommission =>
       (_effectivePrice * ReferralCommissionHelper.rate).round();
+
+  /// Commission réellement saisie par le démarcheur (FCFA). 0 autorisé
+  /// (renonce à sa commission) ; le backend accepte un montant libre >= 0.
+  int get _commission {
+    final raw = _commissionCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
+    return int.tryParse(raw) ?? 0;
+  }
 
   bool get _isFormValid =>
       _selectedStart != null &&
@@ -151,13 +162,25 @@ class _DemarcheurAppartDetailScreenState
         _prixCtrl.text = _suggestedPrice == 0
             ? ''
             : FcfaFormatter.groupThousands(_suggestedPrice);
+        // Pré-remplit la commission avec la suggestion 10 % du prix négocié —
+        // le démarcheur reste libre de l'ajuster (ou de la mettre à 0).
+        final defaultCommission =
+            (_suggestedPrice * ReferralCommissionHelper.rate).round();
+        _commissionCtrl.text = defaultCommission == 0
+            ? ''
+            : FcfaFormatter.groupThousands(defaultCommission);
       }
     });
   }
 
   void _onPriceChanged(String _) {
     // Le NumberInputField met déjà à jour le controller. setState ici sert
-    // juste à recalculer la commission affichée + l'activation du CTA.
+    // juste à recalculer la suggestion + l'activation du CTA.
+    setState(() {});
+  }
+
+  void _onCommissionChanged(String _) {
+    // Recalcule l'affichage (bandeau récap commission) à chaque saisie.
     setState(() {});
   }
 
@@ -354,13 +377,16 @@ class _DemarcheurAppartDetailScreenState
                         nomCtrl: _nomCtrl,
                         phoneCtrl: _phoneCtrl,
                         prixCtrl: _prixCtrl,
+                        commissionCtrl: _commissionCtrl,
                         selectedStart: _selectedStart,
                         selectedEnd: _selectedEnd,
                         nights: _nights,
                         suggestedPrice: _suggestedPrice,
+                        suggestedCommission: _suggestedCommission,
                         commission: _commission,
                         onAnyChange: () => setState(() {}),
                         onPriceChanged: _onPriceChanged,
+                        onCommissionChanged: _onCommissionChanged,
                         onPhoneChanged: (full) => _fullPhone = full,
                         canSubmit: _isFormValid,
                         submitting: _submitting,
