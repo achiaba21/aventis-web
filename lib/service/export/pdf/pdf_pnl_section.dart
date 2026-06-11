@@ -54,7 +54,7 @@ class PdfPnlSection {
               pw.Text('MÉTHODE', style: PdfTheme.eyebrow()),
               pw.SizedBox(height: 4),
               pw.Text(
-                '• Statuts comptés : PAYER + FINALISER + TERMINEE.\n'
+                '• Statuts comptés : PAYER + FINALISER.\n'
                 '• Statut CONFIRMER (engagement non payé) exclu — voir « Engagé ».\n'
                 '• Frais plateforme Asfar : montant réel facturé par résa.\n'
                 '• Commission démarcheur : montant réel par résa référée.',

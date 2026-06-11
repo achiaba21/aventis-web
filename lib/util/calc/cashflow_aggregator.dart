@@ -23,8 +23,7 @@ class CashflowAggregator {
   static bool _isCounted(ReservationStatus? s) {
     return s == ReservationStatus.confirmee ||
         s == ReservationStatus.payee ||
-        s == ReservationStatus.finalisee ||
-        s == ReservationStatus.terminee;
+        s == ReservationStatus.finalisee;
   }
 
   static List<CashflowSegment> currentMonth({

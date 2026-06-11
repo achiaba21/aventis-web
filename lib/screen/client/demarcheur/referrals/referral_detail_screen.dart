@@ -39,8 +39,7 @@ class ReferralDetailScreen extends StatelessWidget {
     final sentLabel = _relativeLabel(created);
     final acceptedAt = reservation.statut == ReservationStatus.confirmee ||
             reservation.statut == ReservationStatus.payee ||
-            reservation.statut == ReservationStatus.finalisee ||
-            reservation.statut == ReservationStatus.terminee
+            reservation.statut == ReservationStatus.finalisee
         ? reservation.createdAt
         : null;
     final hostName = reservation.proprio?.fullName.trim().isNotEmpty == true
@@ -59,7 +58,7 @@ class ReferralDetailScreen extends StatelessWidget {
             : (sentLabel ?? '—'),
       ),
       TimelineEntry(
-        title: reservation.statut == ReservationStatus.refusee
+        title: reservation.statut == ReservationStatus.annulee
             ? 'Refusée par $hostName'
             : 'Acceptée par $hostName',
         subtitle: _formatDate(acceptedAt) ?? 'En attente',
@@ -67,15 +66,13 @@ class ReferralDetailScreen extends StatelessWidget {
       TimelineEntry(
         title: 'Paiement client',
         subtitle: reservation.statut == ReservationStatus.payee ||
-                reservation.statut == ReservationStatus.finalisee ||
-                reservation.statut == ReservationStatus.terminee
+                reservation.statut == ReservationStatus.finalisee
             ? 'Reçu'
             : 'En attente',
       ),
       TimelineEntry(
         title: 'Commission versée',
-        subtitle: reservation.statut == ReservationStatus.terminee ||
-                reservation.statut == ReservationStatus.finalisee
+        subtitle: reservation.statut == ReservationStatus.finalisee
             ? 'Versée'
             : 'À venir',
       ),

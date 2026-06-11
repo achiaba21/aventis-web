@@ -28,12 +28,7 @@ void main() {
       expect(_r(ReservationStatus.finalisee).isEncaissed, isTrue);
     });
 
-    test('terminee → true', () {
-      expect(_r(ReservationStatus.terminee).isEncaissed, isTrue);
-    });
-
-    test('refusee/annulee → false', () {
-      expect(_r(ReservationStatus.refusee).isEncaissed, isFalse);
+    test('annulee → false', () {
       expect(_r(ReservationStatus.annulee).isEncaissed, isFalse);
     });
   });
@@ -49,8 +44,8 @@ void main() {
       expect(r.isEncaissed, isFalse);
     });
 
-    test('terminee manuelle → true', () {
-      final r = _r(ReservationStatus.terminee, base: ReservationManuelle());
+    test('finalisee manuelle → true', () {
+      final r = _r(ReservationStatus.finalisee, base: ReservationManuelle());
       expect(r.isEncaissed, isTrue);
     });
 

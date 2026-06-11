@@ -64,29 +64,6 @@ void main() {
       ]);
     });
 
-    test('terminee → 5 étapes complètes', () {
-      final events = ReservationTimelineBuilder.build(
-        _r(createdAt: created, statut: ReservationStatus.terminee),
-      );
-      expect(events, hasLength(5));
-      expect(events.last.type, ReservationTimelineEventType.terminated);
-    });
-
-    test('refusee → created + refused avec motif', () {
-      final events = ReservationTimelineBuilder.build(
-        _r(
-          createdAt: created,
-          statut: ReservationStatus.refusee,
-          motif: 'Indisponible',
-        ),
-      );
-      expect(events.map((e) => e.type), [
-        ReservationTimelineEventType.created,
-        ReservationTimelineEventType.refused,
-      ]);
-      expect(events.last.motif, 'Indisponible');
-      expect(events.last.isNegative, isTrue);
-    });
 
     test('annulee → created + cancelled avec motif', () {
       final events = ReservationTimelineBuilder.build(
@@ -146,13 +123,13 @@ void main() {
       ]);
     });
 
-    test('manuelle terminée → 5 étapes (idem plateforme)', () {
+    test('manuelle finalisée → 4 étapes (idem plateforme)', () {
       final events = ReservationTimelineBuilder.build(_r(
         createdAt: created,
-        statut: ReservationStatus.terminee,
+        statut: ReservationStatus.finalisee,
         base: ReservationManuelle(),
       ));
-      expect(events, hasLength(5));
+      expect(events, hasLength(4));
     });
 
     test('manuelle annulée → created + cancelled', () {

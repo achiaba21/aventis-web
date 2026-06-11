@@ -20,9 +20,7 @@ const _kMonths = [
 extension TripDisplay on Reservation {
   bool get isUpcomingTrip {
     final s = statut;
-    if (s == ReservationStatus.refusee ||
-        s == ReservationStatus.annulee ||
-        s == ReservationStatus.terminee ||
+    if (s == ReservationStatus.annulee ||
         s == ReservationStatus.finalisee) {
       return false;
     }
@@ -42,10 +40,7 @@ extension TripDisplay on Reservation {
       case ReservationStatus.payee:
         return 'Payée';
       case ReservationStatus.finalisee:
-      case ReservationStatus.terminee:
         return 'Terminée';
-      case ReservationStatus.refusee:
-        return 'Refusée';
       case ReservationStatus.annulee:
         return 'Annulée';
       case null:

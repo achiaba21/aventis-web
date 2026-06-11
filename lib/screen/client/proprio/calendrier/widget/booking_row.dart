@@ -63,11 +63,8 @@ class BookingRow extends StatelessWidget {
         return (text: 'Confirmé', tone: BadgeTone.success);
       case ReservationStatus.enAttente:
         return (text: 'En cours', tone: BadgeTone.warn);
-      case ReservationStatus.refusee:
       case ReservationStatus.annulee:
         return (text: 'Annulé', tone: BadgeTone.danger);
-      case ReservationStatus.terminee:
-        return (text: 'Terminé', tone: BadgeTone.neutral);
       case null:
         return (text: '—', tone: BadgeTone.neutral);
     }

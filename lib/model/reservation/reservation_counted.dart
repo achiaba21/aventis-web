@@ -29,8 +29,7 @@ extension ReservationCounted on Reservation {
     final s = statut;
     if (isManuelle && s == ReservationStatus.confirmee) return true;
     return s == ReservationStatus.payee ||
-        s == ReservationStatus.finalisee ||
-        s == ReservationStatus.terminee;
+        s == ReservationStatus.finalisee;
   }
 
   /// La résa est dans le pipeline (engagée mais non payée).

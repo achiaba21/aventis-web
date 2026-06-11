@@ -59,19 +59,12 @@ void main() {
       expect(actions, contains(ReservationDetailAction.viewQr));
     });
 
-    test('terminee/refusee/annulee → contact seulement', () {
-      for (final s in [
-        ReservationStatus.terminee,
-        ReservationStatus.refusee,
-        ReservationStatus.annulee,
-      ]) {
-        final actions = ReservationActionsResolver.actionsFor(
-          role: ReservationViewerRole.locataire,
-          reservation: _r(s),
-        );
-        expect(actions, [ReservationDetailAction.contact],
-            reason: 'statut = $s');
-      }
+    test('annulee → contact seulement', () {
+      final actions = ReservationActionsResolver.actionsFor(
+        role: ReservationViewerRole.locataire,
+        reservation: _r(ReservationStatus.annulee),
+      );
+      expect(actions, [ReservationDetailAction.contact]);
     });
   });
 
@@ -121,16 +114,16 @@ void main() {
       ]);
     });
 
-    test('confirmee manuelle → cancel + contact (édition verrouillée car encaissée)', () {
+    test('confirmee manuelle → edit + cancel + contact (contrat 2026-06-11)', () {
       final actions = ReservationActionsResolver.actionsFor(
         role: ReservationViewerRole.proprietaire,
         reservation: _r(ReservationStatus.confirmee, base: ReservationManuelle()),
       );
       expect(actions, [
+        ReservationDetailAction.edit,
         ReservationDetailAction.cancel,
         ReservationDetailAction.contact,
       ]);
-      expect(actions, isNot(contains(ReservationDetailAction.edit)));
     });
 
     test('payee manuelle → édition verrouillée (RM4)', () {
@@ -142,12 +135,16 @@ void main() {
       expect(actions, contains(ReservationDetailAction.scanQr));
     });
 
-    test('finalisee manuelle → édition verrouillée (RM4)', () {
+    test('finalisee manuelle → edit présent (statut de naissance des manuelles)', () {
       final actions = ReservationActionsResolver.actionsFor(
         role: ReservationViewerRole.proprietaire,
         reservation: _r(ReservationStatus.finalisee, base: ReservationManuelle()),
       );
-      expect(actions, isNot(contains(ReservationDetailAction.edit)));
+      expect(actions, [
+        ReservationDetailAction.edit,
+        ReservationDetailAction.cancel,
+        ReservationDetailAction.contact,
+      ]);
     });
   });
 

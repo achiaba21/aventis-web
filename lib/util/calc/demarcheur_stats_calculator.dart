@@ -147,9 +147,7 @@ class DemarcheurStatsCalculator {
   static int acceptanceRate(List<Reservation> reservations) {
     final accepted = acceptedCount(reservations);
     final refused = reservations
-        .where((r) =>
-            r.statut == ReservationStatus.refusee ||
-            r.statut == ReservationStatus.annulee)
+        .where((r) => r.statut == ReservationStatus.annulee)
         .length;
     final decided = accepted + refused;
     if (decided == 0) return 0;
@@ -163,8 +161,7 @@ class DemarcheurStatsCalculator {
     final refused = reservations
         .where((r) =>
             _fallsInMonth(r.debut, year, month) &&
-            (r.statut == ReservationStatus.refusee ||
-                r.statut == ReservationStatus.annulee))
+            r.statut == ReservationStatus.annulee)
         .length;
     final decided = accepted + refused;
     if (decided == 0) return 0;
@@ -189,8 +186,7 @@ class DemarcheurStatsCalculator {
   static bool _isWon(ReservationStatus? s) {
     return s == ReservationStatus.confirmee ||
         s == ReservationStatus.payee ||
-        s == ReservationStatus.finalisee ||
-        s == ReservationStatus.terminee;
+        s == ReservationStatus.finalisee;
   }
 }
 

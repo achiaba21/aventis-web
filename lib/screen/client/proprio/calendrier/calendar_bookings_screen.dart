@@ -326,8 +326,7 @@ class _CalendarContent extends StatelessWidget {
         DateTime(currentMonth.year, currentMonth.month + 1, 0, 23, 59, 59);
     return all.where((r) {
       if (r.appart?.id != appartement.id) return false;
-      if (r.statut == ReservationStatus.annulee ||
-          r.statut == ReservationStatus.refusee) {
+      if (r.statut == ReservationStatus.annulee) {
         return false;
       }
       if (r.debut == null || r.fin == null) return false;

@@ -183,7 +183,9 @@ class Appartement {
           .map((ar) => ar.rule!.copyWith(isAllowed: ar.isAllowed))
           .toList();
     }
-    final dynamic proprioJson = json['proprietaire'];
+    // Le backend expose l'hôte sous la clé 'proprio' (DTO réduit, contrat
+    // 2026-06-11) ; 'proprietaire' reste lue pour les payloads antérieurs.
+    final dynamic proprioJson = json['proprio'] ?? json['proprietaire'];
     if (proprioJson is Map) {
       proprietaire =
           ParticipantMini.fromJson(Map<String, dynamic>.from(proprioJson));

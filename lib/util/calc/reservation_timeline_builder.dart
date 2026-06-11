@@ -57,10 +57,7 @@ class ReservationTimelineBuilder {
           ];
         case ReservationStatus.payee:
         case ReservationStatus.finalisee:
-        case ReservationStatus.terminee:
           return _plateformeReached(current);
-        case ReservationStatus.refusee:
-          return const [ReservationTimelineEventType.refused];
         case ReservationStatus.annulee:
           return const [ReservationTimelineEventType.cancelled];
       }
@@ -87,15 +84,6 @@ class ReservationTimelineBuilder {
           ReservationTimelineEventType.paid,
           ReservationTimelineEventType.finalized,
         ];
-      case ReservationStatus.terminee:
-        return const [
-          ReservationTimelineEventType.confirmed,
-          ReservationTimelineEventType.paid,
-          ReservationTimelineEventType.finalized,
-          ReservationTimelineEventType.terminated,
-        ];
-      case ReservationStatus.refusee:
-        return const [ReservationTimelineEventType.refused];
       case ReservationStatus.annulee:
         return const [ReservationTimelineEventType.cancelled];
     }

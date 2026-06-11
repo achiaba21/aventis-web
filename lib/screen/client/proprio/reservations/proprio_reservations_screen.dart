@@ -18,7 +18,7 @@ import 'package:asfar/widget/feedback/empty_state.dart';
 /// Écran « Mes réservations » du propriétaire — vue de toutes les demandes.
 ///
 /// Branché sur `ReservationBloc` via `LoadProprietaireReservations`. Filtres
-/// chips par statut : Toutes / En attente / Confirmées / Terminées / Refusées.
+/// chips par statut : Toutes / En attente / Confirmées / Terminées / Annulées.
 class ProprioReservationsScreen extends StatefulWidget {
   const ProprioReservationsScreen({super.key});
 
@@ -34,7 +34,7 @@ class _ProprioReservationsScreenState
     'En attente',
     'Confirmées',
     'Terminées',
-    'Refusées',
+    'Annulées',
   ];
 
   String _filter = 'Toutes';
@@ -70,11 +70,9 @@ class _ProprioReservationsScreenState
         return r.statut == ReservationStatus.confirmee ||
             r.statut == ReservationStatus.payee;
       case 'Terminées':
-        return r.statut == ReservationStatus.terminee ||
-            r.statut == ReservationStatus.finalisee;
-      case 'Refusées':
-        return r.statut == ReservationStatus.refusee ||
-            r.statut == ReservationStatus.annulee;
+        return r.statut == ReservationStatus.finalisee;
+      case 'Annulées':
+        return r.statut == ReservationStatus.annulee;
       case 'Toutes':
       default:
         return true;

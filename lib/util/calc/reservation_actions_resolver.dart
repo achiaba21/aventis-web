@@ -56,8 +56,6 @@ class ReservationActionsResolver {
           ReservationDetailAction.viewQr,
           ReservationDetailAction.contact,
         ];
-      case ReservationStatus.terminee:
-      case ReservationStatus.refusee:
       case ReservationStatus.annulee:
         return const [ReservationDetailAction.contact];
     }
@@ -85,10 +83,8 @@ class ReservationActionsResolver {
         ];
       case ReservationStatus.confirmee:
         if (isManuelle) {
-          // Manuelle confirmée = argent encaissé (paiement hors plateforme).
-          // Édition verrouillée pour cohérence avec RM4. Annulation possible
-          // si remboursement négocié hors-app.
           return const [
+            ReservationDetailAction.edit,
             ReservationDetailAction.cancel,
             ReservationDetailAction.contact,
           ];
@@ -100,8 +96,17 @@ class ReservationActionsResolver {
           ReservationDetailAction.contact,
         ];
       case ReservationStatus.finalisee:
-      case ReservationStatus.terminee:
-      case ReservationStatus.refusee:
+        if (isManuelle) {
+          // Les manuelles naissent en FINALISER côté backend (contrat
+          // 2026-06-11) — l'édition doit donc être offerte sur ce statut,
+          // l'endpoint PUT owner/manual/{ref} l'accepte.
+          return const [
+            ReservationDetailAction.edit,
+            ReservationDetailAction.cancel,
+            ReservationDetailAction.contact,
+          ];
+        }
+        return const [ReservationDetailAction.contact];
       case ReservationStatus.annulee:
         return const [ReservationDetailAction.contact];
     }

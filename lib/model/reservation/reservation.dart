@@ -11,14 +11,15 @@ import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/user/locataire.dart';
 import 'package:asfar/model/user/proprietaire.dart';
 
+/// Statuts de réservation — alignés sur l'enum backend (contrat 2026-06-11) :
+/// le serveur ne connaît que ces 5 valeurs. `ANULLE` est l'orthographe
+/// backend (typo conservée côté Flutter pour cohérence).
 enum ReservationStatus {
   enAttente('EN_ATTENTE'),
   confirmee('CONFIRMER'),
   payee('PAYER'),
   finalisee('FINALISER'),
-  refusee('REFUSEE'),
-  annulee('ANULLE'),
-  terminee('TERMINEE');
+  annulee('ANULLE');
 
   const ReservationStatus(this.value);
   final String value;

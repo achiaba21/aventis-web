@@ -18,10 +18,6 @@ class ReservationStatusDisplay {
         return 'Payée';
       case ReservationStatus.finalisee:
         return 'Finalisée';
-      case ReservationStatus.terminee:
-        return 'Terminée';
-      case ReservationStatus.refusee:
-        return 'Refusée';
       case ReservationStatus.annulee:
         return 'Annulée';
       case null:
@@ -37,9 +33,7 @@ class ReservationStatusDisplay {
       case ReservationStatus.payee:
         return BadgeTone.success;
       case ReservationStatus.finalisee:
-      case ReservationStatus.terminee:
         return BadgeTone.neutral;
-      case ReservationStatus.refusee:
       case ReservationStatus.annulee:
         return BadgeTone.danger;
       case null:

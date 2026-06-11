@@ -20,9 +20,7 @@ extension ReferralDisplay on Reservation {
       case ReservationStatus.payee:
         return ReferralStatus.accepted;
       case ReservationStatus.finalisee:
-      case ReservationStatus.terminee:
         return ReferralStatus.completed;
-      case ReservationStatus.refusee:
       case ReservationStatus.annulee:
         return ReferralStatus.refused;
       case ReservationStatus.enAttente:
