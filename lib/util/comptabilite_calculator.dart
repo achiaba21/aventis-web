@@ -2,6 +2,7 @@ import 'package:asfar/model/comptabilite/charge.dart';
 import 'package:asfar/model/comptabilite/type_charge.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/residence/appart.dart';
+import 'package:asfar/util/fcfa_formatter.dart';
 
 /// Classe utilitaire pour tous les calculs comptables
 ///
@@ -86,7 +87,6 @@ class ComptabiliteCalculator {
   /// Statuts de réservation considérés comme générant du revenu
   static const _statutsRevenus = [
     ReservationStatus.payee,
-    ReservationStatus.terminee,
     ReservationStatus.finalisee,
   ];
 
@@ -471,22 +471,14 @@ class ComptabiliteCalculator {
 
   // ==================== FORMATAGE ====================
 
-  /// Formate un montant en FCFA avec séparateurs
-  static String formatMontant(double montant) {
-    return montant
-        .toStringAsFixed(0)
-        .replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]} ',
-        );
-  }
-
   /// Génère un résumé textuel du bénéfice
+  ///
+  /// Le montant est formaté via [FcfaFormatter.full] (formateur canonique).
   static String resumeBenefice(double beneficeNet, double margePourcent) {
     if (beneficeNet > 0) {
-      return 'Bénéfice de ${formatMontant(beneficeNet)} FCFA (marge ${margePourcent.toStringAsFixed(1)}%)';
+      return 'Bénéfice de ${FcfaFormatter.full(beneficeNet)} (marge ${margePourcent.toStringAsFixed(1)}%)';
     } else if (beneficeNet < 0) {
-      return 'Déficit de ${formatMontant(beneficeNet.abs())} FCFA';
+      return 'Déficit de ${FcfaFormatter.full(beneficeNet.abs())}';
     }
     return 'Équilibre (ni bénéfice ni perte)';
   }

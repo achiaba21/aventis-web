@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_event.dart';
+import 'package:asfar/config/service_locator.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_state.dart';
 import 'package:asfar/model/enumeration/appartement_status.dart';
 import 'package:asfar/model/residence/appart.dart';
@@ -20,13 +21,17 @@ import 'package:asfar/util/function.dart';
 /// Le CRUD côté proprio émet un `AppartementLoaded` unique avec
 /// `transientMessage` — plus de `Future.delayed` / double émission.
 class AppartementBloc extends Bloc<AppartementEvent, AppartementState> {
-  late AppartementService appartementService;
-  final AppartementRepository _repository = AppartementRepository();
+  final AppartementService appartementService;
+  final AppartementRepository _repository;
 
-  AppartementBloc() : super(AppartementInitial()) {
-    appartementService = AppartementService();
-
+  AppartementBloc({
+    AppartementService? service,
+    AppartementRepository? repository,
+  })  : appartementService = service ?? getIt<AppartementService>(),
+        _repository = repository ?? getIt<AppartementRepository>(),
+        super(AppartementInitial()) {
     on<LoadAppartements>(_onLoadAppartements);
+    on<LoadMoreAppartements>(_onLoadMoreAppartements);
     on<RefreshAppartements>(_onRefreshAppartements);
     on<LoadAppartementsByOwner>(_onLoadAppartementsByOwner);
     on<LoadProprietaireAppartements>(_onLoadProprietaireAppartements);
@@ -64,6 +69,46 @@ class AppartementBloc extends Bloc<AppartementEvent, AppartementState> {
       ));
     } catch (e) {
       _emitError(emit, e, current);
+    }
+  }
+
+  /// Charge la page suivante du feed locataire (PERF-02, scroll infini).
+  ///
+  /// Fusion dédoublonnée par id : si le backend ne pagine pas encore et
+  /// renvoie la liste complète, aucun nouvel id n'apparaît →
+  /// `hasReachedEnd = true` et l'affichage reste identique (CA1).
+  /// En cas d'échec réseau, les éléments affichés sont conservés et un
+  /// nouveau scroll redéclenchera l'événement (E2).
+  Future<void> _onLoadMoreAppartements(
+    LoadMoreAppartements event,
+    Emitter<AppartementState> emit,
+  ) async {
+    final current = state;
+    if (current is! AppartementLoaded ||
+        current.source != AppartementListSource.all ||
+        current.isLoadingMore ||
+        current.hasReachedEnd) {
+      return;
+    }
+
+    emit(current.copyWith(isLoadingMore: true));
+    try {
+      final nextPage = current.currentPage + 1;
+      final more = await _repository.fetchMoreAppartements(nextPage);
+
+      final knownIds = current.appartements.map((a) => a.id).toSet();
+      final fresh = more.where((a) => !knownIds.contains(a.id)).toList();
+
+      emit(current.copyWith(
+        appartements:
+            fresh.isEmpty ? null : [...current.appartements, ...fresh],
+        isLoadingMore: false,
+        hasReachedEnd: fresh.isEmpty,
+        currentPage: fresh.isEmpty ? null : nextPage,
+      ));
+    } catch (e) {
+      deboger(['[AppartementBloc] LoadMore échoué (page conservée):', e]);
+      emit(current.copyWith(isLoadingMore: false));
     }
   }
 

@@ -6,8 +6,8 @@ import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/certified_badge.dart';
 import 'package:asfar/widget/badge/rating_chip.dart';
+import 'package:asfar/widget/button/favorite_toggle_button.dart';
 import 'package:asfar/widget/img/domain_image.dart';
-import 'package:asfar/widget/img/floating_heart_button.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 
 /// Card "À la une" du Home Locataire — 220px de large, ratio 4:5.
@@ -17,16 +17,12 @@ import 'package:asfar/widget/img/img_placeholder.dart';
 class FeaturedListingCard extends StatelessWidget {
   final Appartement appartement;
   final VoidCallback? onTap;
-  final VoidCallback? onLikeTap;
-  final bool liked;
   final double width;
 
   const FeaturedListingCard({
     super.key,
     required this.appartement,
     this.onTap,
-    this.onLikeTap,
-    this.liked = false,
     this.width = 220,
   });
 
@@ -68,9 +64,8 @@ class FeaturedListingCard extends StatelessWidget {
                     Positioned(
                       top: 10,
                       right: 10,
-                      child: FloatingHeartButton(
-                        onTap: onLikeTap,
-                        active: liked,
+                      child: FavoriteToggleButton(
+                        appartementId: appartement.id,
                         size: 32,
                       ),
                     ),

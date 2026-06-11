@@ -1,6 +1,7 @@
 import 'package:asfar/model/comptabilite/charge.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service API pour la gestion des charges
 ///
@@ -25,7 +26,7 @@ class ComptabiliteApiService {
       data: chargeData,
     );
 
-    final Map<String, dynamic>? chargeJson = _extractBodyAsMap(response.data);
+    final Map<String, dynamic>? chargeJson = ResponseMapper.tryExtractBody(response.data);
     if (chargeJson != null) {
       return Charge.fromJson(chargeJson);
     }
@@ -48,7 +49,7 @@ class ComptabiliteApiService {
       data: charge.toJson(),
     );
 
-    final Map<String, dynamic>? chargeJson = _extractBodyAsMap(response.data);
+    final Map<String, dynamic>? chargeJson = ResponseMapper.tryExtractBody(response.data);
     if (chargeJson != null) {
       return Charge.fromJson(chargeJson);
     }
@@ -102,7 +103,7 @@ class ComptabiliteApiService {
 
     final response = await dio.get(endpoint);
 
-    final List<dynamic>? bodyList = _extractBodyAsList(response.data);
+    final List<dynamic>? bodyList = ResponseMapper.tryExtractBodyList(response.data);
     if (bodyList != null) {
       return _parseChargeList(bodyList);
     }
@@ -118,7 +119,7 @@ class ComptabiliteApiService {
 
     final response = await dio.get("$_baseEndpoint/charges/$chargeId");
 
-    final Map<String, dynamic>? chargeJson = _extractBodyAsMap(response.data);
+    final Map<String, dynamic>? chargeJson = ResponseMapper.tryExtractBody(response.data);
     if (chargeJson != null) {
       return Charge.fromJson(chargeJson);
     }
@@ -127,41 +128,6 @@ class ComptabiliteApiService {
   }
 
   // ==================== Méthodes privées (helpers) ====================
-
-  /// Extrait le body de la réponse en tant que Map
-  /// Gère les deux formats: {body: {...}} et {...} directement
-  Map<String, dynamic>? _extractBodyAsMap(dynamic responseData) {
-    if (responseData is Map<String, dynamic>) {
-      // Format {body: {...}, message: "..."}
-      final dynamic bodyRaw = responseData['body'];
-      if (bodyRaw is Map<String, dynamic>) {
-        return bodyRaw;
-      }
-
-      // Fallback: la réponse est directement l'objet
-      if (responseData.containsKey('id')) {
-        return responseData;
-      }
-    }
-    return null;
-  }
-
-  /// Extrait le body de la réponse en tant que List
-  /// Gère les deux formats: {body: [...]} et [...] directement
-  List<dynamic>? _extractBodyAsList(dynamic responseData) {
-    if (responseData is Map<String, dynamic>) {
-      final dynamic bodyRaw = responseData['body'];
-      if (bodyRaw is List<dynamic>) {
-        return bodyRaw;
-      }
-    }
-
-    if (responseData is List<dynamic>) {
-      return responseData;
-    }
-
-    return null;
-  }
 
   /// Parse une liste de Charge depuis une liste dynamique
   List<Charge> _parseChargeList(dynamic listData) {

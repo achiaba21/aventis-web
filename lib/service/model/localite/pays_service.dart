@@ -1,6 +1,7 @@
 import 'package:asfar/model/locolite/lieux/pays.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service pour gérer les opérations liées aux pays
 class PaysService {
@@ -13,22 +14,11 @@ class PaysService {
 
     deboger(["PaysService - getAllPays response:", response.data]);
 
-    // Gérer la structure de réponse {body: [...], message: "..."}
-    if (response.data is Map<String, dynamic>) {
-      final responseMap = response.data as Map<String, dynamic>;
-      final body = responseMap['body'];
-
-      if (body is List) {
-        return List<Pays>.from(
-          body.map((item) => Pays.fromJson(item as Map<String, dynamic>)),
-        );
-      }
-    }
-
-    // Fallback pour une réponse directe en liste
-    if (response.data is List) {
+    // Gérer la structure {body: [...], message: "..."} ou une liste directe
+    final body = ResponseMapper.tryExtractBodyList(response.data);
+    if (body != null) {
       return List<Pays>.from(
-        response.data.map((item) => Pays.fromJson(item as Map<String, dynamic>)),
+        body.map((item) => Pays.fromJson(item as Map<String, dynamic>)),
       );
     }
 
@@ -42,19 +32,10 @@ class PaysService {
 
     deboger(["PaysService - getPaysById response:", response.data]);
 
-    // Gérer la structure de réponse {body: {...}, message: "..."}
-    if (response.data is Map<String, dynamic>) {
-      final responseMap = response.data as Map<String, dynamic>;
-      final body = responseMap['body'];
-
-      if (body is Map<String, dynamic>) {
-        return Pays.fromJson(body);
-      }
-
-      // Fallback: peut-être que response.data est directement l'objet Pays
-      if (responseMap.containsKey('id')) {
-        return Pays.fromJson(responseMap);
-      }
+    // Gérer la structure {body: {...}, message: "..."} ou l'objet à plat
+    final body = ResponseMapper.tryExtractBody(response.data);
+    if (body != null && body.containsKey('id')) {
+      return Pays.fromJson(body);
     }
 
     return null;
@@ -67,18 +48,10 @@ class PaysService {
 
     deboger(["PaysService - getPaysByCode response:", response.data]);
 
-    // Gérer la structure de réponse
-    if (response.data is Map<String, dynamic>) {
-      final responseMap = response.data as Map<String, dynamic>;
-      final body = responseMap['body'];
-
-      if (body is Map<String, dynamic>) {
-        return Pays.fromJson(body);
-      }
-
-      if (responseMap.containsKey('id')) {
-        return Pays.fromJson(responseMap);
-      }
+    // Gérer la structure {body: {...}, message: "..."} ou l'objet à plat
+    final body = ResponseMapper.tryExtractBody(response.data);
+    if (body != null && body.containsKey('id')) {
+      return Pays.fromJson(body);
     }
 
     return null;

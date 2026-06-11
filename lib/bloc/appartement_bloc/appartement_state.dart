@@ -32,11 +32,19 @@ class AppartementLoaded extends AppartementState {
   final int? ownerId;
   final String? transientMessage;
 
+  /// Pagination du feed (PERF-02) — neutres tant que LoadMore n'est pas émis.
+  final bool isLoadingMore;
+  final bool hasReachedEnd;
+  final int currentPage;
+
   AppartementLoaded(
     List<Appartement> appartements, {
     this.source = AppartementListSource.all,
     this.ownerId,
     this.transientMessage,
+    this.isLoadingMore = false,
+    this.hasReachedEnd = false,
+    this.currentPage = 0,
   }) : super(appartements: appartements);
 
   AppartementLoaded copyWith({
@@ -45,6 +53,9 @@ class AppartementLoaded extends AppartementState {
     int? ownerId,
     String? transientMessage,
     bool clearTransientMessage = false,
+    bool? isLoadingMore,
+    bool? hasReachedEnd,
+    int? currentPage,
   }) {
     return AppartementLoaded(
       appartements ?? this.appartements,
@@ -53,6 +64,9 @@ class AppartementLoaded extends AppartementState {
       transientMessage: clearTransientMessage
           ? null
           : (transientMessage ?? this.transientMessage),
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
+      currentPage: currentPage ?? this.currentPage,
     );
   }
 }

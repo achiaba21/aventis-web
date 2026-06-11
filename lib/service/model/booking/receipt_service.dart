@@ -1,6 +1,7 @@
 import 'package:asfar/model/reservation/receipt.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service pour gérer les reçus de réservation
 class ReceiptService {
@@ -18,13 +19,11 @@ class ReceiptService {
       final dio = DioRequest.instance;
       final response = await dio.get('$_baseUrl/$reference/receipt');
 
-      if (response.data is Map<String, dynamic>) {
-        final body = response.data['body'];
-        if (body is Map<String, dynamic>) {
-          final receipt = Receipt.fromJson(body);
-          deboger(['✅ Facture récupérée pour $reference: ${receipt.numeroRecu}']);
-          return receipt;
-        }
+      final body = ResponseMapper.tryExtractBody(response.data);
+      if (body != null) {
+        final receipt = Receipt.fromJson(body);
+        deboger(['✅ Facture récupérée pour $reference: ${receipt.numeroRecu}']);
+        return receipt;
       }
 
       return null;
@@ -40,13 +39,11 @@ class ReceiptService {
       final dio = DioRequest.instance;
       final response = await dio.get('$_baseUrl/$reference/receipts/ACOMPTE');
 
-      if (response.data is Map<String, dynamic>) {
-        final body = response.data['body'];
-        if (body is Map<String, dynamic>) {
-          final receipt = Receipt.fromJson(body);
-          deboger(['✅ Reçu acompte récupéré: ${receipt.numeroRecu}']);
-          return receipt;
-        }
+      final body = ResponseMapper.tryExtractBody(response.data);
+      if (body != null) {
+        final receipt = Receipt.fromJson(body);
+        deboger(['✅ Reçu acompte récupéré: ${receipt.numeroRecu}']);
+        return receipt;
       }
 
       return null;
@@ -62,13 +59,11 @@ class ReceiptService {
       final dio = DioRequest.instance;
       final response = await dio.get('$_baseUrl/$reference/receipts/DEFINITIF');
 
-      if (response.data is Map<String, dynamic>) {
-        final body = response.data['body'];
-        if (body is Map<String, dynamic>) {
-          final receipt = Receipt.fromJson(body);
-          deboger(['✅ Reçu définitif récupéré: ${receipt.numeroRecu}']);
-          return receipt;
-        }
+      final body = ResponseMapper.tryExtractBody(response.data);
+      if (body != null) {
+        final receipt = Receipt.fromJson(body);
+        deboger(['✅ Reçu définitif récupéré: ${receipt.numeroRecu}']);
+        return receipt;
       }
 
       return null;
@@ -84,13 +79,11 @@ class ReceiptService {
       final dio = DioRequest.instance;
       final response = await dio.get('$_receiptsUrl/$numeroRecu');
 
-      if (response.data is Map<String, dynamic>) {
-        final body = response.data['body'];
-        if (body is Map<String, dynamic>) {
-          final receipt = Receipt.fromJson(body);
-          deboger(['✅ Reçu récupéré: ${receipt.numeroRecu}']);
-          return receipt;
-        }
+      final body = ResponseMapper.tryExtractBody(response.data);
+      if (body != null) {
+        final receipt = Receipt.fromJson(body);
+        deboger(['✅ Reçu récupéré: ${receipt.numeroRecu}']);
+        return receipt;
       }
 
       return null;
@@ -106,15 +99,13 @@ class ReceiptService {
       final dio = DioRequest.instance;
       final response = await dio.get(_receiptsUrl);
 
-      if (response.data is Map<String, dynamic>) {
-        final body = response.data['body'];
-        if (body is List) {
-          final receipts = body
-              .map((item) => Receipt.fromJson(item as Map<String, dynamic>))
-              .toList();
-          deboger(['✅ ${receipts.length} reçus utilisateur récupérés']);
-          return receipts;
-        }
+      final body = ResponseMapper.tryExtractBodyList(response.data);
+      if (body != null) {
+        final receipts = body
+            .map((item) => Receipt.fromJson(item as Map<String, dynamic>))
+            .toList();
+        deboger(['✅ ${receipts.length} reçus utilisateur récupérés']);
+        return receipts;
       }
 
       return [];

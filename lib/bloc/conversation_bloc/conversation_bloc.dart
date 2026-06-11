@@ -1,17 +1,19 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/config/service_locator.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
 import 'package:asfar/model/conversation/conversation.dart';
 import 'package:asfar/model/conversation/chat_message.dart';
 import 'package:asfar/model/user/user.dart';
+import 'package:asfar/service/cache/conversation_cache_service.dart';
 import 'package:asfar/service/model/message/message_service.dart';
 import 'package:asfar/service/websocket/websocket_manager.dart';
 import 'package:asfar/util/function.dart';
 import 'package:asfar/util/message_adapter.dart';
 
 class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
-  final MessageService _messageService = MessageService();
+  final MessageService _messageService;
   final WebSocketManager _webSocketManager = WebSocketManager.instance;
 
   late final StreamSubscription _messageStreamSubscription;
@@ -21,7 +23,9 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   User? _currentUser;
   int _unreadCount = 0;
 
-  ConversationBloc() : super(const ConversationInitial()) {
+  ConversationBloc({MessageService? messageService})
+      : _messageService = messageService ?? getIt<MessageService>(),
+        super(const ConversationInitial()) {
     on<LoadConversations>(_onLoadConversations);
     on<LoadConversationMessages>(_onLoadConversationMessages);
     on<SendMessage>(_onSendMessage);
@@ -35,6 +39,30 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     on<LoadUnreadCount>(_onLoadUnreadCount);
 
     _initializeWebSocketListeners();
+  }
+
+  /// Plafonne la mémoire des messages (PERF-05) — mêmes limites que le cache
+  /// disque [ConversationCacheService] :
+  /// - au plus [ConversationCacheService.maxCachedMessages] messages conservés
+  ///   par conversation (les plus récents) ;
+  /// - au plus [ConversationCacheService.maxCachedConversations] conversations
+  ///   en mémoire (éviction de la plus ancienne — elle se recharge depuis le
+  ///   cache/API à la prochaine ouverture).
+  void _capMessagesMemory(int conversationId) {
+    final messages = _conversationMessages[conversationId];
+    if (messages != null &&
+        messages.length > ConversationCacheService.maxCachedMessages) {
+      _conversationMessages[conversationId] = messages.sublist(
+        messages.length - ConversationCacheService.maxCachedMessages,
+      );
+    }
+    while (_conversationMessages.length >
+        ConversationCacheService.maxCachedConversations) {
+      final oldestKey = _conversationMessages.keys
+          .firstWhere((k) => k != conversationId, orElse: () => conversationId);
+      if (oldestKey == conversationId) break;
+      _conversationMessages.remove(oldestKey);
+    }
   }
 
   void _initializeWebSocketListeners() {
@@ -168,6 +196,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
           ...chatMessages,
         ];
       }
+      _capMessagesMemory(conversationId);
 
       emit(
         MessagesLoaded(
@@ -214,6 +243,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
 
       final currentMessages = _conversationMessages[conversationId] ?? [];
       _conversationMessages[conversationId] = [...currentMessages, tempMessage];
+      _capMessagesMemory(conversationId);
 
       emit(
         MessagesLoaded(
@@ -377,6 +407,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
           ...currentMessages,
           message,
         ];
+        _capMessagesMemory(message.conversationId!);
 
         _updateConversationLastMessage(message.conversationId!, message);
 

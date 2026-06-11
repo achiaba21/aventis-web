@@ -86,6 +86,13 @@ class AppartementStatusPushed extends AppartementEvent {
   AppartementStatusPushed(this.appartementId, this.nouveauStatus);
 }
 
+// ==================== PAGINATION (PERF-02) ====================
+
+/// Charge la page suivante du feed locataire (scroll infini).
+/// Sans backend paginé, la fusion dédoublonnée par id conclut à la fin
+/// de liste dès la première page supplémentaire (comportement neutre).
+class LoadMoreAppartements extends AppartementEvent {}
+
 // ==================== SYNCHRONISATION ====================
 
 /// Synchronise les appartements depuis une liste préchargée (bootstrap).

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 import 'package:asfar/widget/user/avatar_initials.dart';
 
 /// Avatar utilisateur du design system Asfar Premium.
@@ -51,11 +52,14 @@ class UserAvatar extends StatelessWidget {
         ),
       ),
       clipBehavior: Clip.antiAlias,
+      // PERF-01 : avatar caché (disque + mémoire) via DomainImage
       child: imageUrl != null && imageUrl!.isNotEmpty
-          ? Image.network(
-              imageUrl!,
+          ? DomainImage(
+              path: imageUrl,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => initialsLabel,
+              width: size,
+              height: size,
+              placeholder: initialsLabel,
             )
           : initialsLabel,
     );

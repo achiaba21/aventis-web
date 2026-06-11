@@ -6,6 +6,7 @@ import 'package:asfar/screen/client/shared/profile/kyc/widget/kyc_document_statu
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/widget/img/domain_image.dart';
 
 /// Carte d'un document KYC : miniature + titre + date + badge de statut, plus
 /// le motif de refus le cas échéant.
@@ -119,17 +120,14 @@ class _DocumentThumbnail extends StatelessWidget {
 
     if (!document.isImage) return placeholder;
 
-    return ClipRRect(
+    // PERF-01 : vignette cachée (disque + mémoire) via DomainImage
+    return DomainImage(
+      path: document.fileUrl(domain),
+      width: 56,
+      height: 56,
+      fit: BoxFit.cover,
       borderRadius: BorderRadius.circular(AppRadii.sm),
-      child: Image.network(
-        document.fileUrl(domain),
-        width: 56,
-        height: 56,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, progress) =>
-            progress == null ? child : placeholder,
-        errorBuilder: (context, error, stackTrace) => placeholder,
-      ),
+      placeholder: placeholder,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:asfar/model/message/message.dart';
 import 'package:asfar/model/message/seance.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service pour gérer les messages et les séances de discussion
 /// Conforme à l'API backend documentée
@@ -31,7 +32,8 @@ class MessageService {
       if (response.data is Map<String, dynamic>) {
         final responseData = response.data as Map<String, dynamic>;
         // L'API renvoie 'body' au lieu de 'data' pour cette route
-        final data = responseData['body'] ?? responseData['data'];
+        final dynamic data = ResponseMapper.tryExtractBody(responseData['body']) ??
+            responseData['data'];
 
         if (data != null && data['seance'] != null) {
           return Seance.fromJson(data['seance']);
@@ -52,11 +54,18 @@ class MessageService {
       final dio = DioRequest.instance;
       final response = await dio.get("$baseUrl/seances");
 
+      // Cas 1: liste enveloppée ({body: [...]}) ou retournée à plat
+      final bodyList = ResponseMapper.tryExtractBodyList(response.data);
+      if (bodyList != null) {
+        return bodyList.map((item) => Seance.fromJson(item)).toList();
+      }
+
       if (response.data is Map<String, dynamic>) {
         final responseData = response.data as Map<String, dynamic>;
-        final data = responseData['body'] ?? responseData['data'];
+        final dynamic data = ResponseMapper.tryExtractBody(responseData['body']) ??
+            responseData['data'];
 
-        // Cas 1: data est directement une liste
+        // Cas 1 bis: 'data' est directement une liste
         if (data is List) {
           return data.map((item) => Seance.fromJson(item)).toList();
         }
@@ -68,13 +77,6 @@ class MessageService {
             return list.map((item) => Seance.fromJson(item)).toList();
           }
         }
-      }
-
-      // Fallback: si data est directement une liste
-      if (response.data is List) {
-        return (response.data as List)
-            .map((item) => Seance.fromJson(item))
-            .toList();
       }
 
       return [];
@@ -93,7 +95,8 @@ class MessageService {
 
       if (response.data is Map<String, dynamic>) {
         final responseData = response.data as Map<String, dynamic>;
-        final data = responseData['body'] ?? responseData['data'];
+        final dynamic data = ResponseMapper.tryExtractBody(responseData['body']) ??
+            responseData['data'];
         if (data != null) {
           return Seance.fromJson(data);
         }
@@ -121,7 +124,8 @@ class MessageService {
 
       if (response.data is Map<String, dynamic>) {
         final responseData = response.data as Map<String, dynamic>;
-        final data = responseData['body'] ?? responseData['data'];
+        final dynamic data = ResponseMapper.tryExtractBody(responseData['body']) ??
+            responseData['data'];
         final messageData = data != null ? (data['message'] ?? data) : null;
 
         if (messageData != null) {
@@ -143,11 +147,18 @@ class MessageService {
       final dio = DioRequest.instance;
       final response = await dio.get("$baseUrl/seances/$seanceId/messages");
 
+      // Cas 1: liste enveloppée ({body: [...]}) ou retournée à plat
+      final bodyList = ResponseMapper.tryExtractBodyList(response.data);
+      if (bodyList != null) {
+        return bodyList.map((item) => Message.fromJson(item)).toList();
+      }
+
       if (response.data is Map<String, dynamic>) {
         final responseData = response.data as Map<String, dynamic>;
-        final data = responseData['body'] ?? responseData['data'];
+        final dynamic data = ResponseMapper.tryExtractBody(responseData['body']) ??
+            responseData['data'];
 
-        // Cas 1: data est directement une liste
+        // Cas 1 bis: 'data' est directement une liste
         if (data is List) {
           return data.map((item) => Message.fromJson(item)).toList();
         }
@@ -159,13 +170,6 @@ class MessageService {
             return list.map((item) => Message.fromJson(item)).toList();
           }
         }
-      }
-
-      // Fallback: si data est directement une liste
-      if (response.data is List) {
-        return (response.data as List)
-            .map((item) => Message.fromJson(item))
-            .toList();
       }
 
       return [];
@@ -197,7 +201,8 @@ class MessageService {
 
       if (response.data is Map<String, dynamic>) {
         final responseData = response.data as Map<String, dynamic>;
-        final data = responseData['body'] ?? responseData['data'];
+        final dynamic data = ResponseMapper.tryExtractBody(responseData['body']) ??
+            responseData['data'];
         if (data != null && data['count'] != null) {
           return data['count'] as int;
         }

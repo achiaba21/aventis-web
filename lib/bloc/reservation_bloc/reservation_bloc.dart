@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
+import 'package:asfar/config/service_locator.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_state.dart';
 import 'package:asfar/service/model/booking/reservation_service.dart';
 import 'package:asfar/service/repository/reservation_repository.dart';
@@ -14,12 +15,15 @@ import 'package:asfar/util/function.dart';
 /// 2. Rafraîchit depuis l'API en arrière-plan
 /// 3. Émet un nouvel état quand les données API arrivent
 class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
-  late ReservationService reservationService;
-  final ReservationRepository _repository = ReservationRepository();
+  final ReservationService reservationService;
+  final ReservationRepository _repository;
 
-  ReservationBloc() : super(ReservationInitial()) {
-    reservationService = ReservationService();
-
+  ReservationBloc({
+    ReservationService? service,
+    ReservationRepository? repository,
+  })  : reservationService = service ?? getIt<ReservationService>(),
+        _repository = repository ?? getIt<ReservationRepository>(),
+        super(ReservationInitial()) {
     on<SetReservationReq>((event, emit) {
       deboger(['SetReservationReq:', event.reservationReq]);
       emit(ReservationReqUpdated(event.reservationReq, reservations: state.reservations));
@@ -113,6 +117,39 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
       } catch (e) {
         deboger(['[ReservationBloc] Erreur LoadProprietaireReservations: $e']);
         emit(ReservationError("Erreur lors du chargement des réservations", currentReq: currentReq, reservations: currentReservations));
+      }
+    });
+
+    // PERF-02 : page suivante des réservations (support sans câblage UI).
+    // Fusion dédoublonnée par référence — sans backend paginé, aucune
+    // nouvelle référence n'apparaît → hasReachedEnd, affichage inchangé (CA1).
+    on<LoadMoreReservations>((event, emit) async {
+      final current = state;
+      if (current is! ReservationLoaded ||
+          current.isLoadingMore ||
+          current.hasReachedEnd) {
+        return;
+      }
+      emit(current.copyWith(isLoadingMore: true));
+      try {
+        final nextPage = current.currentPage + 1;
+        final more = await _repository.fetchMoreReservations(
+          nextPage,
+          isProprietaire: event.isProprietaire,
+        );
+        final known = current.reservations.map((r) => r.reference).toSet();
+        final fresh =
+            more.where((r) => !known.contains(r.reference)).toList();
+        emit(current.copyWith(
+          reservations:
+              fresh.isEmpty ? null : [...current.reservations, ...fresh],
+          isLoadingMore: false,
+          hasReachedEnd: fresh.isEmpty,
+          currentPage: fresh.isEmpty ? null : nextPage,
+        ));
+      } catch (e) {
+        deboger(['[ReservationBloc] LoadMore échoué (liste conservée):', e]);
+        emit(current.copyWith(isLoadingMore: false));
       }
     });
 

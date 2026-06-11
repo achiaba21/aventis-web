@@ -34,6 +34,32 @@ class AppartementRepository {
   /// Sera retiré quand BACKEND-FLAT-APPART aura abouti.
   final Map<int, int> _backendResidenceIds = {};
 
+  // ==================== VERSIONING DU CACHE (PERF-04) ====================
+
+  /// Version du schéma de cache. À incrémenter à chaque changement de
+  /// structure du modèle [Appartement] : le cache existant sera purgé au
+  /// premier accès (jamais de parsing d'un schéma périmé).
+  static const int cacheVersion = 1;
+
+  static const String _cacheVersionKey = 'cache_version_appartements';
+  bool _versionChecked = false;
+
+  /// Purge le cache si sa version stockée diffère de [cacheVersion].
+  /// Mémoïsé : ne coûte qu'une lecture par session.
+  Future<void> _ensureCacheVersion() async {
+    if (_versionChecked) return;
+    _versionChecked = true;
+    final stored = _storage.getAppSetting<int>(_cacheVersionKey);
+    if (stored != cacheVersion) {
+      if (stored != null) {
+        deboger('[AppartementRepository] Version de cache $stored → '
+            '$cacheVersion : purge');
+        await clearCache();
+      }
+      await _storage.setAppSetting<int>(_cacheVersionKey, cacheVersion);
+    }
+  }
+
   /// Récupère les appartements depuis le cache local.
   List<Appartement> getCachedAppartements() {
     try {
@@ -63,14 +89,17 @@ class AppartementRepository {
     }
   }
 
-  /// Récupère les appartements avec pattern cache-first.
+  /// Récupère les appartements avec pattern cache-first + TTL (PERF-04).
   ///
-  /// Retourne immédiatement les données du cache si disponibles,
-  /// puis rafraîchit depuis l'API en arrière-plan.
+  /// - Cache présent et frais (< [maxAge]) : retour cache, AUCUN appel API.
+  /// - Cache présent mais périmé : retour cache immédiat + refresh en
+  ///   arrière-plan (via [onApiData]).
+  /// - Cache vide ou [forceRefresh] : appel API direct.
   Future<List<Appartement>> getAppartements({
     bool forceRefresh = false,
     Function(List<Appartement>)? onApiData,
   }) async {
+    await _ensureCacheVersion();
     if (forceRefresh) {
       return fetchAndCacheAppartements();
     }
@@ -80,7 +109,9 @@ class AppartementRepository {
       return fetchAndCacheAppartements();
     }
 
-    _refreshInBackground(onApiData);
+    if (isCacheStale()) {
+      _refreshInBackground(onApiData);
+    }
     return cached;
   }
 
@@ -125,17 +156,32 @@ class AppartementRepository {
     }
   }
 
-  /// Récupère le feed locataire avec pattern cache-first (cache Hive →
-  /// API en background). Source : endpoint public `auth/appartement/apparts`.
+  /// Récupère le feed locataire avec pattern cache-first + TTL (PERF-04).
+  /// Source : endpoint public `auth/appartement/apparts`.
+  ///
+  /// Cache frais (< 1 h) : aucun appel API ; périmé : cache immédiat +
+  /// refresh arrière-plan ; vide ou [forceRefresh] : API directe.
   Future<List<Appartement>> getAllAppartements({
     bool forceRefresh = false,
     Function(List<Appartement>)? onApiData,
   }) async {
+    await _ensureCacheVersion();
     if (forceRefresh) return fetchAndCacheAllAppartements();
     final cached = getCachedAllAppartements();
     if (cached.isEmpty) return fetchAndCacheAllAppartements();
-    _refreshAllInBackground(onApiData);
+    if (isFeedCacheStale()) {
+      _refreshAllInBackground(onApiData);
+    }
     return cached;
+  }
+
+  /// Récupère une page supplémentaire du feed locataire (PERF-02).
+  ///
+  /// Appel API direct, jamais mis en cache (seule la première page vit dans
+  /// Hive). Si le backend ne pagine pas encore, il renvoie la liste complète :
+  /// l'appelant dédoublonne par id et conclut à la fin de liste (CA1).
+  Future<List<Appartement>> fetchMoreAppartements(int page, {int size = 30}) {
+    return _apiService.getAppartements(page: page, size: size);
   }
 
   void _refreshAllInBackground(Function(List<Appartement>)? onApiData) {
@@ -242,14 +288,19 @@ class AppartementRepository {
     return _storage.getAppartementsLastSync();
   }
 
-  /// Vérifie si le cache est périmé (plus de X heures)
-  bool isCacheStale({int maxAgeHours = 24}) {
-    final lastSync = getLastSyncDate();
-    if (lastSync == null) return true;
+  /// Vérifie si le cache proprio est périmé (TTL par défaut : 1 h, PERF-04)
+  bool isCacheStale({int maxAgeHours = 1}) {
+    return _isStale(getLastSyncDate(), maxAgeHours);
+  }
 
-    final now = DateTime.now();
-    final difference = now.difference(lastSync);
-    return difference.inHours >= maxAgeHours;
+  /// Vérifie si le cache du feed locataire est périmé (TTL : 1 h, PERF-04)
+  bool isFeedCacheStale({int maxAgeHours = 1}) {
+    return _isStale(_storage.getAppartementsLocataireLastSync(), maxAgeHours);
+  }
+
+  bool _isStale(DateTime? lastSync, int maxAgeHours) {
+    if (lastSync == null) return true;
+    return DateTime.now().difference(lastSync).inHours >= maxAgeHours;
   }
 
   /// Vide les caches (proprio + feed locataire).

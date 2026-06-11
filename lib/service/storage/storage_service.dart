@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:asfar/model/user/user.dart';
 import 'package:asfar/service/storage/secure_storage_service.dart';
@@ -70,7 +71,10 @@ class StorageService {
   ///
   /// Doit être appelé au démarrage de l'application (dans main.dart)
   /// après Hive.initFlutter()
-  Future<void> init() async {
+  /// [cipherOverride] — TESTS UNIQUEMENT (PRA-05) : permet d'initialiser le
+  /// stockage avec une clé fixe, sans passer par le Keychain/Keystore
+  /// (canal natif indisponible en test). Ne pas utiliser en production.
+  Future<void> init({@visibleForTesting HiveAesCipher? cipherOverride}) async {
     if (_isInitialized) {
       deboger("StorageService déjà initialisé");
       return;
@@ -78,8 +82,9 @@ class StorageService {
 
     try {
       // Clé AES détenue par le stockage sécurisé de l'OS
-      final hiveKey = await SecureStorageService.instance.getOrCreateHiveKey();
-      final cipher = HiveAesCipher(hiveKey);
+      final cipher = cipherOverride ??
+          HiveAesCipher(
+              await SecureStorageService.instance.getOrCreateHiveKey());
 
       // Ouvrir les boxes (chiffrées, avec purge si illisibles)
       _authBox = await _openBoxSafely(_authBoxName, cipher);

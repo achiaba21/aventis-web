@@ -4,6 +4,7 @@ import 'package:asfar/model/request/reservation_req.dart';
 import 'package:asfar/model/request/reservation_manuelle_req.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 class ReservationService {
   static const api = "api/";
@@ -24,15 +25,9 @@ class ReservationService {
     try {
       final dio = DioRequest.instance;
       final response = await dio.get("${api}user/reservations/$reference");
-      if (response.data is Map<String, dynamic>) {
-        final data = response.data as Map<String, dynamic>;
-        final body = data['body'];
-        if (body is Map<String, dynamic>) {
-          return Reservation.fromJson(body);
-        }
-        if (data.containsKey('id')) {
-          return Reservation.fromJson(data);
-        }
+      final body = ResponseMapper.tryExtractBody(response.data);
+      if (body != null && body.containsKey('id')) {
+        return Reservation.fromJson(body);
       }
       throw Exception('Format de réponse invalide pour getByReference');
     } catch (e) {
@@ -51,22 +46,18 @@ class ReservationService {
       );
 
       // Parser la réponse selon la structure: {body: {success, message, reservation, reference}, message}
-      if (response.data is Map<String, dynamic>) {
-        final responseData = response.data as Map<String, dynamic>;
-        final body = responseData['body'] as Map<String, dynamic>?;
-
-        if (body != null && body['success'] == true) {
+      final body = ResponseMapper.tryExtractBody(response.data);
+      if (body != null) {
+        if (body['success'] == true) {
           final reservationData = body['reservation'] as Map<String, dynamic>;
           final reservation = Reservation.fromJson(reservationData);
 
           deboger(['Réservation créée avec succès:', reservation.toJson()]);
           return reservation;
-        } else {
-          final errorMessage =
-              body?['message'] ??
-              'Erreur lors de la création de la réservation';
-          throw Exception(errorMessage);
         }
+        final errorMessage =
+            body['message'] ?? 'Erreur lors de la création de la réservation';
+        throw Exception(errorMessage);
       }
 
       throw Exception('Format de réponse invalide');
@@ -77,24 +68,27 @@ class ReservationService {
   }
 
   /// Récupère les réservations de l'utilisateur
-  Future<List<Reservation>> getUserReservations() async {
+  ///
+  /// [page] / [size] (optionnels) : pagination côté serveur. Sans ces
+  /// paramètres, l'appel reste strictement identique (liste complète).
+  Future<List<Reservation>> getUserReservations({int? page, int? size}) async {
     try {
       final dio = DioRequest.instance;
-      final response = await dio.get(urlGetUserReservations);
+      final response = await dio.get(
+        urlGetUserReservations,
+        queryParameters: (page != null || size != null)
+            ? {
+                if (page != null) 'page': page,
+                if (size != null) 'size': size,
+              }
+            : null,
+      );
 
       // Le serveur retourne {body: [...], message: "success"}
-      if (response.data is Map<String, dynamic>) {
-        final body = response.data['body'];
-        if (body is List) {
-          return (body as List)
-              .map((item) => Reservation.fromJson(item as Map<String, dynamic>))
-              .toList();
-        }
-      }
-
-      // Fallback: si le serveur retourne directement une liste
-      if (response.data is List) {
-        return (response.data as List)
+      // (tolère aussi une liste retournée directement)
+      final body = ResponseMapper.tryExtractBodyList(response.data);
+      if (body != null) {
+        return body
             .map((item) => Reservation.fromJson(item as Map<String, dynamic>))
             .toList();
       }
@@ -107,24 +101,30 @@ class ReservationService {
   }
 
   /// Récupère les réservations du propriétaire (réservations reçues sur ses appartements)
-  Future<List<Reservation>> getProprietaireReservations() async {
+  ///
+  /// [page] / [size] (optionnels) : pagination côté serveur. Sans ces
+  /// paramètres, l'appel reste strictement identique (liste complète).
+  Future<List<Reservation>> getProprietaireReservations({
+    int? page,
+    int? size,
+  }) async {
     try {
       final dio = DioRequest.instance;
-      final response = await dio.get(urlGetProprietaireReservations);
+      final response = await dio.get(
+        urlGetProprietaireReservations,
+        queryParameters: (page != null || size != null)
+            ? {
+                if (page != null) 'page': page,
+                if (size != null) 'size': size,
+              }
+            : null,
+      );
 
       // Le serveur retourne {body: [...], message: "success"}
-      if (response.data is Map<String, dynamic>) {
-        final body = response.data['body'];
-        if (body is List) {
-          return (body as List)
-              .map((item) => Reservation.fromJson(item as Map<String, dynamic>))
-              .toList();
-        }
-      }
-
-      // Fallback: si le serveur retourne directement une liste
-      if (response.data is List) {
-        return (response.data as List)
+      // (tolère aussi une liste retournée directement)
+      final body = ResponseMapper.tryExtractBodyList(response.data);
+      if (body != null) {
+        return body
             .map((item) => Reservation.fromJson(item as Map<String, dynamic>))
             .toList();
       }
@@ -153,35 +153,27 @@ class ReservationService {
       );
 
       // Parser la réponse selon la structure du serveur
-      if (response.data is Map<String, dynamic>) {
-        final responseData = response.data as Map<String, dynamic>;
-        final body = responseData['body'];
-
-        if (body != null && body is Map<String, dynamic>) {
-          // Si body contient directement la réservation
-          if (body.containsKey('id')) {
-            final reservation = Reservation.fromJson(body);
-            deboger(['Réservation manuelle créée:', reservation.toJson()]);
-            return reservation;
-          }
-          // Si body contient un champ reservation
-          if (body.containsKey('reservation')) {
-            final reservation = Reservation.fromJson(
-              body['reservation'] as Map<String, dynamic>,
-            );
-            deboger(['Réservation manuelle créée:', reservation.toJson()]);
-            return reservation;
-          }
+      final body = ResponseMapper.tryExtractBody(response.data);
+      if (body != null) {
+        // Si body contient directement la réservation
+        if (body.containsKey('id')) {
+          final reservation = Reservation.fromJson(body);
+          deboger(['Réservation manuelle créée:', reservation.toJson()]);
+          return reservation;
         }
-
-        // Fallback: body est directement la réservation
-        if (body != null) {
+        // Si body contient un champ reservation
+        if (body.containsKey('reservation')) {
           final reservation = Reservation.fromJson(
-            body as Map<String, dynamic>,
+            body['reservation'] as Map<String, dynamic>,
           );
           deboger(['Réservation manuelle créée:', reservation.toJson()]);
           return reservation;
         }
+
+        // Fallback: body est directement la réservation
+        final reservation = Reservation.fromJson(body);
+        deboger(['Réservation manuelle créée:', reservation.toJson()]);
+        return reservation;
       }
 
       throw Exception('Format de réponse invalide');
@@ -266,18 +258,12 @@ class ReservationService {
       final response = await dio.get("$urlCreateReservation/$reference/code");
 
       // Parser la réponse selon la structure du serveur
-      if (response.data is Map<String, dynamic>) {
-        final responseData = response.data as Map<String, dynamic>;
-        final body = responseData['body'];
-
-        if (body != null) {
-          final codeReservation = CodeReservation.fromJson(
-            body as Map<String, dynamic>,
-          );
-          // SEC-04 : le code secret de réservation ne doit jamais être loggé
-          deboger(['Code de réservation récupéré']);
-          return codeReservation;
-        }
+      final body = ResponseMapper.tryExtractBody(response.data);
+      if (body != null) {
+        final codeReservation = CodeReservation.fromJson(body);
+        // SEC-04 : le code secret de réservation ne doit jamais être loggé
+        deboger(['Code de réservation récupéré']);
+        return codeReservation;
       }
 
       throw Exception('Format de réponse invalide');
@@ -303,18 +289,15 @@ class ReservationService {
         data: req.toJson(),
       );
 
-      if (response.data is Map<String, dynamic>) {
-        final responseData = response.data as Map<String, dynamic>;
-        final body = responseData['body'];
-        if (body is Map<String, dynamic>) {
-          if (body.containsKey('id')) {
-            return Reservation.fromJson(body);
-          }
-          if (body['reservation'] is Map<String, dynamic>) {
-            return Reservation.fromJson(
-              body['reservation'] as Map<String, dynamic>,
-            );
-          }
+      final body = ResponseMapper.tryExtractBody(response.data);
+      if (body != null) {
+        if (body.containsKey('id')) {
+          return Reservation.fromJson(body);
+        }
+        if (body['reservation'] is Map<String, dynamic>) {
+          return Reservation.fromJson(
+            body['reservation'] as Map<String, dynamic>,
+          );
         }
       }
 

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:asfar/model/document/identity_document.dart';
 import 'package:asfar/service/dio/dio_request.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service réseau du KYC (vérification d'identité).
 ///
@@ -15,8 +16,8 @@ class DocumentService {
   /// Récupère tous les documents de l'utilisateur courant (tous statuts).
   Future<List<IdentityDocument>> getMyDocuments() async {
     final response = await _dio.get("api/user/documents");
-    final body = response.data is Map ? response.data['body'] : null;
-    if (body is! List) return const [];
+    final body = ResponseMapper.tryExtractBodyList(response.data);
+    if (body == null) return const [];
     return body
         .whereType<Map<String, dynamic>>()
         .map(IdentityDocument.fromJson)
@@ -41,8 +42,8 @@ class DocumentService {
       formData: formData,
     );
 
-    final body = response.data is Map ? response.data['body'] : null;
-    if (body is! Map<String, dynamic>) {
+    final body = ResponseMapper.tryExtractBody(response.data);
+    if (body == null) {
       throw Exception('Réponse serveur invalide');
     }
     return IdentityDocument.fromJson(body);

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/appartement_bloc/appartement_bloc.dart';
@@ -57,6 +58,16 @@ class _LocataireFavoriteScreenState extends State<LocataireFavoriteScreen> {
       body: SafeArea(
         top: false,
         child: BlocBuilder<FavoriteBloc, FavoriteState>(
+          // PERF-03 : ne rebuild la grille que si la liste d'ids change
+          // (ou en phase de chargement initial), pas sur les états
+          // transitoires (succès/erreur) porteurs des mêmes ids.
+          buildWhen: (previous, current) =>
+              previous is FavoriteLoading ||
+              current is FavoriteLoading ||
+              !listEquals(
+                _favoriteIdsFromState(previous),
+                _favoriteIdsFromState(current),
+              ),
           builder: (context, favState) {
             final favIds = _favoriteIdsFromState(favState);
             return BlocBuilder<AppartementBloc, AppartementState>(

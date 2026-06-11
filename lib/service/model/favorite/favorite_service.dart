@@ -3,6 +3,7 @@ import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/model/response/favorite_appartements_response.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 class FavoriteService {
   /// Récupère les IDs des appartements favoris de l'utilisateur
@@ -10,25 +11,10 @@ class FavoriteService {
     final dio = DioRequest.instance;
     final response = await dio.get("user/favorites");
 
-    // Gérer la nouvelle structure de réponse {body: [...], message: "..."}
-    if (response.data is Map<String, dynamic>) {
-      final responseMap = response.data as Map<String, dynamic>;
-      final body = responseMap['body'];
-
-      if (body is List) {
-        return List<int>.from(body.map((item) {
-          if (item is int) return item;
-          if (item is Map<String, dynamic>) {
-            return item['apartId'] ?? item['apartment_id'] ?? item['appartement_id'];
-          }
-          return null;
-        }).where((id) => id != null));
-      }
-    }
-
-    // Fallback pour l'ancienne structure (au cas où)
-    if (response.data is List) {
-      return List<int>.from(response.data.map((item) {
+    // Gérer la structure {body: [...], message: "..."} ou une liste à plat
+    final body = ResponseMapper.tryExtractBodyList(response.data);
+    if (body != null) {
+      return List<int>.from(body.map((item) {
         if (item is int) return item;
         if (item is Map<String, dynamic>) {
           return item['apartId'] ?? item['apartment_id'] ?? item['appartement_id'];

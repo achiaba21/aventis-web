@@ -27,6 +27,32 @@ class ReservationRepository {
   final StorageService _storage = StorageService.instance;
   final ReservationService _apiService = ReservationService();
 
+  // ==================== VERSIONING DU CACHE (PERF-04) ====================
+
+  /// Version du schéma de cache. À incrémenter à chaque changement de
+  /// structure du modèle [Reservation] : les caches existants seront purgés
+  /// au premier accès.
+  static const int cacheVersion = 1;
+
+  static const String _cacheVersionKey = 'cache_version_reservations';
+  bool _versionChecked = false;
+
+  /// Purge les caches si leur version stockée diffère de [cacheVersion].
+  /// Mémoïsé : ne coûte qu'une lecture par session.
+  Future<void> _ensureCacheVersion() async {
+    if (_versionChecked) return;
+    _versionChecked = true;
+    final stored = _storage.getAppSetting<int>(_cacheVersionKey);
+    if (stored != cacheVersion) {
+      if (stored != null) {
+        deboger('[ReservationRepository] Version de cache $stored → '
+            '$cacheVersion : purge');
+        await clearAllCaches();
+      }
+      await _storage.setAppSetting<int>(_cacheVersionKey, cacheVersion);
+    }
+  }
+
   /// Récupère les réservations locataire depuis le cache local
   List<Reservation> getCachedUserReservations() {
     try {
@@ -97,6 +123,7 @@ class ReservationRepository {
     bool forceRefresh = false,
     Function(List<Reservation>)? onApiData,
   }) async {
+    await _ensureCacheVersion();
     // Si force refresh, aller directement à l'API avec fallback au cache proprio
     if (forceRefresh) {
       try {
@@ -125,8 +152,11 @@ class ReservationRepository {
       }
     }
 
-    // Cache disponible : rafraîchir en arrière-plan
-    _refreshProprietaireInBackground(onApiData);
+    // Cache frais (TTL 15 min, PERF-04) : aucun appel API ;
+    // périmé : rafraîchissement en arrière-plan
+    if (isCacheStale(isProprietaire: true)) {
+      _refreshProprietaireInBackground(onApiData);
+    }
 
     return ReservationResult(reservations: cached, isFromCache: true);
   }
@@ -139,6 +169,7 @@ class ReservationRepository {
     bool forceRefresh = false,
     Function(List<Reservation>)? onApiData,
   }) async {
+    await _ensureCacheVersion();
     // Si force refresh, aller directement à l'API avec fallback au cache user
     if (forceRefresh) {
       try {
@@ -167,10 +198,28 @@ class ReservationRepository {
       }
     }
 
-    // Cache disponible : rafraîchir en arrière-plan
-    _refreshUserInBackground(onApiData);
+    // Cache frais (TTL 15 min, PERF-04) : aucun appel API ;
+    // périmé : rafraîchissement en arrière-plan
+    if (isCacheStale()) {
+      _refreshUserInBackground(onApiData);
+    }
 
     return ReservationResult(reservations: cached, isFromCache: true);
+  }
+
+  /// Récupère une page supplémentaire de réservations (PERF-02)
+  ///
+  /// Appel API direct, jamais mis en cache (seule la première page vit dans
+  /// Hive). Si le backend ne pagine pas encore, il renvoie la liste complète :
+  /// l'appelant dédoublonne et conclut à la fin de liste (CA1).
+  Future<List<Reservation>> fetchMoreReservations(
+    int page, {
+    int size = 30,
+    bool isProprietaire = false,
+  }) {
+    return isProprietaire
+        ? _apiService.getProprietaireReservations(page: page, size: size)
+        : _apiService.getUserReservations(page: page, size: size);
   }
 
   /// Rafraîchit les réservations propriétaire en arrière-plan
@@ -255,14 +304,15 @@ class ReservationRepository {
     return _storage.getProprioReservationsLastSync();
   }
 
-  /// Vérifie si le cache est périmé (plus de X heures)
-  bool isCacheStale({int maxAgeHours = 1, bool isProprietaire = false}) {
+  /// Vérifie si le cache est périmé (TTL par défaut : 15 min, PERF-04)
+  bool isCacheStale({
+    Duration maxAge = const Duration(minutes: 15),
+    bool isProprietaire = false,
+  }) {
     final lastSync = isProprietaire ? getProprietaireLastSyncDate() : getUserLastSyncDate();
     if (lastSync == null) return true;
 
-    final now = DateTime.now();
-    final difference = now.difference(lastSync);
-    return difference.inHours >= maxAgeHours;
+    return DateTime.now().difference(lastSync) >= maxAge;
   }
 
   /// Vide le cache des réservations locataire

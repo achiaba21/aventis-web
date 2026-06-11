@@ -2,6 +2,7 @@ import 'package:asfar/config/app_propertie.dart';
 import 'package:asfar/model/residence/commodite/commodite.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service API du référentiel commodités — endpoint public `GET /auth/commodites`.
 ///
@@ -23,12 +24,8 @@ class CommoditeService {
     try {
       final dio = DioRequest.instance;
       final resp = await dio.get(_url);
-      final data = resp.data;
-      final List rawList = data is List
-          ? data
-          : (data is Map && data['body'] is List)
-              ? data['body'] as List
-              : const [];
+      final List rawList =
+          ResponseMapper.tryExtractBodyList(resp.data) ?? const [];
       return rawList
           .whereType<Map>()
           .map((m) => Commodite.fromJson(Map<String, dynamic>.from(m)))

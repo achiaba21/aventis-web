@@ -23,6 +23,46 @@ abstract class JsonConstructors<T> {
 /// Classe générique pour mapper les réponses API vers des modèles
 class ResponseMapper {
 
+  // ==================== EXTRACTION DU WRAPPER {body, message} ====================
+  // Le backend Spring Boot enveloppe ses réponses dans {body: ..., message: ...}.
+  // Source unique d'extraction (PRA-02) : les services choisissent leur politique
+  // d'échec (variante try* nullable ou variante stricte qui lance).
+
+  /// Extrait le `body` (objet) du wrapper Spring Boot, ou `null` si inexploitable
+  ///
+  /// Tolère une réponse déjà "à plat" (sans wrapper) : si `data` est un Map
+  /// sans clé `body` exploitable, il est retourné tel quel.
+  static Map<String, dynamic>? tryExtractBody(dynamic data) {
+    if (data is! Map) return null;
+    final map = Map<String, dynamic>.from(data);
+    final body = map['body'];
+    if (body is Map) return Map<String, dynamic>.from(body);
+    return map;
+  }
+
+  /// Extrait le `body` (liste) du wrapper Spring Boot, ou `null` si inexploitable
+  ///
+  /// Tolère une réponse déjà "à plat" : si `data` est directement une liste,
+  /// elle est retournée telle quelle.
+  static List<dynamic>? tryExtractBodyList(dynamic data) {
+    if (data is List) return data;
+    if (data is Map) {
+      final body = data['body'];
+      if (body is List) return body;
+    }
+    return null;
+  }
+
+  /// Variante stricte de [tryExtractBody] : lance [CustomException] si la
+  /// réponse n'est pas exploitable
+  static Map<String, dynamic> extractBody(dynamic data) {
+    final body = tryExtractBody(data);
+    if (body == null) {
+      throw CustomException("Format de réponse invalide");
+    }
+    return body;
+  }
+
   /// Map automatiquement une réponse API vers un modèle T
   ///
   /// Le type T doit avoir une méthode statique fromJson ou fromJsonAll

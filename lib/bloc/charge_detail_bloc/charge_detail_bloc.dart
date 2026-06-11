@@ -4,7 +4,7 @@ import 'package:asfar/bloc/charge_bloc/charge_event.dart';
 import 'package:asfar/bloc/charge_detail_bloc/charge_detail_event.dart';
 import 'package:asfar/bloc/charge_detail_bloc/charge_detail_state.dart';
 import 'package:asfar/model/comptabilite/charge_detail_action.dart';
-import 'package:asfar/repository/charge_data_manager.dart';
+import 'package:asfar/service/repository/charge_data_manager.dart';
 import 'package:asfar/util/function.dart';
 
 /// BLoC dédié au cycle de vie d'UNE charge (page détail).

@@ -1,6 +1,7 @@
 import 'package:asfar/model/notification/notification.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service pour gérer les notifications via l'API REST
 ///
@@ -34,7 +35,8 @@ class NotificationService {
 
       if (response.statusCode == 200) {
         // Le backend renvoie {body: [...], message: "..."}
-        final List<dynamic> notificationsJson = response.data['body'] ?? response.data;
+        final List<dynamic> notificationsJson =
+            ResponseMapper.tryExtractBodyList(response.data) ?? response.data;
         final notifications = notificationsJson
             .map((json) => NotificationModel.fromJson(json))
             .toList();
@@ -58,7 +60,8 @@ class NotificationService {
 
       if (response.statusCode == 200) {
         // Le backend renvoie {body: [...], message: "..."}
-        final List<dynamic> notificationsJson = response.data['body'] ?? response.data;
+        final List<dynamic> notificationsJson =
+            ResponseMapper.tryExtractBodyList(response.data) ?? response.data;
         final notifications = notificationsJson
             .map((json) => NotificationModel.fromJson(json))
             .toList();
@@ -104,7 +107,8 @@ class NotificationService {
 
       if (response.statusCode == 200) {
         // Le backend renvoie {body: notification, message: "..."}
-        final notificationJson = response.data['body'] ?? response.data;
+        final notificationJson =
+            ResponseMapper.tryExtractBody(response.data) ?? response.data;
         final notification = NotificationModel.fromJson(notificationJson);
 
         deboger('✅ Notification $notificationId récupérée');

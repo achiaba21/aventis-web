@@ -154,39 +154,6 @@ String formateDateHeure(DateTime? date) {
 }
 
 // ============================================================
-// FORMATAGE DES MONTANTS
-// ============================================================
-
-/// Formate un montant avec séparateurs de milliers et devise
-/// Ex: 1234567.89 → "1 234 567 FCFA" ou "1 234 567,89 FCFA"
-String formatMontant(double? montant, {bool showCurrency = true, bool showDecimals = false}) {
-  if (montant == null) return '';
-  final formatted = helpAmountFormate(montant, decim: showDecimals);
-  return showCurrency ? '$formatted FCFA' : formatted;
-}
-
-/// Formate un montant de manière compacte
-/// Ex: 1500000 → "1.5M", 1500 → "1.5K"
-String formatMontantCompact(double? montant) {
-  if (montant == null) return '';
-  if (montant >= 1000000) {
-    return '${(montant / 1000000).toStringAsFixed(1)}M';
-  } else if (montant >= 1000) {
-    return '${(montant / 1000).toStringAsFixed(1)}K';
-  }
-  return montant.toStringAsFixed(0);
-}
-
-/// Formate un montant avec signe (+/-)
-/// Ex: 1500 → "+1 500 FCFA", -1500 → "-1 500 FCFA"
-String formatMontantSigne(double? montant, {bool showCurrency = true}) {
-  if (montant == null) return '';
-  final signe = montant >= 0 ? '+' : '';
-  final formatted = formatMontant(montant.abs(), showCurrency: showCurrency);
-  return '$signe$formatted';
-}
-
-// ============================================================
 // FORMATAGE DES DATES AVANCÉ
 // ============================================================
 
@@ -298,27 +265,6 @@ String formatDateRelative(DateTime? date) {
   }
 
   return formateDateSlash(date);
-}
-
-/// Formate un montant avec devise courte
-/// Ex: 1500 → "1 500 F"
-String formatMontantCourt(double? montant) {
-  if (montant == null) return '';
-  final formatted = helpAmountFormate(montant, decim: false);
-  return '$formatted F';
-}
-
-/// Formate un montant compact avec FCFA
-/// Ex: 1500000 → "1.5M FCFA", 1500 → "1.5K FCFA", 500 → "500 FCFA"
-String formatMontantCompactFCFA(double? montant) {
-  if (montant == null) return '';
-  if (montant >= 1000000) {
-    return '${(montant / 1000000).toStringAsFixed(1)}M FCFA';
-  } else if (montant >= 1000) {
-    return '${(montant / 1000).toStringAsFixed(0)}K FCFA';
-  }
-  final formatted = helpAmountFormate(montant, decim: false);
-  return '$formatted FCFA';
 }
 
 // ============================================================

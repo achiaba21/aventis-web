@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:asfar/config/service_locator.dart';
 import 'package:asfar/bloc/manual_reservation_wizard_bloc/manual_reservation_wizard_bloc.dart';
 import 'package:asfar/bloc/manual_reservation_wizard_bloc/manual_reservation_wizard_event.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_bloc.dart';
@@ -10,6 +11,9 @@ Appartement _appart() {
 }
 
 void main() {
+  // ReservationBloc résout ses dépendances via GetIt (PRA-04)
+  setUpAll(setupServiceLocator);
+
   group('ManualReservationWizardBloc — Init + UpdateField', () {
     test('Init avec appart → state.appartement set', () async {
       final bloc = ManualReservationWizardBloc(reservationBloc: ReservationBloc());

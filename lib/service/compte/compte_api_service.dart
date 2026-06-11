@@ -3,6 +3,7 @@ import 'package:asfar/model/compte/demande_retrait.dart';
 import 'package:asfar/model/compte/transaction.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service API pour la gestion des comptes propriétaires
 class CompteApiService {
@@ -16,7 +17,7 @@ class CompteApiService {
 
     final response = await dio.get("$_baseEndpoint/proprietaire");
 
-    final Map<String, dynamic>? compteJson = _extractBodyAsMap(response.data);
+    final Map<String, dynamic>? compteJson = ResponseMapper.tryExtractBody(response.data);
     if (compteJson != null) {
       return CompteProprietaire.fromJson(compteJson);
     }
@@ -59,7 +60,7 @@ class CompteApiService {
 
     final response = await dio.get(endpoint);
 
-    final List<dynamic>? bodyList = _extractBodyAsList(response.data);
+    final List<dynamic>? bodyList = ResponseMapper.tryExtractBodyList(response.data);
     if (bodyList != null) {
       return _parseTransactionList(bodyList);
     }
@@ -78,7 +79,7 @@ class CompteApiService {
       data: {'montant': montant},
     );
 
-    final Map<String, dynamic>? retraitJson = _extractBodyAsMap(response.data);
+    final Map<String, dynamic>? retraitJson = ResponseMapper.tryExtractBody(response.data);
     if (retraitJson != null) {
       return DemandeRetrait.fromJson(retraitJson);
     }
@@ -94,7 +95,7 @@ class CompteApiService {
 
     final response = await dio.get("$_baseEndpoint/retraits");
 
-    final List<dynamic>? bodyList = _extractBodyAsList(response.data);
+    final List<dynamic>? bodyList = ResponseMapper.tryExtractBodyList(response.data);
     if (bodyList != null) {
       return _parseDemandeRetraitList(bodyList);
     }
@@ -103,32 +104,6 @@ class CompteApiService {
   }
 
   // ==================== Méthodes privées (helpers) ====================
-
-  Map<String, dynamic>? _extractBodyAsMap(dynamic responseData) {
-    if (responseData is Map<String, dynamic>) {
-      final dynamic bodyRaw = responseData['body'];
-      if (bodyRaw is Map<String, dynamic>) {
-        return bodyRaw;
-      }
-      if (responseData.containsKey('id')) {
-        return responseData;
-      }
-    }
-    return null;
-  }
-
-  List<dynamic>? _extractBodyAsList(dynamic responseData) {
-    if (responseData is Map<String, dynamic>) {
-      final dynamic bodyRaw = responseData['body'];
-      if (bodyRaw is List<dynamic>) {
-        return bodyRaw;
-      }
-    }
-    if (responseData is List<dynamic>) {
-      return responseData;
-    }
-    return null;
-  }
 
   List<Transaction> _parseTransactionList(dynamic listData) {
     if (listData is! List<dynamic>) return [];

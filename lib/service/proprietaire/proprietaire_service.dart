@@ -3,6 +3,7 @@ import 'package:asfar/model/user/proprietaire.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service pour charger les infos du propriétaire à la demande
 /// Utilisé par les locataires pour voir les infos du proprio après paiement
@@ -65,18 +66,9 @@ class ProprietaireService {
       final response = await dio.get('appartement/$appartementId/proprietaire');
 
       if (response.data != null) {
-        Map<String, dynamic> proprietaireData;
-
-        // Gérer différents formats de réponse
-        if (response.data is Map<String, dynamic>) {
-          final responseMap = response.data as Map<String, dynamic>;
-          // Si la réponse a un 'body', l'utiliser
-          if (responseMap.containsKey('body') && responseMap['body'] != null) {
-            proprietaireData = Map<String, dynamic>.from(responseMap['body']);
-          } else {
-            proprietaireData = responseMap;
-          }
-        } else {
+        // Gérer différents formats de réponse ({body: {...}} ou objet à plat)
+        final proprietaireData = ResponseMapper.tryExtractBody(response.data);
+        if (proprietaireData == null) {
           deboger(['[ProprietaireService] Format de réponse invalide']);
           return null;
         }

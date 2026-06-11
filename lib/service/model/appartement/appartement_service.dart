@@ -6,6 +6,7 @@ import 'package:asfar/model/filter/filter_options.dart';
 import 'package:asfar/model/residence/appart.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/model/forms/uploaded_image.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service API des appartements.
 ///
@@ -23,8 +24,20 @@ class AppartementService {
   static final urlGetAppartements = "auth/appartement/apparts";
 
   /// Récupère tous les appartements avec mapping automatique
-  Future<List<Appartement>> getAppartements() async {
+  ///
+  /// [page] / [size] (optionnels) : pagination côté serveur. Sans ces
+  /// paramètres, l'appel reste strictement identique (liste complète).
+  Future<List<Appartement>> getAppartements({int? page, int? size}) async {
     final dio = DioRequest.instance;
+    if (page != null || size != null) {
+      return await dio.getMapped<Appartement>(
+        urlGetAppartements,
+        queryParameters: {
+          if (page != null) 'page': page,
+          if (size != null) 'size': size,
+        },
+      );
+    }
     return await dio.getMapped<Appartement>(urlGetAppartements);
   }
 
@@ -55,7 +68,7 @@ class AppartementService {
     final dio = DioRequest.instance;
     final response =
         await dio.post("api/proprietaire/appartement/$id/mettre-hors-ligne");
-    return _extractBodyMap(response.data);
+    return ResponseMapper.extractBody(response.data);
   }
 
   /// Remet une annonce HORS_LIGNE en ligne (→ EN_LIGNE, sans re-modération).
@@ -63,7 +76,7 @@ class AppartementService {
     final dio = DioRequest.instance;
     final response =
         await dio.post("api/proprietaire/appartement/$id/remettre-en-ligne");
-    return _extractBodyMap(response.data);
+    return ResponseMapper.extractBody(response.data);
   }
 
   /// Resoumet une annonce REFUSER à la modération (→ EN_COURS).
@@ -71,7 +84,7 @@ class AppartementService {
     final dio = DioRequest.instance;
     final response =
         await dio.post("api/proprietaire/appartement/$id/resoumettre");
-    return _extractBodyMap(response.data);
+    return ResponseMapper.extractBody(response.data);
   }
 
   /// Récupère tous les appartements d'un propriétaire spécifique
@@ -113,7 +126,7 @@ class AppartementService {
       "api/proprietaire/appartement/new",
       data: payload,
     );
-    return _extractBodyMap(response.data);
+    return ResponseMapper.extractBody(response.data);
   }
 
   /// Crée un appartement avec images (multipart/form-data).
@@ -148,7 +161,7 @@ class AppartementService {
       },
     );
 
-    return _extractBodyMap(response.data);
+    return ResponseMapper.extractBody(response.data);
   }
 
   /// Met à jour un appartement existant avec images (multipart/form-data).
@@ -194,7 +207,7 @@ class AppartementService {
       },
     );
 
-    return _extractBodyMap(response.data);
+    return ResponseMapper.extractBody(response.data);
   }
 
   // ============== Helpers privés ==============
@@ -215,21 +228,5 @@ class AppartementService {
       }
     }
     return files;
-  }
-
-  /// Extrait le `body` d'une réponse Spring (`{body: {...}, message: "..."}`)
-  /// ou retourne directement la map si la réponse est plate.
-  Map<String, dynamic> _extractBodyMap(dynamic data) {
-    if (data is Map) {
-      final responseMap = Map<String, dynamic>.from(data);
-      final body = responseMap['body'];
-      if (body is Map) {
-        return Map<String, dynamic>.from(body);
-      }
-      if (responseMap.containsKey('id')) {
-        return responseMap;
-      }
-    }
-    throw Exception("Format de réponse invalide");
   }
 }

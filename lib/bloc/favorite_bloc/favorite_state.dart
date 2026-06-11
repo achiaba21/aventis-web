@@ -1,4 +1,9 @@
-abstract class FavoriteState {}
+abstract class FavoriteState {
+  /// Statut favori d'un appartement — `false` par défaut (Initial/Loading),
+  /// surchargé par les états porteurs d'ids. Permet un `BlocSelector` ciblé
+  /// par carte (PERF-03).
+  bool isFavorite(int apartId) => false;
+}
 
 class FavoriteInitial extends FavoriteState {}
 
@@ -12,6 +17,7 @@ class FavoriteLoaded extends FavoriteState {
   FavoriteLoaded(this.favoriteIds, {DateTime? lastUpdated})
       : lastUpdated = lastUpdated ?? DateTime.now();
 
+  @override
   bool isFavorite(int apartId) => favoriteIds.contains(apartId);
 
   FavoriteLoaded copyWith({List<int>? favoriteIds}) {
@@ -30,6 +36,7 @@ class FavoriteOptimisticUpdate extends FavoriteState {
 
   FavoriteOptimisticUpdate(this.favoriteIds, this.pendingApartId, this.isPending);
 
+  @override
   bool isFavorite(int apartId) => favoriteIds.contains(apartId);
 }
 
@@ -41,6 +48,7 @@ class FavoriteActionSuccess extends FavoriteState {
 
   FavoriteActionSuccess(this.favoriteIds, this.message, {this.affectedApartId});
 
+  @override
   bool isFavorite(int apartId) => favoriteIds.contains(apartId);
 }
 
@@ -58,5 +66,6 @@ class FavoriteError extends FavoriteState {
     this.canRetry = true,
   });
 
+  @override
   bool isFavorite(int apartId) => favoriteIds?.contains(apartId) ?? false;
 }

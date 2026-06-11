@@ -1,18 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_event.dart';
+import 'package:asfar/config/service_locator.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_state.dart';
 import 'package:asfar/service/model/favorite/favorite_service.dart';
 import 'package:asfar/util/error_handler.dart';
 import 'package:asfar/util/function.dart';
 
 class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
-  late FavoriteService favoriteService;
+  final FavoriteService favoriteService;
   static const String _favoritesKey = 'user_favorites';
 
-  FavoriteBloc() : super(FavoriteInitial()) {
-    favoriteService = FavoriteService();
-
+  FavoriteBloc({FavoriteService? service})
+      : favoriteService = service ?? getIt<FavoriteService>(),
+        super(FavoriteInitial()) {
     on<LoadFavorites>((event, emit) async {
       emit(FavoriteLoading());
       try {

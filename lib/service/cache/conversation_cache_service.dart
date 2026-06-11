@@ -18,8 +18,10 @@ class ConversationCacheService {
 
   static const String _conversationBoxName = 'conversations';
   static const String _messageBoxName = 'messages';
-  static const int _maxCachedMessages = 100; // Limite par conversation
-  static const int _maxCachedConversations = 50;
+  /// Limite de messages conservés par conversation (disque ET mémoire, PERF-05)
+  static const int maxCachedMessages = 100;
+  /// Limite de conversations conservées (disque ET mémoire, PERF-05)
+  static const int maxCachedConversations = 50;
 
   Future<void> initialize() async {
     try {
@@ -187,14 +189,14 @@ class ConversationCacheService {
     try {
       final conversations = _conversationBox!.values.toList();
 
-      if (conversations.length > _maxCachedConversations) {
+      if (conversations.length > maxCachedConversations) {
         conversations.sort((a, b) {
           final aTime = a.lastUpdated ?? DateTime(1970);
           final bTime = b.lastUpdated ?? DateTime(1970);
           return aTime.compareTo(bTime);
         });
 
-        final toDelete = conversations.take(conversations.length - _maxCachedConversations);
+        final toDelete = conversations.take(conversations.length - maxCachedConversations);
         for (final conversation in toDelete) {
           if (conversation.id != null) {
             await _conversationBox!.delete(conversation.id!);
@@ -214,14 +216,14 @@ class ConversationCacheService {
           .where((message) => message.conversationId == conversationId)
           .toList();
 
-      if (messages.length > _maxCachedMessages) {
+      if (messages.length > maxCachedMessages) {
         messages.sort((a, b) {
           final aTime = a.createdAt ?? DateTime(1970);
           final bTime = b.createdAt ?? DateTime(1970);
           return aTime.compareTo(bTime);
         });
 
-        final toDelete = messages.take(messages.length - _maxCachedMessages);
+        final toDelete = messages.take(messages.length - maxCachedMessages);
         for (final message in toDelete) {
           if (message.id != null) {
             await _messageBox!.delete('\${conversationId}_\${message.id}');

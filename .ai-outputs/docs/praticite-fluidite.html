@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asfar - Praticité &amp; Fluidité</title>
+    <style>
+        :root {
+            --bg-dark: #1D1D1D;
+            --bg-card: #2A2A2A;
+            --primary: #FFA02A;
+            --text: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --border: #374151;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            color: var(--primary); text-decoration: none;
+            margin-bottom: 30px; font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 { font-size: 28px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 15px; }
+        .badge {
+            display: inline-block; padding: 4px 12px; border-radius: 999px;
+            font-size: 12px; font-weight: 600; margin-left: 8px;
+        }
+        .badge-success { background: rgba(34,197,94,0.15); color: var(--success); }
+        .badge-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 20px;
+        }
+        .card h2 { font-size: 20px; margin-bottom: 16px; color: var(--primary); }
+        .card h3 { font-size: 16px; margin: 16px 0 8px; color: var(--text); }
+        p { margin-bottom: 12px; color: var(--text-muted); }
+        ul { margin: 12px 0 12px 20px; color: var(--text-muted); }
+        li { margin-bottom: 6px; }
+        code {
+            background: #1A1A1A; padding: 2px 8px; border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace; font-size: 13px;
+            color: #FFA02A;
+        }
+        pre { background: #1A1A1A; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; }
+        pre code { background: none; padding: 0; color: #E5E7EB; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+        th { color: var(--text); font-size: 13px; }
+        td { color: var(--text-muted); font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Retour à l'index</a>
+
+        <h1>⚡ Praticité &amp; Fluidité
+            <span class="badge badge-success">Validé 95/100</span>
+        </h1>
+        <p class="subtitle">
+            Version 1.0 · Créée le 2026-06-10 · Implémente les fiches d'audit PRA-01→05 et PERF-01→05
+            (<code>.ai-outputs/audit/</code>) · Specs : <code>.ai-outputs/specs/praticite-fluidite/</code>
+        </p>
+
+        <div class="card">
+            <h2>📋 Description</h2>
+            <p>
+                Deuxième et dernier volet de l'audit de juin 2026. Côté utilisateur : images cachées
+                (plus aucun re-téléchargement), feed paginé au scroll, likes sans reconstruction de
+                liste, données rafraîchies intelligemment (TTL), mémoire bornée sur longues sessions.
+                Côté équipe : une seule façon de faire par sujet (extraction des réponses serveur,
+                formatage des montants, emplacement des repositories, obtention des services) et un
+                filet de 17 tests sur la couche données. Iso-comportement fonctionnel garanti.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>⚡ Fluidité (PERF)</h2>
+            <table>
+                <tr><th>Fiche</th><th>Livré</th></tr>
+                <tr><td>PERF-01 Images</td><td><code>DomainImage</code> sur <code>CachedNetworkImage</code> (cache disque + mémoire, <code>memCacheWidth</code> borné) avec skeleton <code>ShimmerCard</code> pendant le chargement. Les 2 usages directs d'<code>Image.network</code> (avatar, vignette KYC) migrés.</td></tr>
+                <tr><td>PERF-02 Pagination</td><td>Paramètres <code>page/size</code> optionnels sur les services annonces/réservations, <code>fetchMore*</code> dans les repositories, événements <code>LoadMoreAppartements</code>/<code>LoadMoreReservations</code> avec fusion dédoublonnée. Feed locataire câblé (scroll infini + <code>LoaderCircular</code>). <strong>Neutre tant que le backend ne pagine pas</strong> (CA1).</td></tr>
+                <tr><td>PERF-03 Rebuilds</td><td>Nouveau widget <code>FavoriteToggleButton</code> (BlocSelector par carte) — un like ne reconstruit plus que SON cœur. <code>BlocBuilder</code> de listes retirés, <code>buildWhen</code> sur l'écran favoris.</td></tr>
+                <tr><td>PERF-04 TTL/Version</td><td><code>isCacheStale()</code> enfin actif : cache frais (1 h annonces / 15 min réservations) = <strong>zéro appel API</strong> ; périmé = cache immédiat + refresh fond. Versioning de schéma (<code>cacheVersion</code>) avec purge automatique.</td></tr>
+                <tr><td>PERF-05 Mémoire</td><td><code>ConversationBloc</code> plafonné (100 messages/conversation, 50 conversations — constantes partagées avec le cache disque). NotificationBloc déjà borné (vérifié).</td></tr>
+            </table>
+            <p><strong>Comportement assumé :</strong> une conversation de plus de 100 messages n'affiche
+            que les 100 derniers (aligné sur le cache disque ; le scroll-back complet viendra avec la
+            pagination des messages).</p>
+        </div>
+
+        <div class="card">
+            <h2>🛠 Praticité (PRA)</h2>
+            <table>
+                <tr><th>Fiche</th><th>Livré</th></tr>
+                <tr><td>PRA-01 Repositories</td><td><code>lib/repository/</code> supprimé — <code>compte_repository</code> et <code>charge_data_manager</code> vivent dans <code>lib/service/repository/</code> (emplacement canonique unique).</td></tr>
+                <tr><td>PRA-02 extractBody</td><td><code>ResponseMapper.tryExtractBody / tryExtractBodyList / extractBody</code> = source unique d'extraction du wrapper Spring <code>{body, message}</code>. <strong>13 services migrés</strong>, politiques d'échec conservées à l'identique.</td></tr>
+                <tr><td>PRA-03 Formatters</td><td><code>FcfaFormatter</code> = unique formateur de montants. Les 5 fonctions de <code>formate.dart</code> (code mort) et le doublon local de <code>comptabilite_calculator</code> supprimés. Comportement gelé par 15 tests.</td></tr>
+                <tr><td>PRA-04 GetIt</td><td><code>lib/config/service_locator.dart</code> (idempotent). 6 blocs migrés (Appartement, Reservation, Favorite, Conversation, Compte, Charge) au pattern « injection constructeur optionnelle, défaut <code>getIt&lt;X&gt;()</code> ». Migration progressive : le reste suit au fil des features.</td></tr>
+                <tr><td>PRA-05 Tests</td><td><strong>17 nouveaux tests</strong> : ResponseMapper (étendu), FcfaFormatter (gel), DioRequest (mock adapter), AppartementService, ReservationService, AppartementRepository (TTL/versioning/zéro-appel), ReservationRepository (fallbacks offline). Total projet : <strong>293 tests verts</strong>.</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>🧩 Nouvelles API</h2>
+            <h3>Pour les prochains blocs (PRA-04)</h3>
+            <pre><code>class MonBloc extends Bloc&lt;MonEvent, MonState&gt; {
+  final MonService _service;
+  MonBloc({MonService? service})
+      : _service = service ?? getIt&lt;MonService&gt;(),  // mock injectable en test
+        super(MonInitial());
+}</code></pre>
+            <h3>Pour les prochains services (PRA-02)</h3>
+            <pre><code>final body = ResponseMapper.tryExtractBody(response.data);   // Map? (null si inexploitable)
+final list = ResponseMapper.tryExtractBodyList(response.data); // List? (idem)
+final strict = ResponseMapper.extractBody(response.data);     // throw CustomException</code></pre>
+            <h3>Crochets test-only</h3>
+            <ul>
+                <li><code>DioRequest.instance.dioForTesting</code> / <code>httpClientAdapterForTesting</code> — branchement http_mock_adapter</li>
+                <li><code>StorageService.init(cipherOverride: ...)</code> — Hive en test sans Keychain</li>
+                <li><code>setupServiceLocator()</code> idempotent — utilisable en <code>setUpAll</code></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>⚠️ Prérequis backend
+                <span class="badge badge-warning">À faire côté Spring Boot</span>
+            </h2>
+            <ul>
+                <li><strong>Pagination</strong> — accepter <code>page</code>/<code>size</code> sur
+                    <code>GET auth/appartement/apparts</code> et <code>GET api/user/reservations[/owner]</code>
+                    (Spring Data <code>Pageable</code>). L'app est déjà prête : dès que le backend pagine,
+                    le scroll infini du feed devient effectif sans nouvelle livraison mobile.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>📜 Historique</h2>
+            <table>
+                <tr><th>Version</th><th>Date</th><th>Changement</th></tr>
+                <tr><td>1.0</td><td>2026-06-10</td><td>Création — implémentation PRA-01→05 + PERF-01→05, audit 95/100, 293 tests verts.</td></tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -6,8 +6,8 @@ import 'package:asfar/theme/app_radii.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 import 'package:asfar/widget/badge/certified_badge.dart';
+import 'package:asfar/widget/button/favorite_toggle_button.dart';
 import 'package:asfar/widget/card/spec_chip.dart';
-import 'package:asfar/widget/img/floating_heart_button.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 import 'package:asfar/widget/img/photo_carousel.dart';
 
@@ -19,16 +19,12 @@ import 'package:asfar/widget/img/photo_carousel.dart';
 class AppartementPreviewCard extends StatelessWidget {
   final Appartement appartement;
   final VoidCallback? onTap;
-  final VoidCallback? onLikeTap;
-  final bool liked;
   final int nights;
 
   const AppartementPreviewCard({
     super.key,
     required this.appartement,
     this.onTap,
-    this.onLikeTap,
-    this.liked = false,
     this.nights = 3,
   });
 
@@ -68,9 +64,8 @@ class AppartementPreviewCard extends StatelessWidget {
                     Positioned(
                       top: 12,
                       right: 12,
-                      child: FloatingHeartButton(
-                        onTap: onLikeTap,
-                        active: liked,
+                      child: FavoriteToggleButton(
+                        appartementId: appartement.id,
                       ),
                     ),
                     if (appartement.isSuperhost)

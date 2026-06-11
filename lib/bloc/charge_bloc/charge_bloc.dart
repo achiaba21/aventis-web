@@ -1,8 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/config/service_locator.dart';
 import 'package:asfar/bloc/charge_bloc/charge_event.dart';
 import 'package:asfar/bloc/charge_bloc/charge_state.dart';
 import 'package:asfar/model/residence/appart.dart';
-import 'package:asfar/repository/charge_data_manager.dart';
+import 'package:asfar/service/repository/charge_data_manager.dart';
 import 'package:asfar/util/function.dart';
 
 /// BLoC pour la gestion des charges.
@@ -13,9 +14,11 @@ import 'package:asfar/util/function.dart';
 /// Sémantique post-2026-05-13 : chaque charge = un paiement déjà enregistré.
 /// L'event `MarkChargeAsPaid` a été supprimé (endpoint backend retiré).
 class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
-  final ChargeDataManager _repository = ChargeDataManager();
+  final ChargeDataManager _repository;
 
-  ChargeBloc() : super(ChargeInitial()) {
+  ChargeBloc({ChargeDataManager? repository})
+      : _repository = repository ?? getIt<ChargeDataManager>(),
+        super(ChargeInitial()) {
     on<LoadCharges>(_onLoadCharges);
     on<RefreshCharges>(_onRefreshCharges);
     on<AddCharge>(_onAddCharge);

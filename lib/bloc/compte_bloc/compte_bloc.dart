@@ -1,14 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:asfar/config/service_locator.dart';
 import 'package:asfar/bloc/compte_bloc/compte_event.dart';
 import 'package:asfar/bloc/compte_bloc/compte_state.dart';
-import 'package:asfar/repository/compte_repository.dart';
+import 'package:asfar/service/repository/compte_repository.dart';
 import 'package:asfar/util/function.dart';
 
 /// BLoC pour la gestion du compte propriétaire
 class CompteBloc extends Bloc<CompteEvent, CompteState> {
-  final CompteRepository _repository = CompteRepository();
+  final CompteRepository _repository;
 
-  CompteBloc() : super(CompteInitial()) {
+  CompteBloc({CompteRepository? repository})
+      : _repository = repository ?? getIt<CompteRepository>(),
+        super(CompteInitial()) {
     on<LoadCompte>(_onLoadCompte);
     on<RefreshCompte>(_onRefreshCompte);
     on<LoadTransactions>(_onLoadTransactions);

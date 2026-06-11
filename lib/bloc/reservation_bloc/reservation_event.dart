@@ -83,6 +83,16 @@ class UpdateReservationsFromApi extends ReservationEvent {
   UpdateReservationsFromApi(this.reservations);
 }
 
+// ==================== PAGINATION (PERF-02) ====================
+
+/// Charge la page suivante des réservations (support sans câblage UI).
+/// Sans backend paginé, la fusion dédoublonnée conclut à la fin de liste
+/// dès la première page supplémentaire (comportement neutre).
+class LoadMoreReservations extends ReservationEvent {
+  final bool isProprietaire;
+  LoadMoreReservations({this.isProprietaire = false});
+}
+
 // ==================== RÉINITIALISATION ====================
 
 /// Réinitialise le BLoC à son état Initial

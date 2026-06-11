@@ -1,9 +1,16 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:asfar/util/url/domain_url.dart';
+import 'package:asfar/widget/loader/shimmer_card.dart';
 
 /// Widget image qui préfixe automatiquement le `$domain` aux paths relatifs
 /// retournés par le backend, et retombe gracieusement sur un placeholder
 /// (typiquement `ImgPh(tone)`) si l'image est absente ou échoue à charger.
+///
+/// PERF-01 : images servies via [CachedNetworkImage] — cache disque + mémoire,
+/// plus aucun re-téléchargement au rebuild. Pendant le premier chargement,
+/// skeleton pulsé [ShimmerCard] (UI validée, option A). `memCacheWidth` borne
+/// le décodage mémoire à la taille d'affichage quand `width` est fournie.
 ///
 /// API :
 /// ```dart
@@ -15,10 +22,11 @@ import 'package:asfar/util/url/domain_url.dart';
 /// )
 /// ```
 ///
-/// 3 états visuels :
+/// 4 états visuels :
 /// - `path` null/empty → `placeholder`
-/// - `path` valide + chargement OK → `Image.network(domainUrl, fit: ...)`
-/// - `path` valide + erreur réseau/404 → `placeholder` (silencieux)
+/// - chargement en cours → `ShimmerCard`
+/// - chargement OK → image (cachée pour les prochains affichages)
+/// - erreur réseau/404 → `placeholder` (silencieux)
 class DomainImage extends StatelessWidget {
   final String? path;
   final Widget placeholder;
@@ -40,14 +48,19 @@ class DomainImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = resolveDomainUrl(path);
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     final Widget content = (url == null)
         ? placeholder
-        : Image.network(
-            url,
+        : CachedNetworkImage(
+            imageUrl: url,
             fit: fit,
             width: width,
             height: height,
-            errorBuilder: (_, __, ___) => placeholder,
+            memCacheWidth:
+                width != null ? (width! * devicePixelRatio).round() : null,
+            placeholder: (_, __) =>
+                ShimmerCard(width: width, height: height, radius: 0),
+            errorWidget: (_, __, ___) => placeholder,
           );
 
     if (borderRadius == null) return content;

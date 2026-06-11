@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:asfar/config/app_propertie.dart';
 import 'package:asfar/service/auth/auth_manager.dart';
 import 'package:asfar/service/connectivity/connectivity_service.dart';
@@ -39,6 +40,18 @@ class DioRequest {
   bool get hasToken => _currentToken != null && _currentToken!.isNotEmpty;
 
   late Dio _dio;
+
+  /// Remplace l'adapter HTTP du client interne — TESTS UNIQUEMENT (PRA-05).
+  /// Permet à `http_mock_adapter` de simuler les réponses backend sans
+  /// toucher au reste du pipeline (intercepteurs, mapping).
+  @visibleForTesting
+  set httpClientAdapterForTesting(HttpClientAdapter adapter) {
+    _dio.httpClientAdapter = adapter;
+  }
+
+  /// Client Dio interne — TESTS UNIQUEMENT (requis par http_mock_adapter).
+  @visibleForTesting
+  Dio get dioForTesting => _dio;
 
   DioRequest._internal() {
     final options = BaseOptions(

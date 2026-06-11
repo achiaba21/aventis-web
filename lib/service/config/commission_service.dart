@@ -2,6 +2,7 @@ import 'package:asfar/config/app_propertie.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/util/function.dart';
+import 'package:asfar/util/response/response_mapper.dart';
 
 /// Service API du taux de commission Asfar — endpoint public
 /// `GET /auth/config/commission`.
@@ -30,12 +31,8 @@ class CommissionService {
     try {
       final dio = DioRequest.instance;
       final resp = await dio.get(_url);
-      final data = resp.data;
-      final Map<String, dynamic>? body = data is Map<String, dynamic>
-          ? data
-          : (data is Map && data['body'] is Map
-              ? Map<String, dynamic>.from(data['body'] as Map)
-              : null);
+      final Map<String, dynamic>? body =
+          ResponseMapper.tryExtractBody(resp.data);
       final raw = body?['taux'];
       if (raw is num) {
         final taux = raw.toDouble();

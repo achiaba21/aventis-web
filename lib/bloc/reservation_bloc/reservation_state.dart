@@ -37,8 +37,34 @@ class ReservationManuelleCreated extends ReservationState {
 }
 
 class ReservationLoaded extends ReservationState {
-  ReservationLoaded(List<Reservation> reservations, {super.currentReq})
-      : super(reservations: reservations);
+  /// Pagination (PERF-02) — neutres tant que LoadMoreReservations n'est pas
+  /// émis. Support sans câblage UI : les écrans actuels ne paginent pas.
+  final bool isLoadingMore;
+  final bool hasReachedEnd;
+  final int currentPage;
+
+  ReservationLoaded(
+    List<Reservation> reservations, {
+    super.currentReq,
+    this.isLoadingMore = false,
+    this.hasReachedEnd = false,
+    this.currentPage = 0,
+  }) : super(reservations: reservations);
+
+  ReservationLoaded copyWith({
+    List<Reservation>? reservations,
+    bool? isLoadingMore,
+    bool? hasReachedEnd,
+    int? currentPage,
+  }) {
+    return ReservationLoaded(
+      reservations ?? this.reservations,
+      currentReq: currentReq,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
+      currentPage: currentPage ?? this.currentPage,
+    );
+  }
 }
 
 class ReservationError extends ReservationState {
