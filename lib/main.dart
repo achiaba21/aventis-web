@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -42,6 +43,7 @@ import 'package:asfar/bloc/user_bloc/user_state.dart';
 import 'package:asfar/model/user/user.dart';
 import 'package:asfar/screen/splash_screen.dart';
 import 'package:asfar/theme/app_theme.dart';
+import 'package:asfar/config/service_locator.dart';
 import 'package:asfar/service/storage/secure_storage_service.dart';
 import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/service/connectivity/connectivity_service.dart';
@@ -57,6 +59,10 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<Scaffol
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Charger la configuration d'environnement (.env). isOptional : fichier
+  // absent ou vide → les défauts de app_propertie/map_config s'appliquent.
+  await dotenv.load(fileName: '.env', isOptional: true);
 
   // Initialiser Firebase
   await Firebase.initializeApp();
@@ -83,6 +89,9 @@ void main() async {
 
   // Enregistrer les constructeurs JSON pour DioRequest
   initializeJsonConstructors();
+
+  // Service locator (PRA-04) : services et repositories partagés
+  setupServiceLocator();
 
   // Résilience réseau : démarre la détection de connectivité (dérivée du
   // socket) dès le lancement, pour que l'intercepteur Dio puisse suspendre et

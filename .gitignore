@@ -46,3 +46,6 @@ app.*.map.json
 
 # Claude Code agent state (worktrees, conversations, cache)
 .claude/
+
+# Configuration d'environnement locale (.env.example reste versionné)
+.env

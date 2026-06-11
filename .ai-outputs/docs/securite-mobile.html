@@ -90,19 +90,30 @@
         </div>
 
         <div class="card">
-            <h2>🚀 Commandes de build</h2>
-            <h3>Développement (serveur local sans TLS)</h3>
-            <pre><code>flutter run --dart-define=USE_TLS=false \
-            --dart-define=SERVER_HOST=192.168.1.7 \
-            --dart-define=SERVER_PORT=7565</code></pre>
-            <p>Sans <code>USE_TLS=false</code>, l'app force <code>https://</code> et <code>wss://</code> (défaut sûr).
+            <h2>🚀 Configuration d'environnement (.env)</h2>
+            <p><em>Mise à jour 2026-06-11 :</em> les <code>--dart-define</code> ont été remplacés par un
+               fichier <code>.env</code> à la racine (package <code>flutter_dotenv</code>), chargé au démarrage.
+               Le <code>.env</code> n'est pas versionné ; <code>.env.example</code> documente les clés.</p>
+            <h3>Premier lancement</h3>
+            <pre><code>cp .env.example .env   # puis ajuster les valeurs
+flutter run</code></pre>
+            <h3>Développement (serveur local sans TLS) — contenu du .env</h3>
+            <pre><code>USE_TLS=false
+SERVER_HOST=192.168.1.7
+SERVER_PORT=7565
+STADIA_KEY=</code></pre>
+            <p>Toute clé absente ou vide retombe sur son défaut (<code>USE_TLS=true</code>,
+               <code>192.168.1.7:7565</code>, clé Stadia vide) — l'app ne bloque jamais au runtime.
+               Sans <code>USE_TLS=false</code>, l'app force <code>https://</code> et <code>wss://</code> (défaut sûr).
                Côté Android, le trafic en clair n'est autorisé que par la variante <em>debug</em> de
                <code>network_security_config.xml</code> — un build release le refuse toujours.</p>
-            <h3>Production</h3>
-            <pre><code>flutter build apk \
-  --dart-define=SERVER_HOST=api.mondomaine.com \
-  --dart-define=SERVER_PORT=443 \
-  --dart-define=STADIA_KEY=&lt;nouvelle-clé&gt;   # optionnel tant que les cartes sont sur OSM</code></pre>
+            <h3>Production — contenu du .env</h3>
+            <pre><code>USE_TLS=true
+SERVER_HOST=api.mondomaine.com
+SERVER_PORT=443
+STADIA_KEY=&lt;nouvelle-clé&gt;   # optionnel tant que les cartes sont sur OSM</code></pre>
+            <p>Le <code>.env</code> est embarqué comme asset : il doit exister au moment du build
+               (d'où le <code>cp .env.example .env</code> sur un clone frais).</p>
         </div>
 
         <div class="card">
@@ -111,7 +122,7 @@
                 <tr><th>Fiche</th><th>Livré</th></tr>
                 <tr><td>SEC-01 Transport</td><td><code>kUseTls</code>/<code>domain</code>/<code>wsDomain</code> dans <code>app_propertie.dart</code>, WebSocket en <code>wss</code>, URLs d'auth normalisées, network security config Android (cleartext interdit en release).</td></tr>
                 <tr><td>SEC-02 Stockage</td><td><code>SecureStorageService</code> (jeton + clé AES dans Keychain/Keystore), 9 boxes Hive chiffrées (<code>HiveAesCipher</code>), ouverture résiliente avec purge sur corruption, <code>local_store.dart</code> (code mort) supprimé.</td></tr>
-                <tr><td>SEC-03 Clé Stadia</td><td>Clé retirée du dépôt, injectée au build via <code>STADIA_KEY</code> ; URLs de tuiles en getters. Les cartes actives utilisent OpenStreetMap (sans clé).</td></tr>
+                <tr><td>SEC-03 Clé Stadia</td><td>Clé retirée du dépôt, lue depuis le <code>.env</code> via <code>STADIA_KEY</code> (initialement injectée au build) ; URLs de tuiles en getters. Les cartes actives utilisent OpenStreetMap (sans clé).</td></tr>
                 <tr><td>SEC-04 Logs</td><td>Intercepteurs Dio sans headers ni bodies, token FCM masqué, PII (téléphones, emails, noms, codes secrets) retirée de 9 fichiers. <code>deboger</code>/<code>prettyPrint</code> restent no-op en release.</td></tr>
                 <tr><td>SEC-05 Session</td><td><code>TokenValidator</code> (expiration JWT, 6 tests), validation au restore de session et dans <code>AuthManager.validateToken()</code>, révocation serveur best-effort au logout (fonctionne hors ligne).</td></tr>
             </table>

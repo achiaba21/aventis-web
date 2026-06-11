@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:asfar/config/env_reader.dart';
 import 'package:asfar/theme/app_colors.dart';
 
 /// Configuration centralisée pour les maps
@@ -8,14 +9,13 @@ class MapConfig {
 
   // ==================== TUILES ====================
 
-  /// Clé API Stadia Maps, injectée au build (SEC-03) :
-  /// flutter run --dart-define=STADIA_KEY=xxx
+  /// Clé API Stadia Maps, lue depuis le fichier `.env` (SEC-03) :
+  /// STADIA_KEY=xxx — cf. .env.example.
   /// Cible : proxy de tuiles côté backend (prérequis serveur) — la clé
   /// disparaîtra alors entièrement du client.
-  static const String _stadiaApiKey =
-      String.fromEnvironment('STADIA_KEY', defaultValue: '');
+  static String get _stadiaApiKey => envOr('STADIA_KEY', '');
 
-  /// Suffixe `?api_key=` uniquement si une clé a été fournie au build
+  /// Suffixe `?api_key=` uniquement si une clé est présente dans le `.env`
   static String get _apiKeySuffix =>
       _stadiaApiKey.isEmpty ? '' : '?api_key=$_stadiaApiKey';
 
