@@ -12,8 +12,8 @@ import 'package:asfar/util/function.dart';
 class UserBloc extends Bloc<UserEvent, UserState> {
   late AuthenticationService authenticationService;
 
-  UserBloc() : super(UserInitial()) {
-    authenticationService = AuthenticationService();
+  UserBloc({AuthenticationService? authentication}) : super(UserInitial()) {
+    authenticationService = authentication ?? AuthenticationService();
 
     on<CheckStoredUser>((event, emit) async {
       try {
@@ -96,19 +96,14 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       }
     });
 
-    on<VerifyAndSignup>((event, emit) async {
+    on<VerifyOtp>((event, emit) async {
       final currentUser = state.user;
       emit(UserLoading(user: currentUser));
       try {
-        await authenticationService.verifyOtp(
-          event.userReq.telephone ?? "",
-          event.code,
-        );
-        final user = await authenticationService.signup(event.userReq);
-        await StorageService.instance.saveUser(user);
-        emit(UserLoaded(user));
+        await authenticationService.verifyOtp(event.telephone, event.code);
+        emit(OtpVerified(event.telephone));
       } catch (e) {
-        ErrorHandler.logError("VERIFY_AND_SIGNUP", e);
+        ErrorHandler.logError("VERIFY_OTP", e);
         final errorMessage = ErrorHandler.extractGenericErrorMessage(e);
         emit(UserError(errorMessage, user: currentUser));
       }

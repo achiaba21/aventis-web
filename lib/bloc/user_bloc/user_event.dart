@@ -25,8 +25,8 @@ class SendOtp extends UserEvent {
   SendOtp(this.telephone);
 }
 
-class VerifyAndSignup extends UserEvent {
+class VerifyOtp extends UserEvent {
+  final String telephone;
   final String code;
-  final UserReq userReq;
-  VerifyAndSignup(this.code, this.userReq);
+  VerifyOtp(this.telephone, this.code);
 }

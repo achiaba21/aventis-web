@@ -5,31 +5,35 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
-import 'package:asfar/dto/user_req.dart';
-import 'package:asfar/screen/role_home_router.dart';
+import 'package:asfar/screen/signup/signup_name_screen.dart';
 import 'package:asfar/screen/signup/widget/otp_code_input.dart';
+import 'package:asfar/screen/signup/widget/signup_step_header.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
+import 'package:asfar/util/helper/app_snackbar.dart';
+import 'package:asfar/util/helper/otp_resend_policy.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/container/auth_radial_background.dart';
 
-/// Écran de vérification OTP.
+/// Étape 2 du tunnel d'inscription : vérification du numéro par OTP.
 ///
-/// L'utilisateur saisit le code SMS reçu sur [telephone]. À la complétion,
-/// le code est combiné avec le [userReq] préparé au signup et envoyé via
-/// [VerifyAndSignup] au [UserBloc].
+/// L'utilisateur saisit le code SMS à 4 chiffres reçu sur [telephone] ;
+/// la vérification ([VerifyOtp]) précède toute saisie d'identité ou de mot
+/// de passe. Sur [OtpVerified], l'écran est remplacé par [SignupNameScreen]
+/// (un retour arrière ne revient jamais sur un OTP consommé).
 ///
-/// Cooldown de 60s avant de pouvoir renvoyer un nouveau code.
+/// Renvoi de code à délais progressifs via [OtpResendPolicy] —
+/// les tentatives et le blocage sont gérés côté backend.
 class OtpVerificationScreen extends StatefulWidget {
-  final UserReq userReq;
+  final String role;
   final String telephone;
 
   const OtpVerificationScreen({
     super.key,
-    required this.userReq,
+    required this.role,
     required this.telephone,
   });
 
@@ -38,9 +42,11 @@ class OtpVerificationScreen extends StatefulWidget {
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  static const int _cooldownSeconds = 60;
+  static const int _otpLength = 4;
+
   String _code = '';
-  int _remainingSeconds = _cooldownSeconds;
+  int _resendCount = 0;
+  int _remainingSeconds = OtpResendPolicy.delayFor(0);
   Timer? _timer;
 
   @override
@@ -57,7 +63,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   void _startCooldown() {
     _timer?.cancel();
-    setState(() => _remainingSeconds = _cooldownSeconds);
+    setState(() => _remainingSeconds = OtpResendPolicy.delayFor(_resendCount));
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) {
         t.cancel();
@@ -74,13 +80,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   void _submit() {
-    if (_code.length != 6) return;
-    context.read<UserBloc>().add(VerifyAndSignup(_code, widget.userReq));
+    if (_code.length != _otpLength) return;
+    context.read<UserBloc>().add(VerifyOtp(widget.telephone, _code));
   }
 
   void _resendCode() {
     if (_remainingSeconds > 0) return;
     context.read<UserBloc>().add(SendOtp(widget.telephone));
+    _resendCount++;
     _startCooldown();
   }
 
@@ -89,17 +96,15 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     return BlocConsumer<UserBloc, UserState>(
       listener: (context, state) {
         if (state is UserError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.danger,
-            ),
-          );
+          showDangerSnackBar(context, state.message);
         }
-        if (state is UserLoaded) {
-          pushAndRemoveAll(
+        if (state is OtpVerified) {
+          pushScreenAndReplace(
             context,
-            RoleHomeRouter.shellFor(state.loadedUser),
+            SignupNameScreen(
+              role: widget.role,
+              telephone: state.telephone,
+            ),
           );
         }
       },
@@ -121,32 +126,23 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         onPressed: () => back(context),
                       ),
                       const SizedBox(height: 28),
-                      Text.rich(
-                        TextSpan(
-                          style: AppTextStyles.display,
-                          children: const [
-                            TextSpan(text: 'Vérifier\n'),
-                            TextSpan(
-                              text: 'votre numéro.',
-                              style: TextStyle(color: AppColors.accent),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Entrez le code à 6 chiffres envoyé au ${widget.telephone}.',
-                        style: AppTextStyles.body,
+                      SignupStepHeader(
+                        step: 2,
+                        titleLine1: 'Vérifier',
+                        titleLine2: 'votre numéro.',
+                        subtitle: 'Entrez le code à $_otpLength chiffres '
+                            'envoyé au ${widget.telephone}.',
                       ),
                       const SizedBox(height: 36),
                       OtpCodeInput(
+                        length: _otpLength,
                         onChanged: (v) => setState(() => _code = v),
                         onCompleted: (_) => _submit(),
                       ),
                       const SizedBox(height: 28),
                       CustomButton(
                         text: 'Vérifier',
-                        onPressed: (loading || _code.length != 6)
+                        onPressed: (loading || _code.length != _otpLength)
                             ? null
                             : _submit,
                         size: ButtonSize.lg,

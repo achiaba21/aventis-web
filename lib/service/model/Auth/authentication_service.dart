@@ -46,11 +46,15 @@ class AuthenticationService {
     return data.user!;
   }
 
+  /// Insensible à la casse : l'onboarding passe les rôles en minuscules
+  /// ('proprietaire'/'demarcheur') alors que le backend les sérialise
+  /// capitalisés — sans normalisation, proprios et démarcheurs partaient
+  /// sur l'endpoint locataire.
   String _signupUrlForRole(String? type) {
-    switch (type) {
-      case "Demarcheur":
+    switch (type?.toLowerCase()) {
+      case "demarcheur":
         return urlSignupDemarcheur;
-      case "Proprietaire":
+      case "proprietaire":
         return urlSignupProprietaire;
       default:
         return urlSignupLocataire;

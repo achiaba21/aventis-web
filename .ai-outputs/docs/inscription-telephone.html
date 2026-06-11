@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asfar - Inscription par téléphone</title>
+    <style>
+        :root {
+            --bg-dark: #1D1D1D;
+            --bg-card: #2A2A2A;
+            --primary: #FFA02A;
+            --text: #FFFFFF;
+            --text-muted: #9CA3AF;
+            --success: #22C55E;
+            --warning: #F59E0B;
+            --border: #374151;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 8px;
+            color: var(--primary); text-decoration: none;
+            margin-bottom: 30px; font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        h1 { font-size: 28px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 15px; }
+        .badge {
+            display: inline-block; padding: 4px 12px; border-radius: 999px;
+            font-size: 12px; font-weight: 600; margin-left: 8px;
+        }
+        .badge-success { background: rgba(34,197,94,0.15); color: var(--success); }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 20px;
+        }
+        .card h2 { font-size: 20px; margin-bottom: 16px; color: var(--primary); }
+        .card h3 { font-size: 16px; margin: 16px 0 8px; color: var(--text); }
+        p { margin-bottom: 12px; color: var(--text-muted); }
+        ul, ol { margin: 12px 0 12px 20px; color: var(--text-muted); }
+        li { margin-bottom: 6px; }
+        code {
+            background: #1A1A1A; padding: 2px 8px; border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace; font-size: 13px;
+            color: #FFA02A;
+        }
+        pre { background: #1A1A1A; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; }
+        pre code { background: none; padding: 0; color: #E5E7EB; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+        th { color: var(--text); font-size: 13px; }
+        td { color: var(--text-muted); font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Retour à l'index</a>
+        <h1>📱 Inscription par téléphone <span class="badge badge-success">Validé 97/100</span></h1>
+        <p class="subtitle">Version 1.0 · Créée le 2026-06-11 · Tunnel d'inscription en 5 écrans, sans email, PIN 5 chiffres au clavier dédié</p>
+
+        <div class="card">
+            <h2>🧭 Vue d'ensemble</h2>
+            <p>
+                L'inscription monolithique (formulaire 6 champs — nom, prénom, téléphone, email,
+                mot de passe, confirmation — puis OTP en fin de parcours) est remplacée par un
+                tunnel court où le numéro est vérifié <strong>avant</strong> toute autre saisie.
+                L'email et le prénom ne sont plus demandés (complétés plus tard dans le profil).
+                Le flux est identique pour les 3 rôles (locataire, propriétaire, démarcheur),
+                le rôle restant sélectionné en amont via l'onboarding.
+            </p>
+            <pre><code>1. Numéro (ÉTAPE 1/4)  →  2. OTP 4 chiffres (2/4)  →  3. Nom complet (3/4)
+                       →  4. Code secret PIN 5 chiffres (4/4)  →  5. Confirmation (4/4)  →  shell du rôle</code></pre>
+            <p>Règle structurante UI (option B1 validée) : <strong>une page = une saisie = un clavier</strong>.
+               Les pages PIN utilisent un clavier numérique dédié (<code>PinKeypad</code>), jamais le clavier système.</p>
+        </div>
+
+        <div class="card">
+            <h2>📐 Règles métier</h2>
+            <ul>
+                <li><strong>Numéro déjà utilisé</strong> : refusé par le backend dès <code>POST /auth/otp/send</code> — l'erreur s'affiche à l'étape 1, aucun SMS envoyé.</li>
+                <li><strong>OTP</strong> : code à 4 chiffres, soumission automatique à la complétion. Tentatives et blocage (5 max) gérés côté backend.</li>
+                <li><strong>Renvoi progressif</strong> : délais 15s → 20s → 30s → 60s (plafonné), lien grisé pendant le cooldown — <code>OtpResendPolicy.delayFor(resendCount)</code>.</li>
+                <li><strong>PIN</strong> : exactement 5 chiffres, confirmé sur une page séparée ; la concordance est vérifiée localement (aucun appel serveur) — mismatch = cellules en danger + saisie réinitialisée.</li>
+                <li><strong>Pas de retour sur un OTP consommé</strong> : l'écran OTP est remplacé (<code>pushScreenAndReplace</code>) par l'étape nom après vérification.</li>
+                <li><strong>Création du compte</strong> à la confirmation du PIN : <code>UserReq{nom, telephone, password=pin, confirmePass=pin, type=rôle}</code> — email/prénom null.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🔄 Changements BLoC</h2>
+            <p>L'ancien événement <code>VerifyAndSignup(code, userReq)</code> (vérification + création
+               en un coup) est <strong>supprimé</strong> : le nouveau flux exige de vérifier l'OTP avant
+               de connaître le mot de passe.</p>
+            <table>
+                <tr><th>Élément</th><th>Rôle</th></tr>
+                <tr><td><code>SendOtp(telephone)</code> → <code>OtpSent</code></td><td>Inchangé — étape 1 et renvois</td></tr>
+                <tr><td><code>VerifyOtp(telephone, code)</code> → <code>OtpVerified</code> <span class="badge badge-success">NOUVEAU</span></td><td>Vérification seule, déclenche l'étape 3</td></tr>
+                <tr><td><code>SignupUser(userReq)</code> → <code>UserLoaded</code></td><td>Existant, réutilisé à la confirmation du PIN</td></tr>
+            </table>
+            <p><code>UserBloc</code> accepte désormais une injection optionnelle
+               (<code>UserBloc(authentication: …)</code>) pour les tests.</p>
+        </div>
+
+        <div class="card">
+            <h2>🧩 Composants</h2>
+            <table>
+                <tr><th>Fichier</th><th>Rôle</th></tr>
+                <tr><td><code>screen/signup/signup_screen.dart</code></td><td>Étape 1 — numéro seul (signature <code>SignupScreen(role)</code> conservée, onboarding/login intouchés)</td></tr>
+                <tr><td><code>screen/signup/otp_verification_screen.dart</code></td><td>Étape 2 — <code>OtpCodeInput(length: 4)</code>, renvoi progressif</td></tr>
+                <tr><td><code>screen/signup/signup_name_screen.dart</code></td><td>Étape 3 — nom complet (clavier système)</td></tr>
+                <tr><td><code>screen/signup/signup_pin_screen.dart</code></td><td>Étape 4 — création du PIN au clavier dédié</td></tr>
+                <tr><td><code>screen/signup/signup_pin_confirm_screen.dart</code></td><td>Étape 5 — confirmation locale + <code>SignupUser</code></td></tr>
+                <tr><td><code>widget/signup_phone_form.dart</code></td><td>Champ téléphone + garde <code>isCurrent</code> (le renvoi d'OTP ne re-push pas l'écran)</td></tr>
+                <tr><td><code>widget/pin_keypad.dart</code> + <code>pin_keypad_key.dart</code></td><td>Clavier 3×4 (1-9, 0, ⌫) réutilisable</td></tr>
+                <tr><td><code>widget/pin_dots_display.dart</code></td><td>5 cellules ●/vide, état erreur danger, géométrie alignée sur OtpCodeInput</td></tr>
+                <tr><td><code>widget/signup_step_header.dart</code> + <code>signup_step_eyebrow.dart</code></td><td>En-tête commun « ÉTAPE X/4 » + titre display (DRY ×5 écrans)</td></tr>
+                <tr><td><code>util/helper/otp_resend_policy.dart</code></td><td>Délais progressifs purs (3 tests)</td></tr>
+                <tr><td><code>util/helper/app_snackbar.dart</code></td><td><code>showDangerSnackBar</code> — helper transverse</td></tr>
+            </table>
+            <p>Supprimé : <code>widget/signup_form.dart</code> (ancien formulaire 6 champs).</p>
+        </div>
+
+        <div class="card">
+            <h2>🐛 Fix embarqué — routage signup par rôle</h2>
+            <p>
+                <code>AuthenticationService._signupUrlForRole</code> comparait <code>"Demarcheur"/"Proprietaire"</code>
+                (capitalisés) alors que l'onboarding passe <code>'demarcheur'/'proprietaire'</code> en minuscules :
+                <strong>proprios et démarcheurs s'inscrivaient sur l'endpoint locataire</strong>.
+                Le switch est désormais insensible à la casse (<span class="badge badge-success">corrigé</span>).
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>✅ Qualité</h2>
+            <ul>
+                <li>Audit : <strong>97/100</strong> (2 corrections d'audit appliquées : <code>SignupStepHeader</code> DRY, helper SnackBar)</li>
+                <li>Tests : <strong>298/298 verts</strong> (5 nouveaux : politique de renvoi + bloc VerifyOtp)</li>
+                <li><code>flutter analyze</code> : 0 erreur, 0 warning nouveau</li>
+                <li>Conformité architecturale : CONFORME (specs : <code>.ai-outputs/specs/inscription-telephone/</code>)</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>📜 Historique</h2>
+            <table>
+                <tr><th>Version</th><th>Date</th><th>Changement</th></tr>
+                <tr><td>1.0</td><td>2026-06-11</td><td>Création — tunnel 5 écrans, suppression email, PIN clavier dédié, fix routage rôle</td></tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

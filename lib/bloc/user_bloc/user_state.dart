@@ -35,3 +35,10 @@ class OtpSent extends UserState {
   final String telephone;
   OtpSent(this.telephone) : super(user: null);
 }
+
+/// Code OTP vérifié par le serveur — le tunnel d'inscription peut continuer
+/// vers la saisie de l'identité et du code secret.
+class OtpVerified extends UserState {
+  final String telephone;
+  OtpVerified(this.telephone) : super(user: null);
+}

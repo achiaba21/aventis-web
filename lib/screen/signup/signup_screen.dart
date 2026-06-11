@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/screen/login/login_screen.dart';
-import 'package:asfar/screen/signup/widget/signup_form.dart';
+import 'package:asfar/screen/signup/widget/signup_phone_form.dart';
+import 'package:asfar/screen/signup/widget/signup_step_header.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/navigation.dart';
@@ -51,25 +52,15 @@ class SignupScreen extends StatelessWidget {
                     onPressed: () => back(context),
                   ),
                   const SizedBox(height: 28),
-                  Text.rich(
-                    TextSpan(
-                      style: AppTextStyles.display,
-                      children: [
-                        const TextSpan(text: 'Créer\n'),
-                        TextSpan(
-                          text: 'mon compte $_roleLabel.',
-                          style: const TextStyle(color: AppColors.accent),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Renseignez vos informations. Un code SMS vous sera envoyé pour valider votre numéro.',
-                    style: AppTextStyles.body,
+                  SignupStepHeader(
+                    step: 1,
+                    titleLine1: 'Créer',
+                    titleLine2: 'mon compte $_roleLabel.',
+                    subtitle:
+                        'Entrez votre numéro de téléphone. Un code SMS vous sera envoyé pour le vérifier.',
                   ),
                   const SizedBox(height: 28),
-                  SignupForm(role: role),
+                  SignupPhoneForm(role: role),
                   const SizedBox(height: 22),
                   Center(
                     child: Wrap(
