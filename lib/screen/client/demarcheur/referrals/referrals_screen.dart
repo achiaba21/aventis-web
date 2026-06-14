@@ -7,6 +7,7 @@ import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/screen/client/demarcheur/listings/demarcheur_listings_screen.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/referral_detail_screen.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_display.dart';
+import 'package:asfar/screen/client/demarcheur/referrals/widget/new_demande_flying_button.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referral_filter_chips.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referrals_list_card.dart';
 import 'package:asfar/screen/client/demarcheur/referrals/widget/referrals_loading_view.dart';
@@ -100,24 +101,6 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
               )
             : null,
       ),
-      floatingActionButton: Padding(
-        // Compense uniquement la safe area + un mini gap (8pt). Le FAB se
-        // retrouve juste à la limite haute de la BottomNav du shell — visuel
-        // « collé » sans flotter en hauteur.
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).padding.bottom + 8,
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: _onOpenNew,
-          backgroundColor: AppColors.accent,
-          foregroundColor: AppColors.onAccent,
-          icon: const Icon(Icons.add),
-          label: const Text(
-            'Nouvelle',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
       body: SafeArea(
         top: false,
         child: BlocBuilder<DemarcheurBloc, DemarcheurState>(
@@ -151,21 +134,47 @@ class _DemarcheurReferralsScreenState extends State<DemarcheurReferralsScreen> {
                 ),
                 const SizedBox(height: 10),
                 Expanded(
-                  child: visible.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 18),
-                          child: EmptyState.hero(
-                            icon: Icons.people_outline,
-                            title: _emptyTitleFor(_filter),
-                            body: _emptyBodyFor(_filter),
-                            ctaLabel: 'Nouvelle demande',
-                            onCtaTap: _onOpenNew,
-                          ),
-                        )
-                      : ReferralsListCard(
-                          reservations: visible,
-                          onTap: _onOpenDetail,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: visible.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                ),
+                                // CTA retiré : c'est le bouton volant unique
+                                // (ci-dessous) qui sert d'appel à l'action.
+                                child: EmptyState.hero(
+                                  icon: Icons.people_outline,
+                                  title: _emptyTitleFor(_filter),
+                                  body: _emptyBodyFor(_filter),
+                                ),
+                              )
+                            : Padding(
+                                // Réserve la bande basse occupée par le bouton :
+                                // le viewport de la liste s'arrête au-dessus,
+                                // donc aucun item ne défile derrière lui.
+                                padding: const EdgeInsets.only(
+                                  bottom:
+                                      NewDemandeFlyingButton.dockedStripHeight,
+                                ),
+                                child: ReferralsListCard(
+                                  reservations: visible,
+                                  onTap: _onOpenDetail,
+                                ),
+                              ),
+                      ),
+                      // Bouton unique : centré (allure bloc) quand la liste est
+                      // vide, calé dans la bande basse (allure FAB) sinon, avec
+                      // vol/morph « hero » au changement de filtre.
+                      Positioned.fill(
+                        child: NewDemandeFlyingButton(
+                          centered: visible.isEmpty,
+                          onTap: _onOpenNew,
                         ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             );
