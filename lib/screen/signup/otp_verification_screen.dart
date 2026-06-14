@@ -42,7 +42,10 @@ class OtpVerificationScreen extends StatefulWidget {
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  static const int _otpLength = 4;
+  // Aligné sur le backend : OtpService.genererCode() produit un code à 6
+  // chiffres (fiche sécurité 07). Un champ à 4 cases empêchait de saisir le
+  // code complet → verify échouait toujours.
+  static const int _otpLength = 6;
 
   String _code = '';
   int _resendCount = 0;
