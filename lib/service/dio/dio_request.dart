@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:asfar/config/app_propertie.dart';
 import 'package:asfar/service/auth/auth_manager.dart';
+import 'package:asfar/service/auth/token_refresh_coordinator.dart';
 import 'package:asfar/service/connectivity/connectivity_service.dart';
 import 'package:asfar/util/custom_exception.dart';
 import 'package:asfar/util/error_handler.dart';
@@ -9,10 +10,8 @@ import 'package:asfar/util/helper/network_error_classifier.dart';
 import 'package:asfar/util/function.dart';
 import 'package:asfar/util/response/response_mapper.dart';
 import 'package:asfar/util/navigation.dart';
-import 'package:asfar/util/phone_util.dart';
 import 'package:asfar/main.dart';
 import 'package:asfar/screen/splash_screen.dart';
-import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 
 class DioRequest {
   static DioRequest? _instance;
@@ -21,6 +20,14 @@ class DioRequest {
   /// Marqueur posé sur une requête déjà prise en charge par le retry réseau,
   /// pour éviter qu'elle ne ré-entre dans la boucle de rejeu à chaque échec.
   static const String _netRetryFlag = '__net_retry__';
+
+  /// Marqueur de l'appel `auth/refresh` lui-même : l'intercepteur 401 le laisse
+  /// passer sans tenter de refresh (anti-récursion) ni déconnecter.
+  static const String refreshCallExtra = '__auth_refresh_call__';
+
+  /// Marqueur d'une requête déjà rejouée après un refresh réussi : un 2e 401
+  /// signifie que la session est réellement morte → logout.
+  static const String _authRetriedFlag = '__auth_retried__';
 
   static DioRequest get instance {
     _instance = _instance ?? DioRequest._internal();
@@ -262,28 +269,46 @@ class DioRequest {
     // SEC-04 : pas de headers (jeton) dans les logs d'erreur
     deboger(["error", error.requestOptions.path, error.message]);
 
-    // Gérer les erreurs 401 (token invalide ou expiré)
+    // Gérer les erreurs 401 (access token expiré) avec refresh single-flight.
     if (error.response?.statusCode == 401) {
-      deboger("Token invalide ou expiré - Affichage de l'écran de connexion");
+      final opts = error.requestOptions;
+      final isRefreshCall = opts.extra[refreshCallExtra] == true;
+      final alreadyRetried = opts.extra[_authRetriedFlag] == true;
 
-      // Récupérer le numéro de téléphone de l'utilisateur avant la déconnexion
-      final phoneNumber = await UserBloc.getCurrentUserPhone();
-      final phoneWithoutCode = phoneNumber != null
-          ? PhoneUtil.removeCountryCode(phoneNumber)
-          : null;
+      // L'appel `auth/refresh` lui-même : ne pas reboucler, propager tel quel
+      // (le coordinateur le traduit en « refresh impossible »).
+      if (isRefreshCall) {
+        return handler.next(error);
+      }
 
-      // Déconnexion centralisée via AuthManager
-      // Cela nettoie: token (StorageService + DioRequest) + user (StorageService) + AppData
+      // Access expiré : tenter un refresh (single-flight, partagé avec le WS)
+      // avant de déconnecter, puis rejouer la requête d'origine. `_onRequest`
+      // réinjecte automatiquement le nouveau token au moment du `fetch`.
+      if (!alreadyRetried) {
+        final refreshed = await TokenRefreshCoordinator.instance.refresh();
+        if (refreshed) {
+          opts.extra[_authRetriedFlag] = true;
+          try {
+            final response = await _dio.fetch<dynamic>(opts);
+            return handler.resolve(response);
+          } on DioException catch (e) {
+            return handler.next(e);
+          }
+        }
+      }
+
+      // Refresh impossible/échoué (ou requête déjà rejouée) → session morte :
+      // déconnexion centralisée (token + user + AppData) puis retour au login.
+      deboger("Session expirée (refresh impossible) - retour à l'écran de connexion");
       await AuthManager.instance.logout();
 
-      // TODO REBUILD: rediriger vers le nouveau LoginScreen quand il sera
-      // reconstruit. Pour l'instant, retombe sur le SplashScreen placeholder.
+      // navigatorKey global (pas un context de widget démonté) → usage sûr.
       final context = navigatorKey.currentContext;
       if (context != null) {
+        // ignore: use_build_context_synchronously
         await pushScreen(context, const SplashScreen());
       }
 
-      // Propager l'erreur
       return handler.next(error);
     }
 

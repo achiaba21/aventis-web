@@ -167,6 +167,16 @@ class StorageService {
     deboger("Token supprimé (stockage sécurisé)");
   }
 
+  /// Sauvegarde le refresh token (stockage sécurisé OS)
+  Future<void> saveRefreshToken(String token) async {
+    await SecureStorageService.instance.saveRefreshToken(token);
+  }
+
+  /// Récupère le refresh token (cache mémoire, synchrone)
+  String? getRefreshToken() {
+    return SecureStorageService.instance.cachedRefreshToken;
+  }
+
   /// Vérifie si un token existe
   bool hasToken() {
     final token = getToken();
@@ -542,6 +552,7 @@ class StorageService {
     _ensureInitialized();
     await Future.wait([
       SecureStorageService.instance.deleteToken(),
+      SecureStorageService.instance.deleteRefreshToken(),
       _authBox.clear(),
       _userBox.clear(),
       _chargesBox.clear(),
@@ -635,8 +646,8 @@ class StorageService {
 
   // ==================== UTILITY ====================
 
-  /// Convertit récursivement les Map Hive (_Map<dynamic, dynamic>)
-  /// en Map<String, dynamic> pour éviter les erreurs de type casting
+  /// Convertit récursivement les Map Hive (`_Map<dynamic, dynamic>`)
+  /// en `Map<String, dynamic>` pour éviter les erreurs de type casting
   static Map<String, dynamic> _convertMap(Map map) {
     return map.map((key, value) => MapEntry(
       key.toString(),

@@ -37,13 +37,19 @@ class AuthManager {
     return dioRequest.hasToken;
   }
 
-  /// Login: enregistre le token et l'utilisateur
-  Future<void> login(String token, User user) async {
+  /// Login: enregistre l'access token, le refresh token et l'utilisateur
+  Future<void> login(String token, String? refreshToken, User user) async {
     // SEC-04 : pas de nom d'utilisateur dans les logs
     deboger("AuthManager: Login user #${user.id}");
 
     // Sauvegarder le token dans StorageService
     await StorageService.instance.saveToken(token);
+
+    // Refresh token (rotation backend) : permet de re-générer un access expiré
+    // sans re-login (TTL 30j). Absent pour les anciens backends → ignoré.
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await StorageService.instance.saveRefreshToken(refreshToken);
+    }
 
     // Synchroniser le token avec DioRequest (CRITIQUE!)
     DioRequest.instance.setToken(token);

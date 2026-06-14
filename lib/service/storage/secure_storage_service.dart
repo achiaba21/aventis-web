@@ -17,11 +17,13 @@ class SecureStorageService {
   static SecureStorageService? _instance;
 
   static const String _tokenKey = 'auth_token';
+  static const String _refreshTokenKey = 'refresh_token';
   static const String _hiveKeyKey = 'hive_encryption_key';
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   String? _cachedToken;
+  String? _cachedRefreshToken;
   bool _isInitialized = false;
 
   /// Singleton instance
@@ -43,11 +45,13 @@ class SecureStorageService {
     }
     try {
       _cachedToken = await _storage.read(key: _tokenKey);
+      _cachedRefreshToken = await _storage.read(key: _refreshTokenKey);
     } catch (e) {
       // Stockage sécurisé illisible (restauration de backup, clé OS perdue) :
       // on repart sans session, l'utilisateur se reconnecte. Jamais de crash.
       deboger(["SecureStorageService illisible, session réinitialisée:", e]);
       _cachedToken = null;
+      _cachedRefreshToken = null;
     }
     _isInitialized = true;
     deboger("SecureStorageService initialisé (token: "
@@ -67,6 +71,22 @@ class SecureStorageService {
   Future<void> deleteToken() async {
     _cachedToken = null;
     await _storage.delete(key: _tokenKey);
+  }
+
+  /// Refresh token opaque en cache mémoire (lecture synchrone)
+  String? get cachedRefreshToken => _cachedRefreshToken;
+
+  /// Sauvegarde le refresh token (Keychain/Keystore + cache mémoire).
+  /// Appelé au login ET à chaque refresh (rotation backend → nouveau token).
+  Future<void> saveRefreshToken(String token) async {
+    _cachedRefreshToken = token;
+    await _storage.write(key: _refreshTokenKey, value: token);
+  }
+
+  /// Supprime le refresh token (Keychain/Keystore + cache mémoire)
+  Future<void> deleteRefreshToken() async {
+    _cachedRefreshToken = null;
+    await _storage.delete(key: _refreshTokenKey);
   }
 
   /// Retourne la clé AES (32 octets) qui chiffre les boxes Hive

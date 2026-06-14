@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
 import 'package:asfar/service/auth/auth_manager.dart';
+import 'package:asfar/service/auth/token_refresh_coordinator.dart';
 import 'package:asfar/service/auth/token_validator.dart';
 import 'package:asfar/service/model/Auth/authentication_service.dart';
 import 'package:asfar/service/storage/storage_service.dart';
@@ -34,8 +35,18 @@ class UserBloc extends Bloc<UserEvent, UserState> {
             deboger(["stored user found"]);
             emit(UserLoaded(cachedUser));
           } else {
-            deboger(["Jeton absent ou expiré au démarrage - déconnexion"]);
-            await AuthManager.instance.logout();
+            // Access expiré : tenter un refresh (TTL refresh 30j) avant de
+            // déconnecter — évite de renvoyer l'utilisateur au login à chaque
+            // redémarrage après l'heure de vie de l'access token.
+            deboger(["Access expiré au démarrage - tentative de refresh"]);
+            final refreshed = await TokenRefreshCoordinator.instance.refresh();
+            if (refreshed) {
+              deboger(["Refresh OK au démarrage - session restaurée"]);
+              emit(UserLoaded(StorageService.instance.getUser() ?? cachedUser));
+            } else {
+              deboger(["Refresh impossible au démarrage - déconnexion"]);
+              await AuthManager.instance.logout();
+            }
           }
         } else {
           deboger(["no stored user found"]);

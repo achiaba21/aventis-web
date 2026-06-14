@@ -27,7 +27,7 @@ class AuthenticationService {
     }
     final data = Token.fromJson(resp.data!);
 
-    await AuthManager.instance.login(data.token!, data.user!);
+    await AuthManager.instance.login(data.token!, data.refreshToken, data.user!);
 
     return data.user!;
   }
@@ -41,7 +41,7 @@ class AuthenticationService {
     }
     final data = Token.fromJson(resp.data!);
 
-    await AuthManager.instance.login(data.token!, data.user!);
+    await AuthManager.instance.login(data.token!, data.refreshToken, data.user!);
 
     return data.user!;
   }
@@ -88,21 +88,31 @@ class AuthenticationService {
     await AuthManager.instance.logout();
   }
 
-  /// Signale au serveur de révoquer le jeton de session courant (best-effort)
+  /// Signale au serveur de révoquer la session courante (best-effort)
   ///
-  /// L'endpoint `/auth/logout` est un prérequis backend : 404, timeout ou
+  /// L'endpoint `auth/logout` est un prérequis backend : 404, timeout ou
   /// absence de réseau sont silencieusement ignorés — la déconnexion locale
   /// n'attend jamais cette révocation (RM7, fonctionne en mode avion).
-  /// Le jeton est passé explicitement en header pour rester valable même si
-  /// DioRequest est nettoyé pendant l'envoi.
+  ///
+  /// L'access est passé en header (révocation classique) ; le **refresh token**
+  /// est envoyé dans le body pour garantir la révocation côté serveur **même si
+  /// l'access est expiré/absent** (le serveur révoque alors tous les refresh de
+  /// l'utilisateur). On appelle donc l'endpoint tant qu'un des deux jetons
+  /// existe. Tokens lus en amont du `clear()` local (cache synchrone).
   static Future<void> revokeToken() async {
     final token = StorageService.instance.getToken();
-    if (token == null || token.isEmpty) return;
+    final refreshToken = StorageService.instance.getRefreshToken();
+    final hasAccess = token != null && token.isNotEmpty;
+    final hasRefresh = refreshToken != null && refreshToken.isNotEmpty;
+    if (!hasAccess && !hasRefresh) return;
     try {
       await DioRequest.instance
           .post(
             urlLogout,
-            options: Options(headers: {'Authorization': 'Bearer $token'}),
+            data: hasRefresh ? {'refreshToken': refreshToken} : null,
+            options: hasAccess
+                ? Options(headers: {'Authorization': 'Bearer $token'})
+                : null,
           )
           .timeout(const Duration(seconds: 3));
     } catch (_) {
