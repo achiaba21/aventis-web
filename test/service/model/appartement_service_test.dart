@@ -36,7 +36,7 @@ Map<String, dynamic> _appartJson({
 /// Tests du service API [AppartementService] (PRA-05).
 ///
 /// Le backend est simulé via `http_mock_adapter`. L'endpoint liste
-/// (`auth/appartement/apparts`) renvoie le tableau JSON brut, mappé par
+/// (`api/appartement/apparts`) renvoie le tableau JSON brut, mappé par
 /// `getMapped<Appartement>` via le registre de constructeurs JSON.
 void main() {
   late DioAdapter dioAdapter;

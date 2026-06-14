@@ -3,6 +3,9 @@
 > **Date :** 2026-06-11 · **MàJ 2026-06-11 (soir)** : items 4, 5, 6, 14, 16
 > livrés côté backend (audit 99/100, non commités) — voir les ✅ et la section
 > « Écarts de contrat annoncés » en fin de document.
+> **MàJ 2026-06-12** : régression WS résolue — le `CONNECT` STOMP exige
+> désormais un JWT (fiche sécurité 05), aligné côté mobile (header
+> `Authorization` dans le CONNECT). Voir « Écarts de contrat » n°4.
 > **Sources :** `BACKEND_NOTES_*.md`, `TODO_CALENDAR_LOCATAIRE.md`,
 > `CHANGELOG_SESSION_2026-06-02.md`, fiches d'audit `.ai-outputs/audit/`.
 > **Hors scope (dev local) :** la migration HTTPS/WSS (SEC-01) est volontairement
@@ -419,6 +422,18 @@ le placeholder UI a été retiré du wizard en attendant la décision.
    bouton « Modifier » n'apparaîtra jamais pour les manuelles.
 3. **Dates normalisées serveur** : check-in 09:00, check-out 12:00 — le mobile
    ne doit pas s'étonner que les heures envoyées soient réécrites.
+4. **WebSocket — JWT obligatoire au `CONNECT` (fiche sécurité 05, 2026-06-12)** :
+   `WebSocketAuthInterceptor.preSend` refuse désormais tout `CONNECT` sans
+   `Authorization: Bearer <jwt>` validé. L'anonyme et les headers déclaratifs
+   `telephone` / `userId` sont supprimés. Un `CONNECT` sans JWT renvoie une frame
+   `ERROR` au corps vide → côté mobile **`STOMP Error: null` en boucle**.
+   > ✅ **Répercuté côté mobile le 2026-06-12** : `WebSocketService` injecte
+   > `Authorization: Bearer <jwt>` (casse exacte) dans `stompConnectHeaders`
+   > **et** `webSocketConnectHeaders`, jeton lu depuis `SecureStorageService`
+   > (`lib/service/websocket/websocket_service.dart`). Le header était auparavant
+   > en minuscule `authorization` et conditionnel → invisible pour le serveur.
+   > `serveur/README_WebSocket_Auth.md` a été remis à jour (l'ancienne version
+   > documentait encore le contrat anonyme/`telephone`).
 
 ## 📋 Vue d'ensemble
 
@@ -444,4 +459,5 @@ le placeholder UI a été retiré du wizard en attendant la décision.
 | 18 | Timestamps de transition réservation | Évolution modèle | 🟢 P3 |
 | 19 | `nbVoyageursMax` + `surfaceM2` | Évolution modèle | 🟢 P3 |
 | 20 | `fraisMenage` | Décision métier | 🟢 P3 |
+| — | WS `CONNECT` exige un JWT (fiche sécurité 05) | Écart de contrat | ✅ Aligné mobile 12/06 |
 | — | HTTPS/WSS (SEC-01) | **Reporté — prod uniquement** | ⏸ |

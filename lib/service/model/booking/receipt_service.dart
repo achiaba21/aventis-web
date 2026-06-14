@@ -10,8 +10,8 @@ class ReceiptService {
   factory ReceiptService() => _instance;
   ReceiptService._internal();
 
-  static const String _baseUrl = "user/reservations";
-  static const String _receiptsUrl = "user/receipts";
+  static const String _baseUrl = "api/user/reservations";
+  static const String _receiptsUrl = "api/user/receipts";
 
   /// Récupère la facture d'une réservation
   Future<Receipt?> getReservationReceipt(String reference) async {

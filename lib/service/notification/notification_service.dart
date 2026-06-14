@@ -6,14 +6,14 @@ import 'package:asfar/util/response/response_mapper.dart';
 /// Service pour gérer les notifications via l'API REST
 ///
 /// Ce service expose 8 endpoints:
-/// - GET /user/notifications - Liste toutes les notifications
-/// - GET /user/notifications/unread - Notifications non lues
-/// - GET /user/notifications/count - Nombre de notifications non lues
-/// - GET /user/notifications/{id} - Détail d'une notification
-/// - POST /user/notifications/{id}/read - Marquer comme lue
-/// - POST /user/notifications/read-all - Tout marquer comme lu
-/// - DELETE /user/notifications/{id} - Supprimer une notification
-/// - DELETE /user/notifications - Supprimer toutes les notifications
+/// - GET /api/user/notifications - Liste toutes les notifications
+/// - GET /api/user/notifications/unread - Notifications non lues
+/// - GET /api/user/notifications/count - Nombre de notifications non lues
+/// - GET /api/user/notifications/{id} - Détail d'une notification
+/// - POST /api/user/notifications/{id}/read - Marquer comme lue
+/// - POST /api/user/notifications/read-all - Tout marquer comme lu
+/// - DELETE /api/user/notifications/{id} - Supprimer une notification
+/// - DELETE /api/user/notifications - Supprimer toutes les notifications
 class NotificationService {
   static NotificationService? _instance;
   static NotificationService get instance {
@@ -28,10 +28,10 @@ class NotificationService {
   // === GET ENDPOINTS ===
 
   /// Récupère toutes les notifications de l'utilisateur
-  /// GET /user/notifications
+  /// GET /api/user/notifications
   Future<List<NotificationModel>> getUserNotifications() async {
     try {
-      final response = await _dioRequest.get('user/notifications');
+      final response = await _dioRequest.get('api/user/notifications');
 
       if (response.statusCode == 200) {
         // Le backend renvoie {body: [...], message: "..."}
@@ -53,10 +53,10 @@ class NotificationService {
   }
 
   /// Récupère uniquement les notifications non lues
-  /// GET /user/notifications/unread
+  /// GET /api/user/notifications/unread
   Future<List<NotificationModel>> getUnreadNotifications() async {
     try {
-      final response = await _dioRequest.get('user/notifications/unread');
+      final response = await _dioRequest.get('api/user/notifications/unread');
 
       if (response.statusCode == 200) {
         // Le backend renvoie {body: [...], message: "..."}
@@ -78,10 +78,10 @@ class NotificationService {
   }
 
   /// Récupère le nombre de notifications non lues
-  /// GET /user/notifications/count
+  /// GET /api/user/notifications/count
   Future<int> getUnreadCount() async {
     try {
-      final response = await _dioRequest.get('user/notifications/count');
+      final response = await _dioRequest.get('api/user/notifications/count');
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -100,10 +100,10 @@ class NotificationService {
   }
 
   /// Récupère le détail d'une notification par son ID
-  /// GET /user/notifications/{id}
+  /// GET /api/user/notifications/{id}
   Future<NotificationModel> getNotification(int notificationId) async {
     try {
-      final response = await _dioRequest.get('user/notifications/$notificationId');
+      final response = await _dioRequest.get('api/user/notifications/$notificationId');
 
       if (response.statusCode == 200) {
         // Le backend renvoie {body: notification, message: "..."}
@@ -125,11 +125,11 @@ class NotificationService {
   // === POST ENDPOINTS ===
 
   /// Marque une notification comme lue
-  /// POST /user/notifications/{id}/read
+  /// POST /api/user/notifications/{id}/read
   Future<void> markAsRead(int notificationId) async {
     try {
       final response = await _dioRequest.post(
-        'user/notifications/$notificationId/read',
+        'api/user/notifications/$notificationId/read',
       );
 
       if (response.statusCode == 200) {
@@ -144,11 +144,11 @@ class NotificationService {
   }
 
   /// Marque toutes les notifications comme lues
-  /// POST /user/notifications/read-all
+  /// POST /api/user/notifications/read-all
   Future<void> markAllAsRead() async {
     try {
       final response = await _dioRequest.post(
-        'user/notifications/read-all',
+        'api/user/notifications/read-all',
       );
 
       if (response.statusCode == 200) {
@@ -165,11 +165,11 @@ class NotificationService {
   // === DELETE ENDPOINTS ===
 
   /// Supprime une notification spécifique
-  /// DELETE /user/notifications/{id}
+  /// DELETE /api/user/notifications/{id}
   Future<void> deleteNotification(int notificationId) async {
     try {
       final response = await _dioRequest.delete(
-        'user/notifications/$notificationId',
+        'api/user/notifications/$notificationId',
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
@@ -184,11 +184,11 @@ class NotificationService {
   }
 
   /// Supprime toutes les notifications de l'utilisateur
-  /// DELETE /user/notifications
+  /// DELETE /api/user/notifications
   Future<void> clearAllNotifications() async {
     try {
       final response = await _dioRequest.delete(
-        'user/notifications',
+        'api/user/notifications',
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
@@ -205,11 +205,11 @@ class NotificationService {
   // === FCM TOKEN ENDPOINTS ===
 
   /// Enregistre le token FCM de l'utilisateur pour les notifications push
-  /// POST /user/fcm-token
+  /// POST /api/user/fcm-token
   Future<void> registerFCMToken(String token) async {
     try {
       final response = await _dioRequest.post(
-        'user/fcm-token',
+        'api/user/fcm-token',
         data: {'token': token},
       );
 
@@ -225,11 +225,11 @@ class NotificationService {
   }
 
   /// Supprime le token FCM de l'utilisateur (lors de la déconnexion)
-  /// DELETE /user/fcm-token
+  /// DELETE /api/user/fcm-token
   Future<void> unregisterFCMToken() async {
     try {
       final response = await _dioRequest.delete(
-        'user/fcm-token',
+        'api/user/fcm-token',
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {

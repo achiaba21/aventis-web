@@ -33,7 +33,7 @@ Map<String, dynamic> _appartJson({required int id, required String titre}) {
 /// doit être celui du versioning de cache : `_ensureCacheVersion` est
 /// mémoïsé (`_versionChecked`) et ne s'exécute qu'au premier accès.
 void main() {
-  final feedPath = AppartementService.urlGetAppartements; // auth/appartement/apparts
+  final feedPath = AppartementService.urlGetAppartements; // api/appartement/apparts
 
   late DioAdapter dioAdapter;
   late AppartementRepository repository;

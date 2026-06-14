@@ -18,7 +18,7 @@ import 'package:http_mock_adapter/http_mock_adapter.dart';
 ///   elle dépend de `AuthManager`, `UserBloc` et du `navigatorKey` — flux
 ///   d'intégration, hors périmètre d'un test de la couche données.
 void main() {
-  const path = 'auth/appartement/apparts';
+  const path = 'api/appartement/apparts';
 
   late DioAdapter dioAdapter;
 

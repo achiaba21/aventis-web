@@ -14,7 +14,7 @@ class RuleService {
 
   static final RuleService instance = RuleService._();
 
-  static String get _url => '$domain/auth/rules';
+  static String get _url => '$domain/api/rules';
 
   /// Récupère la liste complète du référentiel.
   /// Retourne `[]` en cas d'erreur — le caller gère le fallback.

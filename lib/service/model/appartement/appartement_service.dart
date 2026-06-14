@@ -21,7 +21,7 @@ import 'package:asfar/util/response/response_mapper.dart';
 /// `dio.getMapped<Appartement>` qui s'appuie sur `Appartement.fromJson`.
 /// Cette dernière fait la fusion défensive `residence.address → address`.
 class AppartementService {
-  static final urlGetAppartements = "auth/appartement/apparts";
+  static final urlGetAppartements = "api/appartement/apparts";
 
   /// Récupère tous les appartements avec mapping automatique
   ///
@@ -44,7 +44,7 @@ class AppartementService {
   /// Récupère un appartement par ID
   Future<Appartement> getAppartementById(int id) async {
     final dio = DioRequest.instance;
-    final result = await dio.getMapped<Appartement>("auth/appartement/$id");
+    final result = await dio.getMapped<Appartement>("api/appartement/$id");
 
     if (result.isEmpty) {
       throw Exception("Appartement non trouvé");
@@ -56,7 +56,7 @@ class AppartementService {
   /// Supprime un appartement
   Future<void> deleteAppartement(int id) async {
     final dio = DioRequest.instance;
-    await dio.delete("auth/appartement/$id");
+    await dio.delete("api/appartement/$id");
   }
 
   // ==================== Modération (actions propriétaire) ====================
@@ -90,14 +90,14 @@ class AppartementService {
   /// Récupère tous les appartements d'un propriétaire spécifique
   Future<List<Appartement>> getAppartementsByOwner(int proprietaireId) async {
     final dio = DioRequest.instance;
-    return await dio.getMapped<Appartement>("auth/appartement/apparts/$proprietaireId");
+    return await dio.getMapped<Appartement>("api/appartement/apparts/$proprietaireId");
   }
 
   /// Récupère les appartements filtrés selon les critères
   Future<List<Appartement>> getFilteredAppartements(FilterCriteria criteria) async {
     final dio = DioRequest.instance;
     return await dio.postMapped<Appartement>(
-      "auth/appartement/filter",
+      "api/appartement/filter",
       data: criteria.toJson(),
     );
   }
@@ -105,7 +105,7 @@ class AppartementService {
   /// Récupère les options de filtrage disponibles
   Future<FilterOptions> getFilterOptions() async {
     final dio = DioRequest.instance;
-    final response = await dio.get("auth/appartement/filter-options");
+    final response = await dio.get("api/appartement/filter-options");
     return FilterOptions.fromJson(response.data);
   }
 

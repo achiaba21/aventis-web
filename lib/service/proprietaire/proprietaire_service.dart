@@ -57,13 +57,14 @@ class ProprietaireService {
 
   /// Appel API pour récupérer les infos du propriétaire
   ///
-  /// Endpoint: GET /appartement/{appartementId}/proprietaire
+  /// Endpoint: GET api/appartement-public/{appartementId}/proprietaire
   /// - 200: Retourne les infos (réservation payée)
   /// - 403: Pas autorisé (pas de réservation payée)
   Future<Proprietaire?> _fetchFromApi(int appartementId) async {
     try {
       final dio = DioRequest.instance;
-      final response = await dio.get('appartement/$appartementId/proprietaire');
+      final response =
+          await dio.get('api/appartement-public/$appartementId/proprietaire');
 
       if (response.data != null) {
         // Gérer différents formats de réponse ({body: {...}} ou objet à plat)

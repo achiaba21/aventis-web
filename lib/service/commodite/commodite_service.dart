@@ -15,7 +15,7 @@ class CommoditeService {
 
   static final CommoditeService instance = CommoditeService._();
 
-  static String get _url => '$domain/auth/commodites';
+  static String get _url => '$domain/api/commodites';
 
   /// Récupère la liste complète des commodités du référentiel backend.
   ///
