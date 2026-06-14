@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:asfar/screen/login/widget/login_form.dart';
+import 'package:asfar/screen/onboarding/onboarding_screen.dart';
 import 'package:asfar/screen/signup/signup_screen.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -22,12 +23,11 @@ class LoginScreen extends StatelessWidget {
     if (signupRole != null) {
       pushScreenAndReplace(context, SignupScreen(role: signupRole!));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sélectionnez d\'abord un rôle depuis l\'accueil'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      // Aucun rôle pré-sélectionné (arrivée directe sur la connexion au
+      // lancement) : router vers l'onboarding pour y choisir le rôle avant
+      // de poursuivre l'inscription. Remplacement (pas d'empilement) : les
+      // écrans d'auth se substituent mutuellement, sans pile qui gonfle.
+      pushScreenAndReplace(context, const OnboardingScreen());
     }
   }
 
@@ -44,10 +44,11 @@ class LoginScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconBoutton(
-                    icon: Icons.arrow_back_ios_new,
-                    onPressed: () => back(context),
-                  ),
+                  if (Navigator.of(context).canPop())
+                    IconBoutton(
+                      icon: Icons.arrow_back_ios_new,
+                      onPressed: () => back(context),
+                    ),
                   const SizedBox(height: 28),
                   Row(
                     children: [

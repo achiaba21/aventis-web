@@ -20,11 +20,11 @@ class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
   void _onPickRole(BuildContext context, String role) {
-    pushScreen(context, SignupScreen(role: role));
+    pushScreenAndReplace(context, SignupScreen(role: role));
   }
 
   void _onLoginTap(BuildContext context) {
-    pushScreen(context, const LoginScreen());
+    pushScreenAndReplace(context, const LoginScreen());
   }
 
   @override

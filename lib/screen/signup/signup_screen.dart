@@ -47,10 +47,11 @@ class SignupScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconBoutton(
-                    icon: Icons.arrow_back_ios_new,
-                    onPressed: () => back(context),
-                  ),
+                  if (Navigator.of(context).canPop())
+                    IconBoutton(
+                      icon: Icons.arrow_back_ios_new,
+                      onPressed: () => back(context),
+                    ),
                   const SizedBox(height: 28),
                   SignupStepHeader(
                     step: 1,

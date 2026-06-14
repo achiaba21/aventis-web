@@ -5,7 +5,7 @@ import 'package:asfar/bloc/active_shell_cubit/active_shell_cubit.dart';
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/bloc/user_bloc/user_event.dart';
 import 'package:asfar/bloc/user_bloc/user_state.dart';
-import 'package:asfar/screen/onboarding/onboarding_screen.dart';
+import 'package:asfar/screen/login/login_screen.dart';
 import 'package:asfar/screen/role_home_router.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
@@ -16,7 +16,7 @@ import 'package:asfar/util/navigation.dart';
 /// Affiche le logo "A" or pendant ~1.5s, dispatch [CheckStoredUser] sur le
 /// [UserBloc] et route :
 /// - `UserLoaded` → shell du rôle via [RoleHomeRouter]
-/// - sinon → [OnboardingScreen]
+/// - sinon → [LoginScreen] (page « Se connecter »)
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -58,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen> {
         RoleHomeRouter.shellFor(state.loadedUser, viewId: activeView),
       );
     } else {
-      pushAndRemoveAll(context, const OnboardingScreen());
+      pushAndRemoveAll(context, const LoginScreen());
     }
   }
 
