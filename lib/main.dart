@@ -47,6 +47,7 @@ import 'package:asfar/config/service_locator.dart';
 import 'package:asfar/service/storage/secure_storage_service.dart';
 import 'package:asfar/service/storage/storage_service.dart';
 import 'package:asfar/service/connectivity/connectivity_service.dart';
+import 'package:asfar/service/realtime/realtime_action_handler.dart';
 import 'package:asfar/service/preload/preload_coordinator_builder.dart';
 import 'package:asfar/util/json_constructors_registry.dart';
 import 'package:asfar/util/function.dart';
@@ -266,6 +267,12 @@ class AppWithBlocListener extends StatelessWidget {
           ),
         );
     context.read<NotificationBloc>().add(const InitializeFCM());
+
+    // Démarre le dispatcher temps réel des ENTITÉS : il consomme `actionStream`
+    // du WebSocket (`/user/queue/updates` + `/topic/actions`) et recharge le bon
+    // bloc (réservations, partenariats, statut appart, KYC, messages). Sans cet
+    // appel, ces canaux n'avaient aucun consommateur → aucune MAJ temps réel.
+    RealtimeActionHandler.instance.initialize(context);
 
     // Résilience réseau : démarre la détection de connectivité (dérivée du
     // socket). Idempotent. Le rejeu des requêtes échouées est géré au niveau

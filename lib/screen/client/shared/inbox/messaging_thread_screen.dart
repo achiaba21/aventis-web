@@ -16,6 +16,7 @@ import 'package:asfar/screen/client/shared/inbox/widget/chat_input_bar.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_custom_header.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_loading_view.dart';
 import 'package:asfar/screen/client/shared/inbox/widget/thread_messages_list.dart';
+import 'package:asfar/service/realtime/realtime_resource_mixin.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/util/function.dart';
 import 'package:asfar/util/navigation.dart';
@@ -35,7 +36,8 @@ class MessagingThreadScreen extends StatefulWidget {
   State<MessagingThreadScreen> createState() => _MessagingThreadScreenState();
 }
 
-class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
+class _MessagingThreadScreenState extends State<MessagingThreadScreen>
+    with RealtimeResourceMixin {
   final _scrollController = ScrollController();
   late final int _conversationId;
 
@@ -49,6 +51,26 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen> {
             LoadConversationMessages(conversationId: _conversationId),
           );
     });
+
+    // Temps réel : sur le fil ouvert, un MESSAGE reçu s'insère directement
+    // (payload complet) ; à la (re)connexion, on recharge le fil (catch-up).
+    if (_conversationId > 0) {
+      watchResource(
+        topic: '/topic/seance/$_conversationId',
+        onAction: (action) {
+          if (!mounted || action.entityType != 'MESSAGE') return;
+          context.read<ConversationBloc>().add(
+                MessageReceived(messageData: action.payload),
+              );
+        },
+        onResync: () {
+          if (!mounted) return;
+          context.read<ConversationBloc>().add(
+                LoadConversationMessages(conversationId: _conversationId),
+              );
+        },
+      );
+    }
   }
 
   @override

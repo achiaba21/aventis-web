@@ -7,6 +7,7 @@ import 'package:asfar/bloc/reservation_detail_bloc/reservation_detail_state.dart
 import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/model/reservation/reservation.dart';
 import 'package:asfar/model/reservation/reservation_detail_action.dart';
+import 'package:asfar/service/realtime/realtime_resource_listener.dart';
 import 'package:asfar/screen/client/shared/reservations/reservation_contact_sheet.dart';
 import 'package:asfar/screen/client/shared/reservations/reservation_edit_manuelle_screen.dart';
 import 'package:asfar/screen/client/shared/reservations/reservation_scan_screen.dart';
@@ -60,6 +61,7 @@ class ReservationDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ref = reference ?? reservation?.reference;
     return BlocProvider<ReservationDetailBloc>(
       create: (ctx) {
         final bloc = ReservationDetailBloc(
@@ -72,7 +74,18 @@ class ReservationDetailScreen extends StatelessWidget {
         }
         return bloc;
       },
-      child: _ReservationDetailView(viewerRole: viewerRole),
+      // Temps réel : tout changement sur cette réservation → re-fetch (léger).
+      // Catch-up à la (re)connexion. Sans référence (cas improbable) : pas d'abo.
+      child: ref == null
+          ? _ReservationDetailView(viewerRole: viewerRole)
+          : RealtimeResourceListener(
+              topic: '/topic/reservation/$ref',
+              onAction: (ctx, _) =>
+                  ctx.read<ReservationDetailBloc>().add(RefreshFromApi()),
+              onResync: (ctx) =>
+                  ctx.read<ReservationDetailBloc>().add(RefreshFromApi()),
+              child: _ReservationDetailView(viewerRole: viewerRole),
+            ),
     );
   }
 }

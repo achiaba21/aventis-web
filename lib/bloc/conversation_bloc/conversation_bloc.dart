@@ -5,6 +5,8 @@ import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
 import 'package:asfar/model/conversation/conversation.dart';
 import 'package:asfar/model/conversation/chat_message.dart';
+import 'package:asfar/model/notification/notification.dart';
+import 'package:asfar/model/notification/notification_event.dart';
 import 'package:asfar/model/user/user.dart';
 import 'package:asfar/service/cache/conversation_cache_service.dart';
 import 'package:asfar/service/model/message/message_service.dart';
@@ -69,19 +71,13 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     _messageStreamSubscription = _webSocketManager.notificationStream.listen(
       (data) {
         try {
-          if (data is Map<String, dynamic>) {
-            if (data['type'] == 'NEW_MESSAGE' ||
-                data['event'] == 'NEW_MESSAGE') {
-              final payload = data['payload'] ?? data;
-              if (payload is Map<String, dynamic>) {
-                add(MessageReceived(messageData: payload));
-              }
-            } else if (data['type'] == 'CONVERSATION_UPDATE') {
-              final payload = data['payload'] ?? data;
-              if (payload is Map<String, dynamic>) {
-                add(ConversationUpdated(conversationData: payload));
-              }
-            }
+          // `notificationStream` émet des NotificationModel (pas des Map) :
+          // l'ancien test `data is Map` était TOUJOURS faux → messages ignorés
+          // → le thread ouvert ne se mettait jamais à jour en temps réel.
+          if (data is! NotificationModel) return;
+          if (data.event == NotificationEvent.message &&
+              data.actionData != null) {
+            add(MessageReceived(messageData: data.actionData!));
           }
         } catch (e) {
           deboger(['Erreur traitement message WebSocket:', e]);

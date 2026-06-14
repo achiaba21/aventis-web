@@ -30,6 +30,8 @@ class RealtimeActionHandler {
 
   final WebSocketService _webSocketService = WebSocketService.instance;
   StreamSubscription<RealtimeAction>? _actionSubscription;
+  StreamSubscription<WebSocketState>? _stateSubscription;
+  bool _wasConnected = false;
   BuildContext? _currentContext;
 
   // Initialiser le handler avec le contexte de l'app
@@ -47,7 +49,36 @@ class RealtimeActionHandler {
       },
     );
 
+    // Catch-up : à chaque (RE)connexion WS, recharger les listes temps réel —
+    // le broker ne rejoue pas les events émis pendant la coupure.
+    _stateSubscription?.cancel();
+    _wasConnected = _webSocketService.isConnected;
+    _stateSubscription =
+        _webSocketService.stateStream.listen(_onConnectivityChanged);
+
     deboger('⚡ RealtimeActionHandler initialisé');
+  }
+
+  void _onConnectivityChanged(WebSocketState state) {
+    final connected = state.isConnected;
+    if (connected && !_wasConnected) {
+      _resyncLists();
+    }
+    _wasConnected = connected;
+  }
+
+  /// Recharge les listes temps réel (réservations + conversations) sur
+  /// (re)connexion. Tolérant si un bloc est absent du contexte courant.
+  void _resyncLists() {
+    final ctx = _currentContext;
+    if (ctx == null) return;
+    deboger('⚡ Catch-up : rechargement des listes temps réel');
+    try {
+      ctx.read<ReservationBloc>().add(RefreshReservations());
+    } catch (_) {}
+    try {
+      ctx.read<ConversationBloc>().add(const LoadConversations(forceRefresh: true));
+    } catch (_) {}
   }
 
   void _handleRealtimeAction(RealtimeAction action) {
@@ -146,6 +177,11 @@ class RealtimeActionHandler {
         case 'RESERVATION': // { id, reference, statut, appartementId, ... }
           ctx.read<ReservationBloc>().add(RefreshReservations());
           break;
+        case 'MESSAGE': // chat : payload = message complet → insertion directe
+          ctx.read<ConversationBloc>().add(
+                MessageReceived(messageData: action.payload),
+              );
+          break;
         default:
           deboger('⚠️ entityType non géré: ${action.entityType}');
       }
@@ -198,8 +234,7 @@ class RealtimeActionHandler {
 
   void _handleRefreshBookings(RealtimeAction action) {
     try {
-      // final reservationBloc = _currentContext!.read<ReservationBloc>();
-      // reservationBloc.add(LoadUserReservations()); // À adapter selon vos events ReservationBloc
+      _currentContext!.read<ReservationBloc>().add(RefreshReservations());
 
       deboger('📅 Actualisation des réservations déclenchée');
 
@@ -383,20 +418,10 @@ class RealtimeActionHandler {
 
   void _handleBookingConfirmed(RealtimeAction action) {
     try {
-      final bookingId = action.payload['bookingId'] as int?;
       final apartmentName = action.payload['apartmentName'] as String?;
 
       // Actualiser les réservations
-      final reservationBloc = _currentContext!.read<ReservationBloc>();
-      // reservationBloc.add(LoadUserReservations()); // À adapter selon votre ReservationBloc
-
-      // TODO: Créer automatiquement une conversation
-      // Nécessite les IDs du propriétaire et locataire qui ne sont pas disponibles ici
-      // L'utilisateur peut créer la conversation manuellement depuis l'écran de détails
-      // if (bookingId != null) {
-      //   final conversationBloc = _currentContext!.read<ConversationBloc>();
-      //   conversationBloc.add(CreateConversationFromBooking(...));
-      // }
+      _currentContext!.read<ReservationBloc>().add(RefreshReservations());
 
       deboger('✅ Réservation confirmée');
 
@@ -496,6 +521,8 @@ class RealtimeActionHandler {
   void dispose() {
     _actionSubscription?.cancel();
     _actionSubscription = null;
+    _stateSubscription?.cancel();
+    _stateSubscription = null;
     _currentContext = null;
     deboger('🛑 RealtimeActionHandler fermé');
   }
