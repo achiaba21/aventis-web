@@ -5,12 +5,14 @@ import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_state.dart';
 import 'package:asfar/model/conversation/conversation.dart';
 import 'package:asfar/model/conversation/chat_message.dart';
+import 'package:asfar/model/message/message.dart';
 import 'package:asfar/model/notification/notification.dart';
 import 'package:asfar/model/notification/notification_event.dart';
 import 'package:asfar/model/user/user.dart';
 import 'package:asfar/service/cache/conversation_cache_service.dart';
 import 'package:asfar/service/model/message/message_service.dart';
 import 'package:asfar/service/websocket/websocket_manager.dart';
+import 'package:asfar/util/chat_message_merger.dart';
 import 'package:asfar/util/function.dart';
 import 'package:asfar/util/message_adapter.dart';
 
@@ -31,7 +33,7 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     on<LoadConversations>(_onLoadConversations);
     on<LoadConversationMessages>(_onLoadConversationMessages);
     on<SendMessage>(_onSendMessage);
-    on<MarkMessageAsRead>(_onMarkMessageAsRead);
+    on<MarkConversationAsRead>(_onMarkConversationAsRead);
     on<CreateConversationFromBooking>(_onCreateConversationFromBooking);
     on<MessageReceived>(_onMessageReceived);
     on<ConversationUpdated>(_onConversationUpdated);
@@ -265,16 +267,14 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
       );
       sentMessage.conversationId = conversationId;
 
-      final messages = _conversationMessages[conversationId] ?? [];
-      final updatedMessages =
-          messages.map((msg) {
-            if (msg.tempId == tempMessage.tempId) {
-              return sentMessage;
-            }
-            return msg;
-          }).toList();
-
-      _conversationMessages[conversationId] = updatedMessages;
+      // Confirmation d'envoi : on remplace l'optimiste par son `tempId`. Le
+      // merger supprime aussi tout écho temps réel du même message qui aurait
+      // gagné la course contre la réponse HTTP (sinon → doublon).
+      _conversationMessages[conversationId] = ChatMessageMerger.upsert(
+        _conversationMessages[conversationId] ?? [],
+        sentMessage,
+        tempId: tempMessage.tempId,
+      );
 
       emit(
         MessagesLoaded(
@@ -325,24 +325,47 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     }
   }
 
-  Future<void> _onMarkMessageAsRead(
-    MarkMessageAsRead event,
+  Future<void> _onMarkConversationAsRead(
+    MarkConversationAsRead event,
     Emitter<ConversationState> emit,
   ) async {
+    final conversationId = event.conversationId;
+
+    // Mise à jour optimiste : on vide le badge non-lus localement (liste +
+    // fil) AVANT l'aller-retour réseau, pour un retour visuel immédiat.
+    _conversations = _conversations.map((conv) {
+      if (conv.id != conversationId) return conv;
+      return Conversation(
+        id: conv.id,
+        proprietaire: conv.proprietaire,
+        locataire: conv.locataire,
+        dateDebut: conv.dateDebut,
+        dateFin: conv.dateFin,
+        active: conv.active,
+        bookingId: conv.bookingId,
+        messages: conv.messages,
+        lastUpdated: conv.lastUpdated,
+        lastMessage: conv.lastMessage,
+        unreadCount: 0,
+      );
+    }).toList();
+
+    final messages = _conversationMessages[conversationId] ?? [];
+    _conversationMessages[conversationId] =
+        messages.map((msg) => msg.copyWith(isRead: true)).toList();
+
+    // On émet ConversationLoaded (et non MessagesLoaded) : la liste rafraîchit
+    // son badge, tandis que le fil ouvert l'ignore (cf. buildWhen) — évite tout
+    // clignotement du fil pendant que LoadConversationMessages charge encore.
+    emit(ConversationLoaded(conversations: _conversations));
+
+    // Synchronisation backend (le badge est déjà vidé côté UI ; en cas
+    // d'échec on logge seulement, sans rollback agressif).
     try {
-      await _messageService.markAsRead(event.conversationId);
-
-      final messages = _conversationMessages[event.conversationId] ?? [];
-      final updatedMessages =
-          messages.map((msg) {
-            return msg.copyWith(isRead: true);
-          }).toList();
-
-      _conversationMessages[event.conversationId] = updatedMessages;
-
-      deboger(['✅ Messages marqués comme lus']);
+      await _messageService.markAsRead(conversationId);
+      deboger(['✅ Conversation $conversationId marquée comme lue']);
     } catch (e) {
-      deboger(['❌ Erreur marquage lecture:', e]);
+      deboger(['❌ Erreur marquage lecture (badge vidé localement):', e]);
     }
   }
 
@@ -393,33 +416,55 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     Emitter<ConversationState> emit,
   ) {
     try {
-      final messageData = event.messageData;
-      final message = ChatMessage.fromJson(messageData);
-
-      if (message.conversationId != null) {
-        final currentMessages =
-            _conversationMessages[message.conversationId!] ?? [];
-        _conversationMessages[message.conversationId!] = [
-          ...currentMessages,
-          message,
-        ];
-        _capMessagesMemory(message.conversationId!);
-
-        _updateConversationLastMessage(message.conversationId!, message);
-
-        emit(
-          MessagesLoaded(
-            conversationId: message.conversationId!,
-            messages: _conversationMessages[message.conversationId!]!,
-            hasMore: false,
-            conversations: _conversations,
-          ),
-        );
-
-        deboger([
-          '📩 Nouveau message reçu pour conversation ${message.conversationId}',
-        ]);
+      final data = event.messageData;
+      // Le payload temps réel est le MÊME DTO que GET /seances/{id}/messages
+      // (champs plats clientId/clientNom/clientType + lu) augmenté de seanceId.
+      // On le parse via le même chemin que le REST (Message + MessageAdapter)
+      // pour une cohérence totale (expéditeur, état lu, alignement des bulles).
+      // Le payload du topic `/topic/seance/{id}` ne porte pas toujours de
+      // `seanceId` : l'écran fournit alors `event.conversationId` en secours.
+      final seanceId =
+          data['seanceId'] ?? data['conversationId'] ?? event.conversationId;
+      final currentUserId = _currentUser?.id;
+      if (seanceId is! int || currentUserId == null) {
+        deboger(
+            '🐛[DEMANDE-MSG] DROPPÉ — seanceId=$seanceId, user=$currentUserId');
+        return;
       }
+      final message = MessageAdapter.messageToChat(
+        Message.fromJson(data),
+        currentUserId,
+      ).copyWith(conversationId: seanceId);
+
+      final existing = _conversationMessages[seanceId] ?? [];
+      // Déjà présent par id (livré par un autre canal) : on le détecte AVANT
+      // l'upsert pour éviter une ré-émission (donc un scroll) inutile.
+      final isDuplicate =
+          message.id != null && existing.any((m) => m.id == message.id);
+
+      // Convergence idempotente : réconcilie l'optimiste, dédup par id — un
+      // même message livré via le topic ET la file perso n'apparaît qu'une fois.
+      _conversationMessages[seanceId] =
+          ChatMessageMerger.upsert(existing, message);
+      _capMessagesMemory(seanceId);
+
+      if (isDuplicate) {
+        deboger('🐛[DEMANDE-MSG] message ${message.id} déjà présent, dédup');
+        return;
+      }
+
+      _updateConversationLastMessage(seanceId, message);
+
+      emit(
+        MessagesLoaded(
+          conversationId: seanceId,
+          messages: _conversationMessages[seanceId]!,
+          hasMore: false,
+          conversations: _conversations,
+        ),
+      );
+      deboger(
+          '📩 Nouveau message temps réel rangé dans la conversation $seanceId');
     } catch (e) {
       deboger(['❌ Erreur traitement message reçu:', e]);
     }

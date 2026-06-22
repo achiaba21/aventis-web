@@ -50,6 +50,13 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen>
       context.read<ConversationBloc>().add(
             LoadConversationMessages(conversationId: _conversationId),
           );
+      // Marque la conversation comme lue à l'ouverture (vide le badge non-lus)
+      // — uniquement s'il reste des non-lus, pour éviter un appel réseau inutile.
+      if (widget.conversation.hasUnreadMessages) {
+        context.read<ConversationBloc>().add(
+              MarkConversationAsRead(conversationId: _conversationId),
+            );
+      }
     });
 
     // Temps réel : sur le fil ouvert, un MESSAGE reçu s'insère directement
@@ -60,7 +67,10 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen>
         onAction: (action) {
           if (!mounted || action.entityType != 'MESSAGE') return;
           context.read<ConversationBloc>().add(
-                MessageReceived(messageData: action.payload),
+                MessageReceived(
+                  messageData: action.payload,
+                  conversationId: _conversationId,
+                ),
               );
         },
         onResync: () {
@@ -159,8 +169,13 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen>
             ),
             Expanded(
               child: BlocConsumer<ConversationBloc, ConversationState>(
+                // Défile en bas dès que les messages de CE fil changent :
+                // ouverture (load), message entrant temps réel, ou envoi.
                 listenWhen: (_, curr) =>
-                    curr is MessageSent || curr is NewMessageReceived,
+                    curr is MessageSent ||
+                    curr is NewMessageReceived ||
+                    (curr is MessagesLoaded &&
+                        curr.conversationId == _conversationId),
                 listener: (context, state) => _scrollToBottom(),
                 // Ne reconstruit la liste que pour les états qui portent les
                 // messages. Les états transitoires (MessageSent, MessageSending,
@@ -206,7 +221,6 @@ class _MessagingThreadScreenState extends State<MessagingThreadScreen>
             ),
             ChatInputBar(
               onSend: _onSend,
-              onPlusTap: () => _toast('Pièce jointe disponible prochainement'),
             ),
           ],
         ),

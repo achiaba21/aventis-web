@@ -34,14 +34,10 @@ class SendMessage extends ConversationEvent {
   });
 }
 
-class MarkMessageAsRead extends ConversationEvent {
+class MarkConversationAsRead extends ConversationEvent {
   final int conversationId;
-  final int messageId;
 
-  const MarkMessageAsRead({
-    required this.conversationId,
-    required this.messageId,
-  });
+  const MarkConversationAsRead({required this.conversationId});
 }
 
 class CreateConversationFromBooking extends ConversationEvent {
@@ -59,7 +55,12 @@ class CreateConversationFromBooking extends ConversationEvent {
 class MessageReceived extends ConversationEvent {
   final Map<String, dynamic> messageData;
 
-  const MessageReceived({required this.messageData});
+  /// Conversation cible quand le payload temps réel ne porte pas de
+  /// `seanceId`/`conversationId` (ex. frame du topic `/topic/seance/{id}`,
+  /// dont l'écran connaît l'identifiant mais pas forcément le payload).
+  final int? conversationId;
+
+  const MessageReceived({required this.messageData, this.conversationId});
 }
   
 class ConversationUpdated extends ConversationEvent {

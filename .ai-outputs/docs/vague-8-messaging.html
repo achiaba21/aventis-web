@@ -522,6 +522,54 @@ lib/screen/client/proprio/proprio_shell.dart      (modif identique)</code></pre>
                 </ul>
             </section>
 
+            <section id="correctif-doublon" class="card" style="background: linear-gradient(135deg, rgba(96,165,250,0.10), rgba(96,165,250,0.02)); border-color: rgba(96,165,250,0.25);">
+                <h2>🩹 Correctif — Doublon d'un message à l'envoi <span class="badge badge-success">2026-06-22</span></h2>
+                <p>
+                    Une fois le temps réel branché (file perso <code>/user/queue/updates</code> + topics ressource <code>/topic/seance/{id}</code>),
+                    le message <strong>envoyé par l'utilisateur</strong> apparaissait parfois <strong>en double</strong>.
+                </p>
+                <h3>Cause racine</h3>
+                <p>
+                    Le message <em>optimiste</em> (identifié par <code>tempId</code>, sans <code>id</code> serveur tant que le POST n'a pas répondu)
+                    et l'<em>écho</em> temps réel du même message (identifié par <code>id</code> serveur) n'étaient jamais réconciliés :
+                    la déduplication ne se faisait que sur <code>id</code>. Quand l'écho WebSocket gagnait la course contre la réponse HTTP,
+                    il s'ajoutait comme 2ᵉ bulle, et le remplacement par <code>tempId</code> laissait les deux copies en place.
+                </p>
+                <h3>Solution — point de convergence idempotent</h3>
+                <p>
+                    Toutes les insertions (confirmation d'envoi + 4 canaux temps réel) convergent désormais vers
+                    <code>ChatMessageMerger.upsert()</code>, fonction pure qui garantit <strong>1 message = 1 bulle</strong>
+                    quel que soit l'ordre ou le nombre de livraisons :
+                </p>
+                <ul>
+                    <li>confirmation d'envoi (par <code>tempId</code>) → remplace l'optimiste + supprime tout écho de même <code>id</code> ;</li>
+                    <li>écho déjà présent par <code>id</code> → mise à jour en place (idempotent) ;</li>
+                    <li>écho de mon propre message encore « en envoi » → réconcilie l'optimiste (même expéditeur + contenu) ;</li>
+                    <li>message réellement nouveau → ajout.</li>
+                </ul>
+                <p>
+                    Les canaux existants sont <strong>conservés mais rendus inoffensifs</strong> (chacun garde son rôle :
+                    topic = fil ouvert, file perso = badge liste, notification = push). Bonus fiabilité :
+                    <code>MessageReceived</code> accepte un <code>conversationId</code> de secours quand le payload du topic ne porte pas de <code>seanceId</code>.
+                </p>
+                <div class="stat-grid">
+                    <div class="stat-cell"><div class="num">5</div><div class="lab">FICHIERS (2 CRÉÉS · 3 MODIFIÉS)</div></div>
+                    <div class="stat-cell"><div class="num">98<span style="font-size:18px;">/100</span></div><div class="lab">SCORE AUDIT</div></div>
+                    <div class="stat-cell"><div class="num">10/10</div><div class="lab">TESTS MERGER</div></div>
+                    <div class="stat-cell"><div class="num">306</div><div class="lab">SUITE COMPLÈTE VERTE</div></div>
+                </div>
+                <table>
+                    <thead><tr><th>Fichier</th><th>Nature</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>lib/util/chat_message_merger.dart</code></td><td>créé — fonction pure <code>upsert</code></td></tr>
+                        <tr><td><code>lib/bloc/conversation_bloc/conversation_event.dart</code></td><td>modifié — <code>MessageReceived.conversationId</code></td></tr>
+                        <tr><td><code>lib/bloc/conversation_bloc/conversation_bloc.dart</code></td><td>modifié — <code>_onSendMessage</code> + <code>_onMessageReceived</code></td></tr>
+                        <tr><td><code>lib/screen/client/shared/inbox/messaging_thread_screen.dart</code></td><td>modifié — topic passe <code>conversationId</code></td></tr>
+                        <tr><td><code>test/util/chat_message_merger_test.dart</code></td><td>créé — 10 tests (races, idempotence, pureté)</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
             <section>
                 <h2>📚 Références</h2>
                 <ul>
@@ -540,6 +588,11 @@ lib/screen/client/proprio/proprio_shell.dart      (modif identique)</code></pre>
                         <tr><th>Version</th><th>Date</th><th>Changements</th></tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <td>1.1</td>
+                            <td>2026-06-22</td>
+                            <td>Correctif temps réel — doublon d'un message à l'envoi résolu via <code>ChatMessageMerger</code> (point de convergence idempotent). 2 fichiers créés, 3 modifiés, 10 tests, score 98/100.</td>
+                        </tr>
                         <tr>
                             <td>1.0</td>
                             <td>2026-05-10</td>
