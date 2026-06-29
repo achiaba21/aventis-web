@@ -44,15 +44,6 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
     });
   }
 
-  void _stub(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   void _onRetry() {
     context.read<AppartementBloc>().add(RefreshProprietaireAppartements());
   }
@@ -145,8 +136,6 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
                                         ProprioListingEditScreen(
                                             appartement: filtered[i]),
                                       ),
-                                      onMoreTap: () =>
-                                          _stub("Plus d'options bientôt"),
                                       onCalendarTap: () => pushScreen(
                                         context,
                                         ProprioListingEditScreen(
@@ -161,8 +150,6 @@ class _ProprioListingsScreenState extends State<ProprioListingsScreen> {
                                           initialTab: 0,
                                         ),
                                       ),
-                                      onStatsTap: () => _stub(
-                                          'Statistiques détaillées disponibles prochainement'),
                                     ),
                                     const SizedBox(height: 14),
                                   ],

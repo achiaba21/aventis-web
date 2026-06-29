@@ -44,7 +44,18 @@ class DemarcheurService {
                 .map((e) => Reservation.fromJson(e as Map<String, dynamic>))
                 .toList(),
       );
-      return serverResponse.body;
+      final list = serverResponse.body;
+      // Filet anti-doublon : l'API peut renvoyer des lignes dupliquées
+      // (fan-out JOIN côté backend). On déduplique par id et on écarte les
+      // entrées sans id (fantômes « #0 »).
+      final seen = <int>{};
+      final deduped = <Reservation>[
+        for (final r in list)
+          if (r.id != null && seen.add(r.id!)) r,
+      ];
+      deboger(
+          '🐛[DEMANDE] getReservations → ${list.length} brut → ${deduped.length} après dédup, ids=${deduped.map((e) => e.id).toList()}');
+      return deduped;
     } catch (e) {
       ErrorHandler.logError('DEMARCHEUR_GET_RESERVATIONS', e);
       rethrow;
@@ -57,10 +68,16 @@ class DemarcheurService {
       deboger('[DemarcheurService] createReservation appartId=${req.appartId}');
       final response = await _dio.post(_urlReservations, data: req.toJson());
       final Map<String, dynamic> data = response.data as Map<String, dynamic>;
+      deboger('🐛[DEMANDE] createReservation RAW response.data = $data');
       // Le backend retourne { success, reference, reservation }
       final reservationJson =
           data['reservation'] as Map<String, dynamic>? ?? data;
-      return Reservation.fromJson(reservationJson);
+      deboger(
+          '🐛[DEMANDE] createReservation — contient "reservation" ? ${data.containsKey('reservation')} | clés JSON utilisées = ${reservationJson.keys.toList()}');
+      final reservation = Reservation.fromJson(reservationJson);
+      deboger(
+          '🐛[DEMANDE] createReservation PARSÉ → id=${reservation.id}, reference=${reservation.reference}');
+      return reservation;
     } catch (e) {
       ErrorHandler.logError('DEMARCHEUR_CREATE_RESERVATION', e);
       rethrow;

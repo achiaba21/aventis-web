@@ -22,7 +22,9 @@ import 'package:asfar/screen/client/proprio/appartements/widget/calendar_legend.
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/calc/demarcheur_stats_calculator.dart';
+import 'package:asfar/widget/button/share_appartement_button.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
+import 'package:asfar/util/function.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
@@ -199,6 +201,9 @@ class _DemarcheurAppartDetailScreenState
   }
 
   void _onSubmit() {
+    deboger(
+        '🐛[DEMANDE] _onSubmit() appelé — _submitting=$_submitting, appartId=${widget.appartement.id}, nights=$_nights, nom=${_nomCtrl.text.trim()}');
+    if (_submitting) return; // garde anti double-clic (évite un 2ᵉ POST → doublon)
     final appartId = widget.appartement.id;
     final start = _selectedStart;
     if (appartId == null || start == null || _nights == 0) return;
@@ -404,6 +409,11 @@ class _DemarcheurAppartDetailScreenState
                 icon: Icons.arrow_back_ios_new,
                 onPressed: () => back(context),
               ),
+            ),
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 8,
+              right: 12,
+              child: ShareAppartementButton(appartement: a),
             ),
           ],
         ),

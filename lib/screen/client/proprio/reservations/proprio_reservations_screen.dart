@@ -49,7 +49,7 @@ class _ProprioReservationsScreenState
   }
 
   void _onRetry() {
-    context.read<ReservationBloc>().add(RefreshReservations());
+    context.read<ReservationBloc>().add(RefreshReservations(isProprietaire: true));
   }
 
   void _onRowTap(Reservation r) {

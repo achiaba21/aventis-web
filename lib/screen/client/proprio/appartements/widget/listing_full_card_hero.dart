@@ -51,11 +51,12 @@ class ListingFullCardHero extends StatelessWidget {
               ],
             ),
           ),
-          Positioned(
-            top: 12,
-            right: 12,
-            child: ListingFullCardMoreButton(onTap: onMoreTap),
-          ),
+          if (onMoreTap != null)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: ListingFullCardMoreButton(onTap: onMoreTap),
+            ),
         ],
       ),
     );

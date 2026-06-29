@@ -52,6 +52,7 @@ class DemarcheurBloc extends Bloc<DemarcheurEvent, DemarcheurState> {
     LoadDemarcheurReservations event,
     Emitter<DemarcheurState> emit,
   ) async {
+    deboger('🐛[DEMANDE] LoadDemarcheurReservations déclenché (refetch liste)');
     if (_appartements.isEmpty && _reservations.isEmpty) {
       emit(const DemarcheurLoading());
     }
@@ -72,9 +73,15 @@ class DemarcheurBloc extends Bloc<DemarcheurEvent, DemarcheurState> {
     emit(const DemarcheurLoading());
     try {
       final reservation = await _service.createReservation(event.req);
-      deboger('[DemarcheurBloc] réservation créée: ${reservation.reference}');
+      deboger(
+          '🐛[DEMANDE] bloc create reçu → id=${reservation.id}, ref=${reservation.reference}');
       emit(DemarcheurReservationCreated(reservation));
-      _reservations = [reservation, ..._reservations];
+      // Pas d'insert optimiste de l'objet de réponse (souvent partiel → id null
+      // → carte « #0 »). On recharge la liste autoritative depuis l'endpoint
+      // liste (objets complets + dédupliqués).
+      _reservations = await _service.getReservations();
+      deboger(
+          '🐛[DEMANDE] bloc après refetch: ${_reservations.length} (ids=${_reservations.map((e) => e.id).toList()})');
       emit(_snapshot());
     } catch (e) {
       ErrorHandler.logError('DEMARCHEUR_BLOC_CREATE_RESERVATION', e);

@@ -101,14 +101,12 @@ class PersonalInfoScreen extends StatelessWidget {
                         FieldRow(
                           eyebrow: 'NOM',
                           value: _displayValue(user.nom),
-                          onTap: () => _toast(context,
-                              'Modification disponible prochainement'),
+                          trailingIcon: null,
                         ),
                         FieldRow(
                           eyebrow: 'PRÉNOM',
                           value: _displayValue(user.prenom),
-                          onTap: () => _toast(context,
-                              'Modification disponible prochainement'),
+                          trailingIcon: null,
                         ),
                         FieldRow(
                           eyebrow: 'TÉLÉPHONE',
@@ -119,8 +117,7 @@ class PersonalInfoScreen extends StatelessWidget {
                         FieldRow(
                           eyebrow: 'EMAIL',
                           value: _displayValue(user.email),
-                          onTap: () => _toast(context,
-                              'Modification disponible prochainement'),
+                          trailingIcon: null,
                         ),
                         FieldRow(
                           eyebrow: 'TYPE DE COMPTE',

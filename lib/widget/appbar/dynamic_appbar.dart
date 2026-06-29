@@ -34,9 +34,8 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
   static const double _eyebrowExtra = 20;
 
   @override
-  Size get preferredSize => Size.fromHeight(
-        eyebrow != null ? _baseHeight + _eyebrowExtra : _baseHeight,
-      );
+  Size get preferredSize =>
+      Size.fromHeight(eyebrow != null ? _baseHeight + _eyebrowExtra : _baseHeight);
 
   @override
   Widget build(BuildContext context) {
@@ -44,46 +43,34 @@ class DynamicAppBar extends StatelessWidget implements PreferredSizeWidget {
       color: backgroundColor ?? AppColors.background,
       child: SafeArea(
         bottom: false,
-        child: SizedBox(
-          height: preferredSize.height,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 10, 18, 12),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 40,
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: leading,
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (eyebrow != null) ...[
-                        Text(eyebrow!, style: AppTextStyles.eyebrow),
-                        const SizedBox(height: 2),
-                      ],
-                      Text(
-                        title,
-                        style: AppTextStyles.h3,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 10, 18, 0),
+          child: Row(
+            children: [
+              SizedBox(width: 40, child: Align(alignment: Alignment.centerLeft, child: leading)),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (eyebrow != null) ...[
+                      Text(eyebrow!, style: AppTextStyles.eyebrow),
+                      const SizedBox(height: 2),
                     ],
-                  ),
+                    Text(
+                      title,
+                      style: AppTextStyles.h3,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  width: trailingWidth,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: trailing,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              SizedBox(
+                width: trailingWidth,
+                child: Align(alignment: Alignment.centerRight, child: trailing),
+              ),
+            ],
           ),
         ),
       ),

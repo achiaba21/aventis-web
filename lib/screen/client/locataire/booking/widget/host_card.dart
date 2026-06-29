@@ -78,13 +78,15 @@ class HostCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          OutlinedCustomButton(
-            text: 'Contacter',
-            onPressed: onContactTap,
-            size: ButtonSize.sm,
-            leadingIcon: Icons.chat_bubble_outline,
-          ),
+          if (onContactTap != null) ...[
+            const SizedBox(width: 12),
+            OutlinedCustomButton(
+              text: 'Contacter',
+              onPressed: onContactTap,
+              size: ButtonSize.sm,
+              leadingIcon: Icons.chat_bubble_outline,
+            ),
+          ],
         ],
       ),
     );

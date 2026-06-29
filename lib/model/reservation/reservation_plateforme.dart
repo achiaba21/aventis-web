@@ -10,6 +10,5 @@ class ReservationPlateforme extends Reservation {
     type = ReservationType.plateforme;
   }
 
-  ReservationPlateforme.fromJson(Map<String, dynamic> json)
-      : super.fromJsonCommon(json);
+  ReservationPlateforme.fromJson(super.json) : super.fromJsonCommon();
 }

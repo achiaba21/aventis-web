@@ -112,15 +112,15 @@ class _LocataireReserveScreenState extends State<LocataireReserveScreen> {
           clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
-              FieldRow(
+              const FieldRow(
                 eyebrow: 'DATES',
                 value: '12 - 15 nov. 2025',
-                onTap: () {},
+                trailingIcon: null,
               ),
-              FieldRow(
+              const FieldRow(
                 eyebrow: 'VOYAGEURS',
                 value: '2 adultes',
-                onTap: () {},
+                trailingIcon: null,
               ),
             ],
           ),

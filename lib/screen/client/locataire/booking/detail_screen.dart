@@ -16,6 +16,7 @@ import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/formate.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
+import 'package:asfar/widget/button/share_appartement_button.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 import 'package:asfar/widget/img/img_placeholder.dart';
 import 'package:asfar/widget/img/photo_carousel.dart';
@@ -102,7 +103,6 @@ class LocataireDetailScreen extends StatelessWidget {
                       hostName: 'Aminata K.',
                       memberSince: '2023',
                       certified: appartement.isSuperhost,
-                      onContactTap: () {},
                     ),
                     const SizedBox(height: 22),
                     const Text('À propos du logement',
@@ -113,21 +113,6 @@ class LocataireDetailScreen extends StatelessWidget {
                     const Text('Équipements', style: AppTextStyles.h3),
                     const SizedBox(height: 8),
                     const AmenitiesGrid(items: _amenities),
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: () {},
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 6),
-                        child: Text(
-                          'Voir les 18 équipements →',
-                          style: TextStyle(
-                            color: AppColors.accent,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 22),
                     const Text('Localisation', style: AppTextStyles.h3),
                     const SizedBox(height: 12),
@@ -214,20 +199,9 @@ class LocataireDetailScreen extends StatelessWidget {
                       onPressed: () => back(context),
                       floating: true,
                     ),
-                    Row(
-                      children: [
-                        IconBoutton(
-                          icon: Icons.ios_share,
-                          onPressed: () {},
-                          floating: true,
-                        ),
-                        const SizedBox(width: 8),
-                        IconBoutton(
-                          icon: Icons.favorite_border,
-                          onPressed: () {},
-                          floating: true,
-                        ),
-                      ],
+                    ShareAppartementButton(
+                      appartement: appartement,
+                      floating: true,
                     ),
                   ],
                 ),

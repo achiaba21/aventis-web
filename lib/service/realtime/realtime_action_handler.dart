@@ -10,10 +10,13 @@ import 'package:asfar/bloc/reservation_bloc/reservation_bloc.dart';
 import 'package:asfar/bloc/reservation_bloc/reservation_event.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_bloc.dart';
 import 'package:asfar/bloc/conversation_bloc/conversation_event.dart';
+import 'package:asfar/bloc/demarcheur_bloc/demarcheur_bloc.dart';
+import 'package:asfar/bloc/demarcheur_bloc/demarcheur_event.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_bloc.dart';
 import 'package:asfar/bloc/favorite_bloc/favorite_event.dart';
 import 'package:asfar/bloc/map_bloc/map_bloc.dart';
 import 'package:asfar/bloc/map_bloc/map_event.dart';
+import 'package:asfar/bloc/user_bloc/user_bloc.dart';
 import 'package:asfar/model/websocket/websocket_state.dart';
 import 'package:asfar/service/websocket/websocket_service.dart';
 import 'package:asfar/theme/app_colors.dart';
@@ -74,10 +77,22 @@ class RealtimeActionHandler {
     if (ctx == null) return;
     deboger('⚡ Catch-up : rechargement des listes temps réel');
     try {
-      ctx.read<ReservationBloc>().add(RefreshReservations());
+      _refreshReservations(ctx);
     } catch (_) {}
     try {
       ctx.read<ConversationBloc>().add(const LoadConversations(forceRefresh: true));
+    } catch (_) {}
+  }
+
+  /// Rafraîchit les réservations du rôle de l'utilisateur connecté via le
+  /// repository (API→Hive→état). Mono-rôle : le type tranche (proprio = owner,
+  /// sinon user). Évite que la liste locataire écrase le calcul compta proprio.
+  void _refreshReservations(BuildContext ctx) {
+    try {
+      final type = (ctx.read<UserBloc>().state.user?.type ?? '').toLowerCase();
+      ctx.read<ReservationBloc>().add(
+            RefreshReservations(isProprietaire: type == 'proprietaire'),
+          );
     } catch (_) {}
   }
 
@@ -175,12 +190,33 @@ class RealtimeActionHandler {
           }
           break;
         case 'RESERVATION': // { id, reference, statut, appartementId, ... }
-          ctx.read<ReservationBloc>().add(RefreshReservations());
+          deboger(
+              '🐛[DEMANDE] realtime RESERVATION reçu — action=${action.entityAction}, payload=${action.payload}');
+          // Locataire / propriétaire
+          try {
+            _refreshReservations(ctx);
+          } catch (_) {}
+          // Démarcheur UNIQUEMENT : l'endpoint /api/demarcheur/reservations est
+          // réservé aux comptes démarcheur (400 sinon). On ne rafraîchit
+          // DemarcheurBloc que si le compte connecté est bien un démarcheur —
+          // sinon un propriétaire déclencherait un appel interdit.
+          try {
+            final user = ctx.read<UserBloc>().state.user;
+            if ((user?.type ?? '').toLowerCase() == 'demarcheur') {
+              ctx.read<DemarcheurBloc>().add(LoadDemarcheurReservations());
+            }
+          } catch (_) {}
           break;
-        case 'MESSAGE': // chat : payload = message complet → insertion directe
-          ctx.read<ConversationBloc>().add(
-                MessageReceived(messageData: action.payload),
-              );
+        case 'MESSAGE': // chat
+          deboger('🐛[DEMANDE-MSG] realtime MESSAGE payload=${action.payload}');
+          // Le payload temps réel ne porte PAS de seanceId/conversationId → on
+          // ne peut pas l'insérer dans le bon fil. Filet fiable : refetch
+          // silencieux de la liste (dernier message + badge non-lus à jour).
+          // MessageReceived reste tenté pour le jour où le backend ajoutera
+          // seanceId au payload → MAJ instantanée du fil ouvert.
+          ctx.read<ConversationBloc>()
+            ..add(MessageReceived(messageData: action.payload))
+            ..add(const LoadConversations());
           break;
         default:
           deboger('⚠️ entityType non géré: ${action.entityType}');
@@ -234,7 +270,7 @@ class RealtimeActionHandler {
 
   void _handleRefreshBookings(RealtimeAction action) {
     try {
-      _currentContext!.read<ReservationBloc>().add(RefreshReservations());
+      _refreshReservations(_currentContext!);
 
       deboger('📅 Actualisation des réservations déclenchée');
 
@@ -421,7 +457,7 @@ class RealtimeActionHandler {
       final apartmentName = action.payload['apartmentName'] as String?;
 
       // Actualiser les réservations
-      _currentContext!.read<ReservationBloc>().add(RefreshReservations());
+      _refreshReservations(_currentContext!);
 
       deboger('✅ Réservation confirmée');
 

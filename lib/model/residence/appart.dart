@@ -16,6 +16,12 @@ class Appartement {
   String? titre;
   String? description;
   String? imgUrl;
+
+  /// Token public (hex, 32 car.) du partage web des photos du bien :
+  /// `{domain}/share/{partageToken}`. Attribué par le backend. Nullable :
+  /// absent sur de très vieux objets → bouton « Partager » masqué.
+  String? partageToken;
+
   int? likes;
   bool? isVisible;
   AppartementStatus? status;
@@ -75,6 +81,7 @@ class Appartement {
     this.titre,
     this.description,
     this.imgUrl,
+    this.partageToken,
     this.likes,
     this.isVisible,
     this.status,
@@ -115,6 +122,7 @@ class Appartement {
     titre = json['titre'];
     description = json['description'];
     imgUrl = json['imgUrl'];
+    partageToken = json['partageToken'];
     likes = json['likes'];
     isVisible = json['visible'] ?? json['isVisible'];
     // Le statut de modération peut arriver sous plusieurs clés selon l'endpoint
@@ -274,6 +282,7 @@ class Appartement {
     data['titre'] = titre;
     data['description'] = description;
     data['imgUrl'] = imgUrl;
+    data['partageToken'] = partageToken;
     data['likes'] = likes;
     data['isVisible'] = isVisible;
     data['status'] = status?.name;

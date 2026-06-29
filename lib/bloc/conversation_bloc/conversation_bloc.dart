@@ -25,7 +25,6 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   List<Conversation> _conversations = [];
   Map<int, List<ChatMessage>> _conversationMessages = {};
   User? _currentUser;
-  int _unreadCount = 0;
 
   ConversationBloc({MessageService? messageService})
       : _messageService = messageService ?? getIt<MessageService>(),
@@ -547,7 +546,6 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
     deboger(['[ConversationBloc] Réinitialisation à l\'état Initial']);
     _conversations = [];
     _conversationMessages = {};
-    _unreadCount = 0;
     emit(const ConversationInitial());
   }
 
@@ -558,7 +556,6 @@ class ConversationBloc extends Bloc<ConversationEvent, ConversationState> {
   ) async {
     try {
       final count = await _messageService.getUnreadCount();
-      _unreadCount = count;
       emit(UnreadCountLoaded(count: count));
       deboger(['📬 Messages non lus: $count']);
     } catch (e) {

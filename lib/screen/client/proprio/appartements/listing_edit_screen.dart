@@ -22,6 +22,7 @@ import 'package:asfar/util/calc/calendar_availability.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
+import 'package:asfar/widget/button/share_appartement_button.dart';
 
 /// Édition d'une annonce — `ProprioListingEditScreen`.
 ///
@@ -65,15 +66,6 @@ class _ProprioListingEditScreenState extends State<ProprioListingEditScreen> {
             ),
           );
     });
-  }
-
-  void _stub(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
   }
 
   /// Cherche la version fraîche de l'Appartement dans le cache du BLoC.
@@ -153,10 +145,7 @@ class _ProprioListingEditScreenState extends State<ProprioListingEditScreen> {
                 icon: Icons.arrow_back_ios_new,
                 onPressed: () => back(context),
               ),
-              trailing: IconBoutton(
-                icon: Icons.more_vert,
-                onPressed: () => _stub(context, "Plus d'options bientôt"),
-              ),
+              trailing: ShareAppartementButton(appartement: appart),
             ),
             body: SafeArea(
               top: false,

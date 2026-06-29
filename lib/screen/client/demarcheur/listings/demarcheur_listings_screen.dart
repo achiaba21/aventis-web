@@ -31,8 +31,7 @@ class DemarcheurListingsScreen extends StatefulWidget {
   const DemarcheurListingsScreen({super.key});
 
   @override
-  State<DemarcheurListingsScreen> createState() =>
-      _DemarcheurListingsScreenState();
+  State<DemarcheurListingsScreen> createState() => _DemarcheurListingsScreenState();
 }
 
 class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
@@ -56,22 +55,17 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
   }
 
   List<Appartement> _sorted(List<Appartement> apparts) {
-    final list = List.of(apparts)
-      ..sort((a, b) => b.rating.compareTo(a.rating));
+    final list = List.of(apparts)..sort((a, b) => b.rating.compareTo(a.rating));
     return list;
   }
 
   Future<void> _openFilters() async {
     final state = context.read<DemarcheurBloc>().state;
-    final allApparts = state is DemarcheurDataLoaded
-        ? _sorted(state.appartements)
-        : const <Appartement>[];
+    final allApparts =
+        state is DemarcheurDataLoaded ? _sorted(state.appartements) : const <Appartement>[];
     final result = await pushScreen<ListingFilters>(
       context,
-      ListingFilterScreen(
-        allApparts: allApparts,
-        current: _activeFilters,
-      ),
+      ListingFilterScreen(allApparts: allApparts, current: _activeFilters),
     );
     if (result != null && mounted) {
       setState(() => _activeFilters = result);
@@ -113,8 +107,7 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
   }
 
   void _onNextMonth() {
-    setState(() =>
-        _calendarMonth = DateTime(_calendarMonth.year, _calendarMonth.month + 1));
+    setState(() => _calendarMonth = DateTime(_calendarMonth.year, _calendarMonth.month + 1));
   }
 
   @override
@@ -123,10 +116,7 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
       backgroundColor: AppColors.background,
       appBar: DynamicAppBar(
         title: 'Choisir un logement',
-        leading: IconBoutton(
-          icon: Icons.arrow_back_ios_new,
-          onPressed: () => back(context),
-        ),
+        leading: IconBoutton(icon: Icons.arrow_back_ios_new, onPressed: () => back(context)),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -135,10 +125,7 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
               onPressed: () => setState(() => _showMap = !_showMap),
             ),
             const SizedBox(width: 4),
-            _FilterButton(
-              activeCount: _activeFilters.activeCount,
-              onPressed: _openFilters,
-            ),
+            _FilterButton(activeCount: _activeFilters.activeCount, onPressed: _openFilters),
           ],
         ),
         trailingWidth: 130,
@@ -147,133 +134,133 @@ class _DemarcheurListingsScreenState extends State<DemarcheurListingsScreen> {
         create: (_) => DemarcheurMapBloc(),
         lazy: true,
         child: SafeArea(
-        top: false,
-        child: BlocBuilder<DemarcheurBloc, DemarcheurState>(
-          builder: (context, state) {
-            if (state is DemarcheurLoading) {
-              return const Padding(
-                padding: EdgeInsets.fromLTRB(18, 8, 18, 24),
-                child: Column(
-                  children: [
-                    ShimmerCard(height: 112),
-                    SizedBox(height: 12),
-                    ShimmerCard(height: 112),
-                    SizedBox(height: 12),
-                    ShimmerCard(height: 112),
-                  ],
-                ),
-              );
-            }
-            if (state is DemarcheurError) {
-              return EmptyState.error(
-                message: state.message,
-                onRetry: () => context
-                    .read<DemarcheurBloc>()
-                    .add(LoadDemarcheurAppartements()),
-              );
-            }
+          top: false,
+          child: BlocBuilder<DemarcheurBloc, DemarcheurState>(
+            builder: (context, state) {
+              if (state is DemarcheurLoading) {
+                return const Padding(
+                  padding: EdgeInsets.fromLTRB(18, 8, 18, 24),
+                  child: Column(
+                    children: [
+                      ShimmerCard(height: 112),
+                      SizedBox(height: 12),
+                      ShimmerCard(height: 112),
+                      SizedBox(height: 12),
+                      ShimmerCard(height: 112),
+                    ],
+                  ),
+                );
+              }
+              if (state is DemarcheurError) {
+                return EmptyState.error(
+                  message: state.message,
+                  onRetry: () => context.read<DemarcheurBloc>().add(LoadDemarcheurAppartements()),
+                );
+              }
 
-            final allApparts = state is DemarcheurDataLoaded
-                ? _sorted(state.appartements)
-                : const <Appartement>[];
+              final allApparts =
+                  state is DemarcheurDataLoaded
+                      ? _sorted(state.appartements)
+                      : const <Appartement>[];
 
-            if (allApparts.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: EmptyState.hero(
-                  icon: Icons.home_work_outlined,
-                  title: 'Aucun logement partenaire',
-                  body:
-                      "Les logements de vos propriétaires partenaires apparaîtront ici dès qu'ils accepteront une demande de partenariat.",
-                ),
-              );
-            }
+              if (allApparts.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: EmptyState.hero(
+                    icon: Icons.home_work_outlined,
+                    title: 'Aucun logement partenaire',
+                    body:
+                        "Les logements de vos propriétaires partenaires apparaîtront ici dès qu'ils accepteront une demande de partenariat.",
+                  ),
+                );
+              }
 
-            final apparts = _activeFilters.isEmpty
-                ? allApparts
-                : _activeFilters.apply(allApparts);
+              final apparts =
+                  _activeFilters.isEmpty ? allApparts : _activeFilters.apply(allApparts);
 
-            final selectedAppart = _selectedId != null
-                ? apparts.firstWhere(
-                    (a) => a.id == _selectedId,
-                    orElse: () => apparts.isEmpty ? allApparts.first : apparts.first,
-                  )
-                : null;
+              final selectedAppart =
+                  _selectedId != null
+                      ? apparts.firstWhere(
+                        (a) => a.id == _selectedId,
+                        orElse: () => apparts.isEmpty ? allApparts.first : apparts.first,
+                      )
+                      : null;
 
-            final appartementsParId = <int, Appartement>{
-              for (final a in allApparts)
-                if (a.id != null) a.id!: a,
-            };
+              final appartementsParId = <int, Appartement>{
+                for (final a in allApparts)
+                  if (a.id != null) a.id!: a,
+              };
 
-            return Column(
-              children: [
-                Expanded(
-                  child: _showMap
-                      ? ListingMapPane(
-                          appartementsParId: appartementsParId,
-                          activeFilters: _activeFilters,
-                          onTapAppartement: (a) => pushScreen(
-                            context,
-                            DemarcheurAppartDetailScreen(appartement: a),
-                          ),
-                        )
-                      : apparts.isEmpty
-                          ? Padding(
+              return Column(
+                children: [
+                  Expanded(
+                    child:
+                        _showMap
+                            ? ListingMapPane(
+                              appartementsParId: appartementsParId,
+                              activeFilters: _activeFilters,
+                              onTapAppartement:
+                                  (a) => pushScreen(
+                                    context,
+                                    DemarcheurAppartDetailScreen(appartement: a),
+                                  ),
+                            )
+                            : apparts.isEmpty
+                            ? Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 18),
                               child: EmptyState.inline(
                                 icon: Icons.filter_list_off,
                                 title: 'Aucun logement trouvé',
-                                body:
-                                    'Aucun logement ne correspond à vos filtres.',
+                                body: 'Aucun logement ne correspond à vos filtres.',
                                 ctaLabel: 'Réinitialiser les filtres',
-                                onCtaTap: () => setState(
-                                    () => _activeFilters = const ListingFilters()),
+                                onCtaTap:
+                                    () => setState(() => _activeFilters = const ListingFilters()),
                               ),
                             )
-                          : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
-                          itemCount: apparts.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (_, i) {
-                            final a = apparts[i];
-                            final selected = a.id == _selectedId;
-                            return PartnerListingCard(
-                              appartement: a,
-                              estimatedCommission:
-                                  ReferralCommissionHelper.estimate(
-                                      pricePerNight: a.priceAmount),
-                              isSelected: selected,
-                              calendarWidget: selected
-                                  ? ListingAvailabilityCalendar(
-                                      currentMonth: _calendarMonth,
-                                      data: _calendarCache[a.id],
-                                      isLoading: _loadingIds.contains(a.id),
-                                      onPrev: _onPrevMonth,
-                                      onNext: _onNextMonth,
-                                    )
-                                  : null,
-                              onTap: () => _selectListing(a),
-                            );
-                          },
-                        ),
-                ),
-                if (!_showMap &&
-                    _selectedId != null &&
-                    selectedAppart != null &&
-                    apparts.any((a) => a.id == _selectedId))
-                  _ContinueButton(
-                    onPressed: () => pushScreen(
-                      context,
-                      DemarcheurAppartDetailScreen(
-                          appartement: selectedAppart),
-                    ),
+                            : ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(18, 8, 18, 24),
+                              itemCount: apparts.length,
+                              separatorBuilder: (_, __) => const SizedBox(height: 12),
+                              itemBuilder: (_, i) {
+                                final a = apparts[i];
+                                final selected = a.id == _selectedId;
+                                return PartnerListingCard(
+                                  appartement: a,
+                                  estimatedCommission: ReferralCommissionHelper.estimate(
+                                    pricePerNight: a.priceAmount,
+                                  ),
+                                  isSelected: selected,
+                                  calendarWidget:
+                                      selected
+                                          ? ListingAvailabilityCalendar(
+                                            currentMonth: _calendarMonth,
+                                            data: _calendarCache[a.id],
+                                            isLoading: _loadingIds.contains(a.id),
+                                            onPrev: _onPrevMonth,
+                                            onNext: _onNextMonth,
+                                          )
+                                          : null,
+                                  onTap: () => _selectListing(a),
+                                );
+                              },
+                            ),
                   ),
-              ],
-            );
-          },
+                  if (!_showMap &&
+                      _selectedId != null &&
+                      selectedAppart != null &&
+                      apparts.any((a) => a.id == _selectedId))
+                    _ContinueButton(
+                      onPressed:
+                          () => pushScreen(
+                            context,
+                            DemarcheurAppartDetailScreen(appartement: selectedAppart),
+                          ),
+                    ),
+                ],
+              );
+            },
+          ),
         ),
-      ),
       ),
     );
   }
@@ -311,8 +298,7 @@ class _FilterButton extends StatelessWidget {
                       'Filtrer',
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight:
-                            isActive ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                         color: color,
                         height: 1.0,
                       ),
@@ -329,10 +315,7 @@ class _FilterButton extends StatelessWidget {
               child: Container(
                 width: 14,
                 height: 14,
-                decoration: const BoxDecoration(
-                  color: AppColors.accent,
-                  shape: BoxShape.circle,
-                ),
+                decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
                 alignment: Alignment.center,
                 child: Text(
                   '$activeCount',
@@ -372,9 +355,7 @@ class _ContinueButton extends StatelessWidget {
               backgroundColor: AppColors.accent,
               foregroundColor: AppColors.onAccent,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadii.lg),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.lg)),
             ),
             onPressed: onPressed,
             child: const Text(

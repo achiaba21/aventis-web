@@ -40,14 +40,16 @@ class ListingFullCardFooter extends StatelessWidget {
               onTap: onEditTap,
             ),
           ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: ListingFullCardGhostButton(
-              icon: Icons.bar_chart_outlined,
-              label: 'Stats',
-              onTap: onStatsTap,
+          if (onStatsTap != null) ...[
+            const SizedBox(width: 4),
+            Expanded(
+              child: ListingFullCardGhostButton(
+                icon: Icons.bar_chart_outlined,
+                label: 'Stats',
+                onTap: onStatsTap,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

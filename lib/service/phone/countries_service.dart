@@ -1,15 +1,6 @@
 import 'package:asfar/model/phone/country.dart';
 
 class CountriesService {
-  static const List<Country> _countries = [
-    // Pays d'Afrique de l'Ouest (prioritaires)
-    // Ghana
-    // Côte d'Ivoire
-    // Burkina Faso
-    // Mali
-    // + autres pays fréquents
-  ];
-
   // Obtenir tous les pays disponibles
   static List<Country> getAllCountries() {
     return [

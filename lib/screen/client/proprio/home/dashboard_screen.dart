@@ -93,15 +93,6 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
     });
   }
 
-  void _toast(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final firstName = widget.firstName;
@@ -110,10 +101,6 @@ class _ProprioDashboardState extends State<ProprioDashboard> {
       appBar: DynamicAppBar(
         title: 'Bienvenue, $firstName',
         eyebrow: 'TABLEAU DE BORD',
-        leading: IconBoutton(
-          icon: Icons.grid_view_outlined,
-          onPressed: () => _toast('Vue alternative disponible prochainement'),
-        ),
         trailing: IconBoutton(
           icon: Icons.notifications_none,
           onPressed: () => pushScreen(context, const NotificationsScreen()),

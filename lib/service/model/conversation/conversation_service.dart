@@ -1,7 +1,5 @@
-import 'package:dio/dio.dart';
 import 'package:asfar/model/conversation/conversation.dart';
 import 'package:asfar/model/conversation/chat_message.dart';
-import 'package:asfar/model/user/user.dart';
 import 'package:asfar/service/cache/conversation_cache_service.dart';
 import 'package:asfar/service/dio/dio_request.dart';
 import 'package:asfar/util/function.dart';
@@ -17,12 +15,6 @@ class ConversationService {
 
   final ConversationCacheService _cacheService = ConversationCacheService.instance;
   final DioRequest _dioRequest = DioRequest.instance;
-
-  User? _currentUser;
-
-  void setCurrentUser(User? user) {
-    _currentUser = user;
-  }
 
   // === CONVERSATIONS ===
 
@@ -234,19 +226,8 @@ class ConversationService {
   }
 
   Future<ChatMessage> sendMessage(int conversationId, String contenu) async {
-    // 1. Créer message temporaire pour UI optimiste
-    final tempMessage = ChatMessage(
-      tempId: DateTime.now().millisecondsSinceEpoch.toString(),
-      expediteur: _currentUser,
-      contenu: contenu,
-      createdAt: DateTime.now(),
-      conversationId: conversationId,
-      isSending: true,
-      isRead: true, // Nos propres messages sont marqués comme lus
-    );
-
     try {
-      // 2. Envoyer au serveur
+      // Envoyer au serveur
       final response = await _dioRequest.post(
         '/conversations/\$conversationId/messages',
         data: {
@@ -263,21 +244,10 @@ class ConversationService {
         deboger('✅ Message envoyé avec succès');
         return message;
       } else {
-        // Marquer le message temporaire comme échoué
-        final failedMessage = tempMessage.copyWith(
-          isSending: false,
-          hasFailed: true,
-        );
         throw Exception('Erreur envoi message: \${response.statusCode}');
       }
     } catch (e) {
       deboger('❌ Erreur sendMessage: \$e');
-
-      // Retourner le message temporaire marqué comme échoué
-      final failedMessage = tempMessage.copyWith(
-        isSending: false,
-        hasFailed: true,
-      );
 
       rethrow;
     }

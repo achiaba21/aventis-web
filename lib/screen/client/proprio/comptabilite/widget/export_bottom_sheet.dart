@@ -1,3 +1,6 @@
+// ignore_for_file: dead_code
+// Le bloc `if (false)` (export CSV) est une feature désactivée volontairement,
+// conservée comme placeholder pour réactivation future.
 import 'package:flutter/material.dart';
 import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_radii.dart';

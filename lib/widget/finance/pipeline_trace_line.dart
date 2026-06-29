@@ -3,7 +3,7 @@ import 'package:asfar/theme/app_colors.dart';
 import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/fcfa_formatter.dart';
 
-/// Trace discrète d'un montant secondaire — typiquement « Engagé · X FCFA »
+/// Trace discrète d'un montant secondaire — typiquement « À venir · X FCFA »
 /// pour le pipeline résa confirmées non encore payées.
 ///
 /// Atome partagé entre `RevenueHeroCard` et `BeneficeNetHeroCard`. Pourrait
@@ -19,7 +19,7 @@ class PipelineTraceLine extends StatelessWidget {
   const PipelineTraceLine({
     super.key,
     required this.amount,
-    this.label = 'Engagé',
+    this.label = 'À venir',
     this.color = AppColors.accent,
     this.textAlpha = 0.85,
     this.dotAlpha = 0.7,

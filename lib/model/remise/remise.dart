@@ -1,5 +1,4 @@
 import 'package:asfar/model/remise/condition.dart';
-import 'package:asfar/util/function.dart';
 
 class Remise {
   int? id;

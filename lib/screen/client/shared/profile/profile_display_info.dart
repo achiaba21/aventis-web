@@ -1,3 +1,7 @@
+// ignore_for_file: dead_code
+// Les blocs `if (false)` ci-dessous sont des entrées de réglages désactivées
+// volontairement (méthodes de paiement, préférences, méthode de retrait),
+// conservées comme placeholders pour réactivation future.
 import 'package:flutter/material.dart';
 import 'package:asfar/screen/client/shared/profile/widget/profile_settings_card.dart';
 

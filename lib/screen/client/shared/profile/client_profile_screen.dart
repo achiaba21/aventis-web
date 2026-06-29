@@ -1,3 +1,6 @@
+// ignore_for_file: dead_code
+// Le bloc `if (false)` (switcher « Changer de vue ») est une feature désactivée
+// volontairement, conservée comme placeholder pour réactivation future.
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:asfar/bloc/active_shell_cubit/active_shell_cubit.dart';
@@ -24,7 +27,6 @@ import 'package:asfar/theme/app_text_styles.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/button_size.dart';
-import 'package:asfar/widget/button/icon_boutton.dart';
 import 'package:asfar/widget/button/outlined_custom_button.dart';
 
 /// Écran Profil transverse — partagé par les Shells locataire / démarcheur /
@@ -116,12 +118,8 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: DynamicAppBar(
+      appBar: const DynamicAppBar(
         title: 'Profil',
-        trailing: IconBoutton(
-          icon: Icons.settings_outlined,
-          onPressed: () {},
-        ),
       ),
       body: SafeArea(
         top: false,
@@ -146,6 +144,9 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             final availableViews = user != null
                 ? RoleHomeRouter.availableViewsFor(user)
                 : <String>['locataire'];
+            // Gate du switcher « Changer de vue » (bloc `if (false)` plus bas) :
+            // conservé pour réactivation future.
+            // ignore: unused_local_variable
             final canSwitchView = availableViews.length > 1;
 
             return SingleChildScrollView(

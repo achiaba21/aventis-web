@@ -1,3 +1,6 @@
+// ignore_for_file: dead_code
+// « Manque à gagner » masqué volontairement (bloc `if (false)` dans build) —
+// conservé pour réactivation facile.
 import 'package:flutter/material.dart';
 import 'package:asfar/screen/client/proprio/calendrier/widget/calendar_stat_cell.dart';
 import 'package:asfar/theme/app_colors.dart';
@@ -43,14 +46,18 @@ class CalendarStatsRow extends StatelessWidget {
             tone: AppColors.success,
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: CalendarStatCell(
-            label: 'Manque à gagner',
-            value: FcfaFormatter.compact(manqueAGagnerFcfa),
-            tone: AppColors.accent,
+        // « Manque à gagner » masqué (réversible) — passer `false` à `true`
+        // pour le réafficher (Occupé/Libre repassent alors en 50/50).
+        if (false) ...[
+          const SizedBox(width: 10),
+          Expanded(
+            child: CalendarStatCell(
+              label: 'Manque à gagner',
+              value: FcfaFormatter.compact(manqueAGagnerFcfa),
+              tone: AppColors.accent,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

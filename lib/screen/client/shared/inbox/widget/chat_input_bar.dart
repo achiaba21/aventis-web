@@ -69,11 +69,13 @@ class _ChatInputBarState extends State<ChatInputBar> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                IconBoutton(
-                  icon: Icons.add,
-                  onPressed: widget.onPlusTap,
-                ),
-                const SizedBox(width: 10),
+                if (widget.onPlusTap != null) ...[
+                  IconBoutton(
+                    icon: Icons.add,
+                    onPressed: widget.onPlusTap,
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 Expanded(
                   child: InputField(
                     controller: _controller,

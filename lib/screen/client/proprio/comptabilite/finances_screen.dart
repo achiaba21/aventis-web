@@ -32,6 +32,7 @@ import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/button_size.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
+import 'package:asfar/widget/button/custom_button.dart';
 import 'package:asfar/widget/button/outlined_custom_button.dart';
 import 'package:asfar/widget/feedback/empty_state.dart';
 
@@ -284,21 +285,10 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                 onPressed: () => back(context),
               )
             : null,
-        trailingWidth: 84,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconBoutton(
-              icon: Icons.receipt_long_outlined,
-              onPressed: () =>
-                  pushScreen(context, const ChargesListScreen()),
-            ),
-            const SizedBox(width: 8),
-            IconBoutton(
-              icon: Icons.download_outlined,
-              onPressed: _onExportTap,
-            ),
-          ],
+        trailingWidth: 40,
+        trailing: IconBoutton(
+          icon: Icons.download_outlined,
+          onPressed: _onExportTap,
         ),
       ),
       body: SafeArea(
@@ -442,12 +432,31 @@ class _ProprioFinancesScreenState extends State<ProprioFinancesScreen> {
                           //   ),
                           // ),
                           const SizedBox(height: 22),
-                          OutlinedCustomButton(
-                            text: 'Exporter en PDF',
-                            onPressed: _onExportTap,
-                            size: ButtonSize.lg,
-                            block: true,
-                            leadingIcon: Icons.download_outlined,
+                          // Actions côte à côte : ajout d'une charge (primaire)
+                          // + export PDF (secondaire). Demi-largeur chacune.
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomButton(
+                                  text: 'Charge',
+                                  onPressed: () => pushScreen(
+                                      context, const ChargesListScreen()),
+                                  size: ButtonSize.md,
+                                  block: true,
+                                  leadingIcon: Icons.post_add_outlined,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: OutlinedCustomButton(
+                                  text: 'Exporter en PDF',
+                                  onPressed: _onExportTap,
+                                  size: ButtonSize.md,
+                                  block: true,
+                                  leadingIcon: Icons.download_outlined,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

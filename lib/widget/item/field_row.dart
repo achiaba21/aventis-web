@@ -9,7 +9,7 @@ import 'package:asfar/theme/app_text_styles.dart';
 class FieldRow extends StatelessWidget {
   final String eyebrow;
   final String value;
-  final IconData trailingIcon;
+  final IconData? trailingIcon;
   final VoidCallback? onTap;
 
   const FieldRow({
@@ -52,7 +52,8 @@ class FieldRow extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(trailingIcon, size: 16, color: AppColors.text3),
+              if (trailingIcon != null)
+                Icon(trailingIcon, size: 16, color: AppColors.text3),
             ],
           ),
         ),

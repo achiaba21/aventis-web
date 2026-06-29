@@ -157,8 +157,15 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
       final currentReq = state.currentReq;
       final currentReservations = state.reservations;
       try {
-        final reservations = await reservationService.getUserReservations();
-        emit(ReservationLoaded(reservations, currentReq: currentReq));
+        // Refresh forcé VIA LE REPOSITORY (API→Hive→état) — jamais d'appel
+        // direct au service, sinon on contourne Hive et on écrase l'état avec
+        // une liste hors-cache. Mono-rôle : on recharge la liste du rôle de
+        // l'utilisateur (proprio = owner, sinon user), pour ne pas vider le
+        // calcul compta proprio avec la liste locataire.
+        final result = event.isProprietaire
+            ? await _repository.getProprietaireReservations(forceRefresh: true)
+            : await _repository.getUserReservations(forceRefresh: true);
+        emit(ReservationLoaded(result.reservations, currentReq: currentReq));
       } on CustomException catch (e) {
         emit(ReservationError(e.message, currentReq: currentReq, reservations: currentReservations));
       } on DioException catch (e) {

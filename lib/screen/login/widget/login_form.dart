@@ -67,15 +67,6 @@ class _LoginFormState extends State<LoginForm> {
     context.read<UserBloc>().add(LoginUser(user));
   }
 
-  void _onForgotPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Récupération de mot de passe à venir'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<UserBloc, UserState>(
@@ -133,24 +124,6 @@ class _LoginFormState extends State<LoginForm> {
                   iconSize: 16,
                 ),
                 onSubmitted: (_) => _submit(),
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: InkWell(
-                  onTap: _onForgotPassword,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-                    child: Text(
-                      'Mot de passe oublié ?',
-                      style: TextStyle(
-                        color: AppColors.accent,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
               ),
               const SizedBox(height: 18),
               CustomButton(

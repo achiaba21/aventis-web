@@ -21,7 +21,16 @@ class LoadUserReservations extends ReservationEvent {}
 
 class LoadProprietaireReservations extends ReservationEvent {}
 
-class RefreshReservations extends ReservationEvent {}
+/// Rafraîchit la liste depuis le repository (API→Hive→état), en forçant un
+/// refetch. [isProprietaire] route vers la liste owner (propriétaire) ou user
+/// (locataire) — l'app est mono-rôle, le type d'utilisateur tranche. Passer
+/// par le repository garantit que l'état reste un miroir de Hive (source de
+/// vérité unique) et n'est pas écrasé par une lecture hors-cache.
+class RefreshReservations extends ReservationEvent {
+  final bool isProprietaire;
+
+  RefreshReservations({this.isProprietaire = false});
+}
 
 class CancelReservation extends ReservationEvent {
   final String reference;

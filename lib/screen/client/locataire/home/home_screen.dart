@@ -158,7 +158,6 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
                                   context,
                                   const NotificationsScreen(),
                                 ),
-                            onAvatarTap: () {},
                           ),
                           const SizedBox(height: 14),
                           LocataireSearchBar(
@@ -191,12 +190,8 @@ class _LocataireHomeScreenState extends State<LocataireHomeScreen> {
                       ),
                     )
                   else ...[
-                    SliverToBoxAdapter(
-                      child: SectionHeader(
-                        title: 'À la une',
-                        actionLabel: 'Voir tout',
-                        onActionTap: () {},
-                      ),
+                    const SliverToBoxAdapter(
+                      child: SectionHeader(title: 'À la une'),
                     ),
                     SliverToBoxAdapter(
                       child: FeaturedListingsCarousel(
