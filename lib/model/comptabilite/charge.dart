@@ -191,12 +191,6 @@ class Charge {
     );
   }
 
-  /// Calcule le montant mensuel équivalent
-  double get montantMensuel {
-    if (montant == null) return 0;
-    return frequence.montantMensuel(montant!);
-  }
-
   /// Label complet pour affichage
   String get labelComplet {
     if (libelle != null && libelle!.isNotEmpty) {

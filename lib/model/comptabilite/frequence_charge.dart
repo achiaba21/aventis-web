@@ -35,30 +35,6 @@ extension FrequenceChargeExtension on FrequenceCharge {
   /// Indique si la charge se répète dans le temps (mensuel, trimestriel, etc.).
   bool get isRecurrente => !isPonctuel;
 
-  /// Nombre de mois entre chaque paiement
-  int get intervalMois {
-    switch (this) {
-      case FrequenceCharge.ponctuel:
-        return 0;
-      case FrequenceCharge.mensuel:
-        return 1;
-      case FrequenceCharge.bimestriel:
-        return 2;
-      case FrequenceCharge.trimestriel:
-        return 3;
-      case FrequenceCharge.semestriel:
-        return 6;
-      case FrequenceCharge.annuel:
-        return 12;
-    }
-  }
-
-  /// Calcule le montant mensuel équivalent pour une charge donnée
-  double montantMensuel(double montant) {
-    if (this == FrequenceCharge.ponctuel) return 0;
-    return montant / intervalMois;
-  }
-
   /// Parse une valeur (supporte MAJUSCULE et minuscule)
   static FrequenceCharge fromString(String value) {
     final lowerValue = value.toLowerCase();

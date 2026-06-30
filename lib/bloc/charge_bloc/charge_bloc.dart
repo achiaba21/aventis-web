@@ -77,9 +77,12 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
     AddCharge event,
     Emitter<ChargeState> emit,
   ) async {
-    if (state is! ChargeLoaded) return;
-
-    final currentState = state as ChargeLoaded;
+    // Tolérant à l'état courant : si le chargement a échoué (ex. 400 backend)
+    // l'état n'est pas ChargeLoaded — on repart d'un ChargeLoaded dérivé des
+    // dernières charges connues pour que l'opération aboutisse quand même.
+    final currentState = state is ChargeLoaded
+        ? state as ChargeLoaded
+        : ChargeLoaded(charges: state.charges);
     emit(ChargeLoading());
 
     try {
@@ -114,9 +117,12 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
     UpdateCharge event,
     Emitter<ChargeState> emit,
   ) async {
-    if (state is! ChargeLoaded) return;
-
-    final currentState = state as ChargeLoaded;
+    // Tolérant à l'état courant : si le chargement a échoué (ex. 400 backend)
+    // l'état n'est pas ChargeLoaded — on repart d'un ChargeLoaded dérivé des
+    // dernières charges connues pour que l'opération aboutisse quand même.
+    final currentState = state is ChargeLoaded
+        ? state as ChargeLoaded
+        : ChargeLoaded(charges: state.charges);
     emit(ChargeLoading());
 
     try {
@@ -142,9 +148,12 @@ class ChargeBloc extends Bloc<ChargeEvent, ChargeState> {
     DeleteCharge event,
     Emitter<ChargeState> emit,
   ) async {
-    if (state is! ChargeLoaded) return;
-
-    final currentState = state as ChargeLoaded;
+    // Tolérant à l'état courant : si le chargement a échoué (ex. 400 backend)
+    // l'état n'est pas ChargeLoaded — on repart d'un ChargeLoaded dérivé des
+    // dernières charges connues pour que l'opération aboutisse quand même.
+    final currentState = state is ChargeLoaded
+        ? state as ChargeLoaded
+        : ChargeLoaded(charges: state.charges);
     emit(ChargeLoading());
 
     try {

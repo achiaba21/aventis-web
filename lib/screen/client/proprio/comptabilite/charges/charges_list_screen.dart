@@ -15,7 +15,9 @@ import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charge_r
 import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charge_type_picker.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charges_empty_view.dart';
 import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charges_loading_view.dart';
+import 'package:asfar/screen/client/proprio/comptabilite/charges/widget/charges_total_header.dart';
 import 'package:asfar/theme/app_colors.dart';
+import 'package:asfar/util/calc/charges_total.dart';
 import 'package:asfar/util/navigation.dart';
 import 'package:asfar/widget/appbar/dynamic_appbar.dart';
 import 'package:asfar/widget/button/icon_boutton.dart';
@@ -162,6 +164,13 @@ class _ChargesListViewState extends State<_ChargesListView> {
                       periodLabel: _periodLabel(filterState),
                     ),
                     const SizedBox(height: 12),
+                    if (!isLoading && filtered.isNotEmpty) ...[
+                      ChargesTotalHeader(
+                        count: filtered.length,
+                        total: ChargesTotal.sum(filtered),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     Expanded(
                       child: isLoading
                           ? const ChargesLoadingView()
